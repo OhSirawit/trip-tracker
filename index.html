@@ -117,22 +117,28 @@
         }
 
         .pwa-install-btn {
-            display: none;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            gap: 6px;
+            background: linear-gradient(135deg, #ea580c, #c2410c);
             color: #ffffff;
             border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 3px 10px rgba(234, 88, 12, 0.4);
+            transition: all 0.2s ease;
         }
 
-        .pwa-install-btn.visible {
-            display: flex;
+        .pwa-install-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .pwa-install-btn:active {
+            transform: translateY(0);
         }
 
         .status-badge {
@@ -661,7 +667,7 @@
             </div>
             <div class="header-actions">
                 <button class="pwa-install-btn" id="pwaInstallBtn">
-                    <i class="fa-solid fa-download"></i> Install App
+                    <i class="fa-solid fa-mobile-screen-button"></i> Install App
                 </button>
                 <div class="status-badge" id="statusBadge">
                     <div class="status-dot"></div>
@@ -772,50 +778,19 @@
                 </button>
             </div>
 
-            <!-- Modal Content -->
-            <div class="summary-body">
-                <!-- Timeline Info Column -->
-                <div class="summary-timeline-col">
-                    <div class="timeline-container">
-                        <div class="timeline-line"></div>
-                        
-                        <!-- Start Point -->
-                        <div class="timeline-point">
-                            <div class="timeline-marker"></div>
-                            <div class="point-time" id="modalStartTime">12:00 AM</div>
-                            <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
-                        </div>
-
-                        <!-- End Point -->
-                        <div class="timeline-point">
-                            <div class="timeline-marker"></div>
-                            <div class="point-time" id="modalEndTime">12:00 AM</div>
-                            <div class="point-address loading" id="modalEndAddress">Fetching location...</div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Extra Stats -->
-                    <div class="summary-extra-stats">
-                        <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
-                        <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
-                    </div>
-                </div>
-
-                <!-- Mini Preview Map Column -->
-                <div class="summary-map-col">
-                    <div id="summaryMap"></div>
-                </div>
+    <!-- PWA Install Guide Modal (for iOS & unsupported browsers) -->
+    <div class="modal-overlay" id="installGuideModal">
+        <div class="summary-card" style="max-width: 420px; padding: 20px; text-align: center;">
+            <div style="font-size: 2rem; color: #ea580c; margin-bottom: 10px;">
+                <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
-
-            <!-- Modal Bottom Actions -->
-            <div class="summary-actions-bar">
-                <button class="btn-modal" id="exportGpxBtn">
-                    <i class="fa-solid fa-download"></i> Download GPX
-                </button>
-                <button class="btn-modal btn-modal-primary" id="confirmCloseModalBtn">
-                    Close
-                </button>
-            </div>
+            <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: #0f172a;">Install WebApp</h2>
+            <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 16px;" id="installGuideText">
+                To install this app on your phone, open this link in <strong>Safari</strong> (iOS) or <strong>Chrome</strong> (Android), tap <strong>Share / Menu</strong>, then select <strong>"Add to Home Screen"</strong>.
+            </p>
+            <button class="btn-modal btn-modal-primary" id="closeInstallGuideBtn" style="width: 100%; justify-content: center; padding: 10px;">
+                Got it
+            </button>
         </div>
     </div>
 
@@ -858,21 +833,37 @@
         // --- PWA Installation Prompt ---
         let deferredPrompt;
         const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+        const installGuideModal = document.getElementById('installGuideModal');
+        const closeInstallGuideBtn = document.getElementById('closeInstallGuideBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            pwaInstallBtn.classList.add('visible');
         });
 
         pwaInstallBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                pwaInstallBtn.classList.remove('visible');
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    pwaInstallBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // Show installation helper dialog for iOS Safari or installed state
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const guideText = document.getElementById('installGuideText');
+                if (isIOS) {
+                    guideText.innerHTML = 'To install on iOS:<br>1. Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket"></i> at the bottom.<br>2. Scroll down and tap <strong>"Add to Home Screen"</strong>.';
+                } else {
+                    guideText.innerHTML = 'To install on your phone:<br>1. Open browser menu (<strong>⋮</strong>).<br>2. Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.';
+                }
+                installGuideModal.classList.add('active');
             }
-            deferredPrompt = null;
+        });
+
+        closeInstallGuideBtn.addEventListener('click', () => {
+            installGuideModal.classList.remove('active');
         });
 
         // --- Application State Management ---

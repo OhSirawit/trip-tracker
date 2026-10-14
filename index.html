@@ -780,15 +780,15 @@
 
     <!-- PWA Install Guide Modal (for iOS & unsupported browsers) -->
     <div class="modal-overlay" id="installGuideModal">
-        <div class="summary-card" style="max-width: 420px; padding: 20px; text-align: center;">
-            <div style="font-size: 2rem; color: #ea580c; margin-bottom: 10px;">
+        <div class="summary-card" style="max-width: 440px; padding: 20px; text-align: center; color: #0f172a;">
+            <div style="font-size: 2.2rem; color: #ea580c; margin-bottom: 8px;">
                 <i class="fa-solid fa-mobile-screen-button"></i>
             </div>
-            <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: #0f172a;">Install WebApp</h2>
-            <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 16px;" id="installGuideText">
-                To install this app on your phone, open this link in <strong>Safari</strong> (iOS) or <strong>Chrome</strong> (Android), tap <strong>Share / Menu</strong>, then select <strong>"Add to Home Screen"</strong>.
-            </p>
-            <button class="btn-modal btn-modal-primary" id="closeInstallGuideBtn" style="width: 100%; justify-content: center; padding: 10px;">
+            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Install Web App</h2>
+            <div style="font-size: 0.88rem; color: #334155; line-height: 1.6; text-align: left; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;" id="installGuideText">
+                <!-- Instructions dynamically injected based on device/browser -->
+            </div>
+            <button class="btn-modal btn-modal-primary" id="closeInstallGuideBtn" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 600;">
                 Got it
             </button>
         </div>
@@ -798,25 +798,34 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // --- Setup Inline Web App Manifest & Service Worker ---
         (function setupPWA() {
             const manifestObj = {
                 name: "Trip Tracker - GPS Driving Log",
                 short_name: "TripTracker",
-                start_url: "./",
+                start_url: "./index.html",
                 display: "standalone",
                 background_color: "#0f172a",
                 theme_color: "#0f172a",
+                orientation: "portrait",
                 icons: [
                     {
                         src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
                         sizes: "512x512",
-                        type: "image/png"
+                        type: "image/png",
+                        purpose: "any maskable"
                     }
                 ]
             };
-            const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
-            document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(manifestBlob));
+            
+            // Use Data URI for broader compatibility with mobile browsers
+            const manifestDataUri = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+            document.getElementById('manifest-link').setAttribute('href', manifestDataUri);
 
             // Register Service Worker
             if ('serviceWorker' in navigator) {
@@ -830,6 +839,12 @@
             }
         })();
 
+        // --- In-App Browser Detection ---
+        function isInAppBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return /FBAN|FBAV|Instagram|Line|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
+        }
+
         // --- PWA Installation Prompt ---
         let deferredPrompt;
         const pwaInstallBtn = document.getElementById('pwaInstallBtn');
@@ -839,9 +854,28 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            if (pwaInstallBtn) {
+                pwaInstallBtn.style.display = 'inline-flex';
+            }
         });
 
         pwaInstallBtn.addEventListener('click', async () => {
+            const guideText = document.getElementById('installGuideText');
+            
+            // 1. Check if opened inside LINE / Facebook / Messenger In-App Browser
+            if (isInAppBrowser()) {
+                guideText.innerHTML = `
+                    <strong style="color: #dc2626;">⚠️ Opened in App Browser (LINE / Facebook)</strong><br><br>
+                    In-app browsers do not support Web App installation or background GPS tracking.<br><br>
+                    <strong>How to fix:</strong><br>
+                    1. Tap the <strong>3 dots (⋮)</strong> or <strong>Share</strong> button at the top/bottom.<br>
+                    2. Select <strong>"Open in Chrome"</strong> (Android) or <strong>"Open in Safari"</strong> (iOS).
+                `;
+                installGuideModal.classList.add('active');
+                return;
+            }
+
+            // 2. Direct Chrome/Android auto-prompt
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
@@ -850,13 +884,22 @@
                 }
                 deferredPrompt = null;
             } else {
-                // Show installation helper dialog for iOS Safari or installed state
+                // 3. Manual instruction prompt for iOS Safari or installed state
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                const guideText = document.getElementById('installGuideText');
                 if (isIOS) {
-                    guideText.innerHTML = 'To install on iOS:<br>1. Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket"></i> at the bottom.<br>2. Scroll down and tap <strong>"Add to Home Screen"</strong>.';
+                    guideText.innerHTML = `
+                        <strong>📱 Installation on iOS (Safari):</strong><br><br>
+                        1. Make sure you are using <strong>Safari browser</strong>.<br>
+                        2. Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket" style="color: #2563eb;"></i> at the bottom toolbar.<br>
+                        3. Scroll down and select <strong>"Add to Home Screen"</strong> <i class="fa-regular fa-square-plus" style="color: #2563eb;"></i>.
+                    `;
                 } else {
-                    guideText.innerHTML = 'To install on your phone:<br>1. Open browser menu (<strong>⋮</strong>).<br>2. Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.';
+                    guideText.innerHTML = `
+                        <strong>📱 Installation on Android (Chrome):</strong><br><br>
+                        1. Tap the <strong>Chrome menu (⋮)</strong> at the top right.<br>
+                        2. Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.<br><br>
+                        <em>Note: If already installed, check your phone's app list.</em>
+                    `;
                 }
                 installGuideModal.classList.add('active');
             }

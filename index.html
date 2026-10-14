@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Trip Tracker - GPS Driving Log</title>
     
-    <!-- Leaflet CSS for Maps -->
+    <!-- PWA & Mobile Web App Capabilities -->
+    <title>Trip Tracker - Driving GPS Log</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TripTracker">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Dynamic Web App Manifest Link Placeholder -->
+    <link id="manifest-link" rel="manifest">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202021.png">
+    
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- FontAwesome Icon Library -->
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Inter Font -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -28,7 +39,9 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --accent-green: #10b981;
+            --accent-green-hover: #059669;
             --accent-red: #ef4444;
+            --accent-red-hover: #dc2626;
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
             --accent-cyan: #06b6d4;
@@ -43,16 +56,17 @@
             overflow: hidden;
         }
 
-        /* App Layout Wrapper */
+        /* App Layout Container */
         .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh;
+            height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
             width: 100%;
             position: relative;
         }
 
+        /* Top Bar Header */
         .header {
             padding: 10px 16px;
             background-color: rgba(15, 23, 42, 0.95);
@@ -96,6 +110,31 @@
             color: var(--text-secondary);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pwa-install-btn {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+        }
+
+        .pwa-install-btn.visible {
+            display: flex;
+        }
+
         .status-badge {
             display: flex;
             align-items: center;
@@ -126,6 +165,7 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
+        /* Main Content Viewport */
         .content-body {
             display: flex;
             flex: 1;
@@ -140,6 +180,7 @@
             }
         }
 
+        /* Dashboard Metrics Panel */
         .dashboard-panel {
             padding: 12px;
             display: flex;
@@ -147,7 +188,7 @@
             gap: 10px;
             background-color: var(--bg-main);
             z-index: 10;
-            max-height: 48vh;
+            max-height: 46vh;
             overflow-y: auto;
             flex-shrink: 0;
             border-bottom: 1px solid var(--border-color);
@@ -162,11 +203,12 @@
             }
         }
 
+        /* Primary Speed Gauge */
         .speed-card-main {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 14px 16px;
+            padding: 12px 16px;
             text-align: center;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             position: relative;
@@ -174,7 +216,7 @@
         }
 
         .speed-title {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -189,7 +231,7 @@
         }
 
         .speed-number {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 700;
             color: #ffffff;
             line-height: 1;
@@ -198,11 +240,12 @@
         }
 
         .speed-unit {
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
+        /* Grid Statistics Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -227,6 +270,10 @@
             justify-content: space-between;
         }
 
+        .stat-icon {
+            font-size: 0.8rem;
+        }
+
         .stat-value-group {
             display: flex;
             align-items: baseline;
@@ -235,7 +282,7 @@
         }
 
         .stat-value {
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: 600;
             color: var(--text-primary);
             font-feature-settings: "tnum";
@@ -247,6 +294,7 @@
             color: var(--text-secondary);
         }
 
+        /* Meta GPS Data Row */
         .gps-info-row {
             display: flex;
             justify-content: space-between;
@@ -256,6 +304,7 @@
             padding: 2px 4px;
         }
 
+        /* Map Container */
         .map-wrapper {
             flex: 1;
             position: relative;
@@ -270,6 +319,7 @@
             background-color: #12161f;
         }
 
+        /* Floating Recenter Map Button */
         .map-recenter-btn {
             position: absolute;
             bottom: 16px;
@@ -295,6 +345,7 @@
             background-color: var(--bg-card-accent);
         }
 
+        /* Bottom Fixed Action Controls Bar */
         .controls-bar {
             padding: 12px 16px;
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
@@ -335,9 +386,19 @@
             flex: 2;
         }
 
+        .btn-start:not(:disabled):active {
+            background: #059669;
+            transform: translateY(1px);
+        }
+
         .btn-finish {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             flex: 2;
+        }
+
+        .btn-finish:not(:disabled):active {
+            background: #dc2626;
+            transform: translateY(1px);
         }
 
         .btn-reset {
@@ -347,9 +408,17 @@
             max-width: 60px;
         }
 
+        .btn-reset:not(:disabled):active {
+            background-color: #475569;
+        }
+
+        /* Trip Summary Modal Overlay */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(6px);
             z-index: 2000;
@@ -434,6 +503,7 @@
             }
         }
 
+        /* Left Side Timeline */
         .summary-timeline-col {
             padding: 20px;
             flex: 1;
@@ -462,6 +532,10 @@
             margin-bottom: 24px;
         }
 
+        .timeline-point:last-child {
+            margin-bottom: 0;
+        }
+
         .timeline-marker {
             position: absolute;
             left: -28px;
@@ -483,13 +557,11 @@
             font-size: 0.85rem;
             color: #2563eb;
             line-height: 1.4;
-            text-decoration: underline;
             word-break: break-word;
         }
 
         .point-address.loading {
             color: #94a3b8;
-            text-decoration: none;
         }
 
         .summary-extra-stats {
@@ -505,6 +577,7 @@
             color: #0f172a;
         }
 
+        /* Right Side Map Preview */
         .summary-map-col {
             flex: 1;
             min-height: 220px;
@@ -547,6 +620,7 @@
             border: none;
         }
 
+        /* Custom Leaflet Markers */
         .user-location-marker {
             width: 16px;
             height: 16px;
@@ -562,12 +636,19 @@
             background-color: #000000;
             border: 2px solid #ffffff;
         }
+
+        /* Disable link popups on Leaflet attribution to avoid Android "Could not open app" toast */
+        .leaflet-control-attribution a {
+            pointer-events: none;
+            color: inherit;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Top Navigation Header -->
+        <!-- Top App Bar -->
         <header class="header">
             <div class="brand">
                 <div class="brand-icon">
@@ -575,19 +656,25 @@
                 </div>
                 <div class="brand-text">
                     <h1>Trip Tracker</h1>
-                    <p>Driving GPS Tracker</p>
+                    <p>Driving GPS Log</p>
                 </div>
             </div>
-            <div class="status-badge" id="statusBadge">
-                <div class="status-dot"></div>
-                <span id="statusText">Ready</span>
+            <div class="header-actions">
+                <button class="pwa-install-btn" id="pwaInstallBtn">
+                    <i class="fa-solid fa-download"></i> Install App
+                </button>
+                <div class="status-badge" id="statusBadge">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Ready</span>
+                </div>
             </div>
         </header>
 
-        <!-- Main Body: Panel + Map -->
+        <!-- Main Content (Dashboard + Map) -->
         <div class="content-body">
-            <!-- Dashboard Metrics -->
+            <!-- Dashboard Stats Panel -->
             <div class="dashboard-panel">
+                <!-- Speed Card -->
                 <div class="speed-card-main">
                     <div class="speed-title">Current Speed</div>
                     <div class="speed-value-group">
@@ -596,11 +683,12 @@
                     </div>
                 </div>
 
+                <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Max Speed</span>
-                            <i class="fa-solid fa-gauge-high" style="color: var(--accent-amber)"></i>
+                            <i class="fa-solid fa-gauge-high stat-icon" style="color: var(--accent-amber)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="maxSpeed">0.0</span>
@@ -611,7 +699,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Avg Speed</span>
-                            <i class="fa-solid fa-chart-line" style="color: var(--accent-green)"></i>
+                            <i class="fa-solid fa-chart-line stat-icon" style="color: var(--accent-green)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="avgSpeed">0.0</span>
@@ -622,7 +710,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Distance</span>
-                            <i class="fa-solid fa-route" style="color: var(--accent-blue)"></i>
+                            <i class="fa-solid fa-route stat-icon" style="color: var(--accent-blue)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="totalDistance">0.00</span>
@@ -633,7 +721,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Duration</span>
-                            <i class="fa-solid fa-stopwatch" style="color: var(--accent-cyan)"></i>
+                            <i class="fa-solid fa-stopwatch stat-icon" style="color: var(--accent-cyan)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="duration">00:00:00</span>
@@ -641,6 +729,7 @@
                     </div>
                 </div>
 
+                <!-- GPS Status Info -->
                 <div class="gps-info-row">
                     <span id="gpsCoords">GPS: -</span>
                     <span id="gpsAccuracy">Accuracy: -</span>
@@ -656,7 +745,7 @@
             </div>
         </div>
 
-        <!-- Fixed Controls Footer -->
+        <!-- Bottom Fixed Controls Bar -->
         <div class="controls-bar">
             <button class="btn btn-start" id="startBtn">
                 <i class="fa-solid fa-play"></i> Start Drive
@@ -670,9 +759,10 @@
         </div>
     </div>
 
-    <!-- Summary Modal -->
+    <!-- Trip Summary Modal Screen -->
     <div class="modal-overlay" id="summaryModal">
         <div class="summary-card">
+            <!-- Modal Header Summary -->
             <div class="summary-header-bar">
                 <div class="summary-main-metrics" id="modalHeaderSummary">
                     0.00 kilometers <span>|</span> 0 min
@@ -682,17 +772,21 @@
                 </button>
             </div>
 
+            <!-- Modal Content -->
             <div class="summary-body">
+                <!-- Timeline Info Column -->
                 <div class="summary-timeline-col">
                     <div class="timeline-container">
                         <div class="timeline-line"></div>
                         
+                        <!-- Start Point -->
                         <div class="timeline-point">
                             <div class="timeline-marker"></div>
                             <div class="point-time" id="modalStartTime">12:00 AM</div>
                             <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
                         </div>
 
+                        <!-- End Point -->
                         <div class="timeline-point">
                             <div class="timeline-marker"></div>
                             <div class="point-time" id="modalEndTime">12:00 AM</div>
@@ -700,17 +794,20 @@
                         </div>
                     </div>
 
+                    <!-- Additional Extra Stats -->
                     <div class="summary-extra-stats">
                         <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
                         <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
                     </div>
                 </div>
 
+                <!-- Mini Preview Map Column -->
                 <div class="summary-map-col">
                     <div id="summaryMap"></div>
                 </div>
             </div>
 
+            <!-- Modal Bottom Actions -->
             <div class="summary-actions-bar">
                 <button class="btn-modal" id="exportGpxBtn">
                     <i class="fa-solid fa-download"></i> Download GPX
@@ -726,6 +823,59 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+        // --- Setup Inline Web App Manifest & Service Worker ---
+        (function setupPWA() {
+            const manifestObj = {
+                name: "Trip Tracker - GPS Driving Log",
+                short_name: "TripTracker",
+                start_url: "./",
+                display: "standalone",
+                background_color: "#0f172a",
+                theme_color: "#0f172a",
+                icons: [
+                    {
+                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
+                        sizes: "512x512",
+                        type: "image/png"
+                    }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+            document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+            // Register Service Worker
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(e => console.warn('SW:', e));
+            }
+        })();
+
+        // --- PWA Installation Prompt ---
+        let deferredPrompt;
+        const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            pwaInstallBtn.classList.add('visible');
+        });
+
+        pwaInstallBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                pwaInstallBtn.classList.remove('visible');
+            }
+            deferredPrompt = null;
+        });
+
+        // --- Application State Management ---
         let isTracking = false;
         let watchPositionId = null;
         let timerInterval = null;
@@ -749,6 +899,7 @@
 
         let wakeLock = null;
 
+        // --- DOM Elements ---
         const startBtn = document.getElementById('startBtn');
         const finishBtn = document.getElementById('finishBtn');
         const resetBtn = document.getElementById('resetBtn');

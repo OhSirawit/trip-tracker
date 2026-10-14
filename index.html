@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Trip Tracker - GPS Driving Log</title>
     
-    <!-- Leaflet CSS -->
+    <!-- Leaflet CSS for Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- FontAwesome for Icons -->
+    <!-- FontAwesome Icon Library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts -->
+    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -28,9 +28,7 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --accent-green: #10b981;
-            --accent-green-hover: #059669;
             --accent-red: #ef4444;
-            --accent-red-hover: #dc2626;
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
             --accent-cyan: #06b6d4;
@@ -45,17 +43,16 @@
             overflow: hidden;
         }
 
-        /* App Layout Container */
+        /* App Layout Wrapper */
         .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
+            height: 100dvh;
             width: 100%;
             position: relative;
         }
 
-        /* Top Bar Header */
         .header {
             padding: 10px 16px;
             background-color: rgba(15, 23, 42, 0.95);
@@ -129,7 +126,6 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Main Content Viewport */
         .content-body {
             display: flex;
             flex: 1;
@@ -144,7 +140,6 @@
             }
         }
 
-        /* Dashboard Metrics Panel */
         .dashboard-panel {
             padding: 12px;
             display: flex;
@@ -167,7 +162,6 @@
             }
         }
 
-        /* Primary Speed Gauge */
         .speed-card-main {
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -209,7 +203,6 @@
             font-weight: 500;
         }
 
-        /* Grid Statistics Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -234,10 +227,6 @@
             justify-content: space-between;
         }
 
-        .stat-icon {
-            font-size: 0.8rem;
-        }
-
         .stat-value-group {
             display: flex;
             align-items: baseline;
@@ -258,7 +247,6 @@
             color: var(--text-secondary);
         }
 
-        /* Meta GPS Data Row */
         .gps-info-row {
             display: flex;
             justify-content: space-between;
@@ -268,7 +256,6 @@
             padding: 2px 4px;
         }
 
-        /* Map Container */
         .map-wrapper {
             flex: 1;
             position: relative;
@@ -283,7 +270,6 @@
             background-color: #12161f;
         }
 
-        /* Floating Recenter Map Button */
         .map-recenter-btn {
             position: absolute;
             bottom: 16px;
@@ -309,7 +295,6 @@
             background-color: var(--bg-card-accent);
         }
 
-        /* Bottom Fixed Action Controls Bar */
         .controls-bar {
             padding: 12px 16px;
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
@@ -350,19 +335,9 @@
             flex: 2;
         }
 
-        .btn-start:not(:disabled):active {
-            background: #059669;
-            transform: translateY(1px);
-        }
-
         .btn-finish {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             flex: 2;
-        }
-
-        .btn-finish:not(:disabled):active {
-            background: #dc2626;
-            transform: translateY(1px);
         }
 
         .btn-reset {
@@ -372,17 +347,9 @@
             max-width: 60px;
         }
 
-        .btn-reset:not(:disabled):active {
-            background-color: #475569;
-        }
-
-        /* Trip Summary Modal Overlay */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(6px);
             z-index: 2000;
@@ -467,7 +434,6 @@
             }
         }
 
-        /* Left Side Timeline */
         .summary-timeline-col {
             padding: 20px;
             flex: 1;
@@ -496,10 +462,6 @@
             margin-bottom: 24px;
         }
 
-        .timeline-point:last-child {
-            margin-bottom: 0;
-        }
-
         .timeline-marker {
             position: absolute;
             left: -28px;
@@ -507,13 +469,6 @@
             width: 12px;
             height: 12px;
             background-color: #000000;
-        }
-
-        .timeline-marker.start {
-            border-radius: 2px;
-        }
-
-        .timeline-marker.end {
             border-radius: 2px;
         }
 
@@ -550,7 +505,6 @@
             color: #0f172a;
         }
 
-        /* Right Side Map Preview */
         .summary-map-col {
             flex: 1;
             min-height: 220px;
@@ -593,7 +547,6 @@
             border: none;
         }
 
-        /* Custom Leaflet Marker Styling */
         .user-location-marker {
             width: 16px;
             height: 16px;
@@ -614,7 +567,7 @@
 <body>
 
     <div class="app-container">
-        <!-- Top App Bar -->
+        <!-- Top Navigation Header -->
         <header class="header">
             <div class="brand">
                 <div class="brand-icon">
@@ -631,11 +584,10 @@
             </div>
         </header>
 
-        <!-- Main Content (Dashboard + Map) -->
+        <!-- Main Body: Panel + Map -->
         <div class="content-body">
-            <!-- Dashboard Stats Panel -->
+            <!-- Dashboard Metrics -->
             <div class="dashboard-panel">
-                <!-- Speed Card -->
                 <div class="speed-card-main">
                     <div class="speed-title">Current Speed</div>
                     <div class="speed-value-group">
@@ -644,12 +596,11 @@
                     </div>
                 </div>
 
-                <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Max Speed</span>
-                            <i class="fa-solid fa-gauge-high stat-icon" style="color: var(--accent-amber)"></i>
+                            <i class="fa-solid fa-gauge-high" style="color: var(--accent-amber)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="maxSpeed">0.0</span>
@@ -660,7 +611,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Avg Speed</span>
-                            <i class="fa-solid fa-chart-line stat-icon" style="color: var(--accent-green)"></i>
+                            <i class="fa-solid fa-chart-line" style="color: var(--accent-green)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="avgSpeed">0.0</span>
@@ -671,7 +622,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Distance</span>
-                            <i class="fa-solid fa-route stat-icon" style="color: var(--accent-blue)"></i>
+                            <i class="fa-solid fa-route" style="color: var(--accent-blue)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="totalDistance">0.00</span>
@@ -682,7 +633,7 @@
                     <div class="stat-card">
                         <div class="stat-label">
                             <span>Duration</span>
-                            <i class="fa-solid fa-stopwatch stat-icon" style="color: var(--accent-cyan)"></i>
+                            <i class="fa-solid fa-stopwatch" style="color: var(--accent-cyan)"></i>
                         </div>
                         <div class="stat-value-group">
                             <span class="stat-value" id="duration">00:00:00</span>
@@ -690,7 +641,6 @@
                     </div>
                 </div>
 
-                <!-- GPS Status Info -->
                 <div class="gps-info-row">
                     <span id="gpsCoords">GPS: -</span>
                     <span id="gpsAccuracy">Accuracy: -</span>
@@ -700,13 +650,13 @@
             <!-- Map Area -->
             <div class="map-wrapper">
                 <div id="map"></div>
-                <button class="map-recenter-btn" id="recenterBtn" title="Recenter to current location">
+                <button class="map-recenter-btn" id="recenterBtn" title="Recenter Location">
                     <i class="fa-solid fa-crosshairs"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Bottom Fixed Controls -->
+        <!-- Fixed Controls Footer -->
         <div class="controls-bar">
             <button class="btn btn-start" id="startBtn">
                 <i class="fa-solid fa-play"></i> Start Drive
@@ -720,10 +670,9 @@
         </div>
     </div>
 
-    <!-- Trip Summary Modal Screen -->
+    <!-- Summary Modal -->
     <div class="modal-overlay" id="summaryModal">
         <div class="summary-card">
-            <!-- Modal Header Summary -->
             <div class="summary-header-bar">
                 <div class="summary-main-metrics" id="modalHeaderSummary">
                     0.00 kilometers <span>|</span> 0 min
@@ -733,42 +682,35 @@
                 </button>
             </div>
 
-            <!-- Modal Content -->
             <div class="summary-body">
-                <!-- Timeline Info Column -->
                 <div class="summary-timeline-col">
                     <div class="timeline-container">
                         <div class="timeline-line"></div>
                         
-                        <!-- Start Point -->
                         <div class="timeline-point">
-                            <div class="timeline-marker start"></div>
+                            <div class="timeline-marker"></div>
                             <div class="point-time" id="modalStartTime">12:00 AM</div>
                             <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
                         </div>
 
-                        <!-- End Point -->
                         <div class="timeline-point">
-                            <div class="timeline-marker end"></div>
+                            <div class="timeline-marker"></div>
                             <div class="point-time" id="modalEndTime">12:00 AM</div>
                             <div class="point-address loading" id="modalEndAddress">Fetching location...</div>
                         </div>
                     </div>
 
-                    <!-- Additional Extra Stats -->
                     <div class="summary-extra-stats">
                         <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
                         <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
                     </div>
                 </div>
 
-                <!-- Mini Preview Map Column -->
                 <div class="summary-map-col">
                     <div id="summaryMap"></div>
                 </div>
             </div>
 
-            <!-- Modal Bottom Actions -->
             <div class="summary-actions-bar">
                 <button class="btn-modal" id="exportGpxBtn">
                     <i class="fa-solid fa-download"></i> Download GPX
@@ -780,19 +722,18 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- Leaflet JS Engine -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // --- State Management ---
         let isTracking = false;
         let watchPositionId = null;
         let timerInterval = null;
         let startTime = null;
         let endTime = null;
-        let elapsedTime = 0; // seconds
+        let elapsedTime = 0;
 
-        let positions = []; // Array of {lat, lng, speed, timestamp}
+        let positions = [];
         let totalDistanceKm = 0;
         let maxSpeedKmh = 0;
         let currentSpeedKmh = 0;
@@ -808,7 +749,6 @@
 
         let wakeLock = null;
 
-        // --- DOM Elements ---
         const startBtn = document.getElementById('startBtn');
         const finishBtn = document.getElementById('finishBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -825,7 +765,6 @@
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
 
-        // Modal Elements
         const summaryModal = document.getElementById('summaryModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const confirmCloseModalBtn = document.getElementById('confirmCloseModalBtn');
@@ -838,35 +777,29 @@
         const modalAvgSpeed = document.getElementById('modalAvgSpeed');
         const exportGpxBtn = document.getElementById('exportGpxBtn');
 
-        // --- Tile Layer Mirrors (Reliable and Free) ---
         const primaryTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
         const fallbackTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
 
-        // --- Initialize Application ---
         window.addEventListener('DOMContentLoaded', () => {
             initMainMap();
             setupEventListeners();
         });
 
         function initMainMap() {
-            // Default center at Bangkok
             map = L.map('map', {
                 zoomControl: false,
                 attributionControl: true
             }).setView([13.7563, 100.5018], 15);
 
-            // Add Tile Layer with Fallback logic
             const tileLayer = L.tileLayer(primaryTileUrl, {
                 maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
             tileLayer.on('tileerror', function() {
-                console.warn('Primary tile server failed, switching to fallback...');
                 this.setUrl(fallbackTileUrl);
             });
 
-            // Route Polyline
             routePolyline = L.polyline([], {
                 color: '#3b82f6',
                 weight: 6,
@@ -874,7 +807,6 @@
                 lineJoin: 'round'
             }).addTo(map);
 
-            // User Location Marker
             const customIcon = L.divIcon({
                 className: 'user-location-marker',
                 iconSize: [16, 16],
@@ -883,7 +815,6 @@
 
             userMarker = L.marker([13.7563, 100.5018], { icon: customIcon }).addTo(map);
 
-            // Try getting initial position once
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     pos => {
@@ -893,13 +824,12 @@
                         userMarker.setLatLng([lat, lng]);
                         updateGpsInfo(pos);
                     },
-                    err => console.warn('Initial geolocation error:', err),
+                    err => console.warn('Geolocation init:', err),
                     { enableHighAccuracy: true, timeout: 5000 }
                 );
             }
         }
 
-        // --- Event Listeners Setup ---
         function setupEventListeners() {
             startBtn.addEventListener('click', startTrip);
             finishBtn.addEventListener('click', finishTrip);
@@ -911,30 +841,25 @@
             exportGpxBtn.addEventListener('click', exportGPX);
         }
 
-        // --- GPS Tracking Functions ---
         function startTrip() {
             if (isTracking) return;
 
             isTracking = true;
             startTime = new Date();
             
-            // UI State Changes
             startBtn.disabled = true;
             finishBtn.disabled = false;
             statusBadge.classList.add('recording');
             statusText.textContent = 'Tracking...';
 
-            // Request Screen Wake Lock
             requestWakeLock();
 
-            // Start Timer
             timerInterval = setInterval(() => {
                 elapsedTime++;
                 durationEl.textContent = formatDuration(elapsedTime);
                 updateAverageSpeed();
             }, 1000);
 
-            // Start Geolocation Watch
             if ("geolocation" in navigator) {
                 watchPositionId = navigator.geolocation.watchPosition(
                     handleGpsPosition,
@@ -954,18 +879,16 @@
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const accuracy = position.coords.accuracy;
-            let speed = position.coords.speed; // meters per second
+            let speed = position.coords.speed;
 
             updateGpsInfo(position);
 
-            // Convert speed to km/h
             if (speed !== null && !isNaN(speed) && speed >= 0) {
                 currentSpeedKmh = speed * 3.6;
             } else {
                 currentSpeedKmh = 0;
             }
 
-            // GPS Noise Filter: Ignore updates if speed is below threshold or accuracy is poor (> 50m)
             if (accuracy > 50) return;
 
             const currentPoint = { lat, lng, speed: currentSpeedKmh, timestamp: new Date() };
@@ -974,11 +897,9 @@
                 const prevPoint = positions[positions.length - 1];
                 const dist = calculateDistanceKm(prevPoint.lat, prevPoint.lng, lat, lng);
 
-                // Filter out small GPS jitter when stationary (< 3 meters)
                 if (dist > 0.003) {
                     totalDistanceKm += dist;
 
-                    // Calculate speed manually if native speed is unreliable
                     if (speed === null || isNaN(speed)) {
                         const timeDiffSec = (currentPoint.timestamp - prevPoint.timestamp) / 1000;
                         if (timeDiffSec > 0) {
@@ -994,17 +915,14 @@
                 routePolyline.addLatLng([lat, lng]);
             }
 
-            // Update Max Speed
             if (currentSpeedKmh > maxSpeedKmh) {
                 maxSpeedKmh = currentSpeedKmh;
             }
 
-            // Update UI Metrics
             currentSpeedEl.textContent = Math.round(currentSpeedKmh);
             maxSpeedEl.textContent = maxSpeedKmh.toFixed(1);
             totalDistanceEl.textContent = totalDistanceKm.toFixed(2);
 
-            // Center map on user
             userMarker.setLatLng([lat, lng]);
             map.panTo([lat, lng], { animate: true });
         }
@@ -1038,7 +956,6 @@
             isTracking = false;
             endTime = new Date();
 
-            // Clear Watcher and Timer
             if (watchPositionId !== null) {
                 navigator.geolocation.clearWatch(watchPositionId);
                 watchPositionId = null;
@@ -1046,14 +963,12 @@
             clearInterval(timerInterval);
             releaseWakeLock();
 
-            // Update UI State
             startBtn.disabled = false;
             finishBtn.disabled = true;
             statusBadge.classList.remove('recording');
             statusText.textContent = 'Trip Finished';
             currentSpeedEl.textContent = '0';
 
-            // Show Trip Summary Modal
             showSummaryModal();
         }
 
@@ -1065,14 +980,12 @@
                 finishTrip();
             }
 
-            // Reset States
             positions = [];
             totalDistanceKm = 0;
             maxSpeedKmh = 0;
             currentSpeedKmh = 0;
             elapsedTime = 0;
 
-            // Reset UI
             currentSpeedEl.textContent = '0';
             maxSpeedEl.textContent = '0.0';
             avgSpeedEl.textContent = '0.0';
@@ -1080,7 +993,6 @@
             durationEl.textContent = '00:00:00';
             statusText.textContent = 'Ready';
 
-            // Clear Map Routes
             if (routePolyline) routePolyline.setLatLngs([]);
         }
 
@@ -1090,12 +1002,10 @@
             }
         }
 
-        // --- Summary Modal & Geocoding ---
         function showSummaryModal() {
             const durationMin = Math.ceil(elapsedTime / 60);
             const avgSpeedKmh = elapsedTime > 0 ? (totalDistanceKm / (elapsedTime / 3600)).toFixed(1) : '0.0';
 
-            // Header info
             modalHeaderSummary.innerHTML = `${totalDistanceKm.toFixed(2)} kilometers <span>|</span> ${durationMin} min`;
             modalStartTime.textContent = formatTimeStr(startTime || new Date());
             modalEndTime.textContent = formatTimeStr(endTime || new Date());
@@ -1104,12 +1014,10 @@
 
             summaryModal.classList.add('active');
 
-            // Initialize or Refresh Summary Map
             setTimeout(() => {
                 renderSummaryMap();
             }, 200);
 
-            // Fetch Reverse Geocoding Addresses
             fetchAddresses();
         }
 
@@ -1133,7 +1041,6 @@
                 const latLngs = positions.map(p => [p.lat, p.lng]);
                 summaryPolyline.setLatLngs(latLngs);
 
-                // Add start and end square markers
                 const startPt = positions[0];
                 const endPt = positions[positions.length - 1];
 
@@ -1149,7 +1056,6 @@
                 summaryStartMarker = L.marker([startPt.lat, startPt.lng], { icon: squareIcon }).addTo(summaryMap);
                 summaryEndMarker = L.marker([endPt.lat, endPt.lng], { icon: squareIcon }).addTo(summaryMap);
 
-                // Fit map bounds to show complete trip route
                 const bounds = L.latLngBounds(latLngs);
                 summaryMap.fitBounds(bounds, { padding: [30, 30] });
             }
@@ -1170,12 +1076,10 @@
             const startPt = positions[0];
             const endPt = positions[positions.length - 1];
 
-            // Reverse Geocode Start Point
             const startAddr = await reverseGeocode(startPt.lat, startPt.lng);
             modalStartAddress.textContent = startAddr;
             modalStartAddress.classList.remove('loading');
 
-            // Reverse Geocode End Point
             const endAddr = await reverseGeocode(endPt.lat, endPt.lng);
             modalEndAddress.textContent = endAddr;
             modalEndAddress.classList.remove('loading');
@@ -1194,7 +1098,6 @@
             return `Coords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         }
 
-        // --- Export GPX File ---
         function exportGPX() {
             if (positions.length === 0) {
                 alert('No route data available to download.');
@@ -1231,9 +1134,8 @@
             URL.revokeObjectURL(url);
         }
 
-        // --- Utility Helper Functions ---
         function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth's radius in kilometers
+            const R = 6371;
             const dLat = toRad(lat2 - lat1);
             const dLon = toRad(lon2 - lon1);
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -1266,14 +1168,13 @@
             });
         }
 
-        // --- Screen Wake Lock API ---
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                console.warn('Wake Lock Error:', err.message);
+                console.warn('Wake Lock:', err.message);
             }
         }
 

@@ -669,7 +669,7 @@
                 <button class="pwa-install-btn" id="pwaInstallBtn">
                     <i class="fa-solid fa-mobile-screen-button"></i> Install App
                 </button>
-                <div class="status-badge" id="statusBadge">
+                <div class="status-badge" id="statusBadge" style="display: none;">
                     <div class="status-dot"></div>
                     <span id="statusText">Ready</span>
                 </div>
@@ -778,6 +778,53 @@
                 </button>
             </div>
 
+            <!-- Modal Content -->
+            <div class="summary-body">
+                <!-- Timeline Info Column -->
+                <div class="summary-timeline-col">
+                    <div class="timeline-container">
+                        <div class="timeline-line"></div>
+                        
+                        <!-- Start Point -->
+                        <div class="timeline-point">
+                            <div class="timeline-marker start"></div>
+                            <div class="point-time" id="modalStartTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
+                        </div>
+
+                        <!-- End Point -->
+                        <div class="timeline-point">
+                            <div class="timeline-marker end"></div>
+                            <div class="point-time" id="modalEndTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalEndAddress">Fetching location...</div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Extra Stats -->
+                    <div class="summary-extra-stats">
+                        <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
+                        <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
+                    </div>
+                </div>
+
+                <!-- Mini Preview Map Column -->
+                <div class="summary-map-col">
+                    <div id="summaryMap"></div>
+                </div>
+            </div>
+
+            <!-- Modal Bottom Actions -->
+            <div class="summary-actions-bar">
+                <button class="btn-modal" id="exportGpxBtn">
+                    <i class="fa-solid fa-download"></i> Download GPX
+                </button>
+                <button class="btn-modal btn-modal-primary" id="confirmCloseModalBtn">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- PWA Install Guide Modal (for iOS & unsupported browsers) -->
     <div class="modal-overlay" id="installGuideModal">
         <div class="summary-card" style="max-width: 440px; padding: 20px; text-align: center; color: #0f172a;">
@@ -854,9 +901,6 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (pwaInstallBtn) {
-                pwaInstallBtn.style.display = 'inline-flex';
-            }
         });
 
         pwaInstallBtn.addEventListener('click', async () => {
@@ -1034,8 +1078,10 @@
             
             startBtn.disabled = true;
             finishBtn.disabled = false;
+            statusBadge.style.display = 'flex';
             statusBadge.classList.add('recording');
             statusText.textContent = 'Tracking...';
+            pwaInstallBtn.style.display = 'none'; // Hide install button while tracking
 
             requestWakeLock();
 

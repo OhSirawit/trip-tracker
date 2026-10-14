@@ -2,839 +2,1283 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GPS Trip Tracker - ติดตามการเดินทาง</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Trip Tracker - ระบบบันทึกเส้นทาง driving GPS</title>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Kanit', 'sans-serif'],
-                        inter: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        darkbg: '#0F172A',
-                        cardbg: '#1E293B',
-                        accent: '#3B82F6',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #0F172A; color: #F8FAFC; }
-        #map { height: 100%; width: 100%; z-index: 10; min-height: 280px; }
-        #summaryMap { height: 100%; width: 100%; min-height: 260px; border-radius: 0.75rem; }
-        
-        .pulsing-dot {
-            width: 16px;
-            height: 16px;
-            background-color: #3B82F6;
-            border: 3px solid #FFFFFF;
-            border-radius: 50%;
-            box-shadow: 0 0 12px #3B82F6;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Square Marker style for Timeline Summary */
-        .square-marker {
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-accent: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-red: #ef4444;
+            --accent-red-hover: #dc2626;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --border-color: #334155;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100vw;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* App Layout Container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
+            width: 100%;
+            position: relative;
+        }
+
+        /* Top Bar Header */
+        .header {
+            padding: 10px 16px;
+            background-color: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .brand-text h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        .brand-text p {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+        }
+
+        .status-badge.recording .status-dot {
+            background-color: var(--accent-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Main Content Viewport */
+        .content-body {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .content-body {
+                flex-direction: row;
+            }
+        }
+
+        /* Dashboard Metrics Panel */
+        .dashboard-panel {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--bg-main);
+            z-index: 10;
+            max-height: 48vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-panel {
+                width: 380px;
+                max-height: 100%;
+                border-bottom: none;
+                border-right: 1px solid var(--border-color);
+            }
+        }
+
+        /* Primary Speed Gauge */
+        .speed-card-main {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 14px 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .speed-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .speed-value-group {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .speed-number {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+
+        .speed-unit {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Grid Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-icon {
+            font-size: 0.8rem;
+        }
+
+        .stat-value-group {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-unit {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* Meta GPS Data Row */
+        .gps-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            padding: 2px 4px;
+        }
+
+        /* Map Container */
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #12161f;
+        }
+
+        /* Floating Recenter Map Button */
+        .map-recenter-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+            z-index: 500;
+            transition: all 0.2s;
+        }
+
+        .map-recenter-btn:active {
+            transform: scale(0.92);
+            background-color: var(--bg-card-accent);
+        }
+
+        /* Bottom Fixed Action Controls Bar */
+        .controls-bar {
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background-color: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            flex: 1;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #10b981, #059669);
+            flex: 2;
+        }
+
+        .btn-start:not(:disabled):active {
+            background: #059669;
+            transform: translateY(1px);
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            flex: 2;
+        }
+
+        .btn-finish:not(:disabled):active {
+            background: #dc2626;
+            transform: translateY(1px);
+        }
+
+        .btn-reset {
+            background-color: var(--bg-card-accent);
+            color: var(--text-primary);
+            flex: 1;
+            max-width: 60px;
+        }
+
+        .btn-reset:not(:disabled):active {
+            background-color: #475569;
+        }
+
+        /* Trip Summary Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .summary-card {
+            background-color: #ffffff;
+            color: #1e293b;
+            width: 100%;
+            max-width: 650px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .summary-header-bar {
+            padding: 16px 20px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .summary-main-metrics {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .summary-main-metrics span {
+            color: #64748b;
+            font-weight: 400;
+            margin: 0 4px;
+        }
+
+        .close-modal-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .summary-body {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 600px) {
+            .summary-body {
+                flex-direction: row;
+                min-height: 320px;
+            }
+        }
+
+        /* Left Side Timeline */
+        .summary-timeline-col {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .timeline-container {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 5px;
+            top: 12px;
+            bottom: 24px;
+            width: 2px;
+            background-color: #000000;
+        }
+
+        .timeline-point {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .timeline-point:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -28px;
+            top: 4px;
             width: 12px;
             height: 12px;
             background-color: #000000;
-            border: 2px solid #FFFFFF;
-            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        .timeline-marker.start {
+            border-radius: 2px;
+        }
+
+        .timeline-marker.end {
+            border-radius: 2px;
+        }
+
+        .point-time {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 4px;
+        }
+
+        .point-address {
+            font-size: 0.85rem;
+            color: #2563eb;
+            line-height: 1.4;
+            text-decoration: underline;
+            word-break: break-word;
+        }
+
+        .point-address.loading {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .summary-extra-stats {
+            display: flex;
+            gap: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .summary-extra-stats strong {
+            color: #0f172a;
+        }
+
+        /* Right Side Map Preview */
+        .summary-map-col {
+            flex: 1;
+            min-height: 220px;
+            position: relative;
+            background-color: #e2e8f0;
+        }
+
+        #summaryMap {
+            width: 100%;
+            height: 100%;
+            min-height: 220px;
+        }
+
+        .summary-actions-bar {
+            padding: 12px 20px;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-modal-primary {
+            background-color: #0f172a;
+            color: #ffffff;
+            border: none;
+        }
+
+        /* Leaflet Dark Filter Overrides */
+        .dark-tiles .leaflet-tile {
+            filter: brightness(0.85) contrast(1.1) saturate(0.9);
+        }
+
+        /* Custom Leaflet Dot Marker */
+        .user-location-marker {
+            width: 16px;
+            height: 16px;
+            background-color: #2563eb;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .timeline-square-marker {
+            width: 12px;
+            height: 12px;
+            background-color: #000000;
+            border: 2px solid #ffffff;
         }
     </style>
 </head>
-<body class="h-screen flex flex-col justify-between overflow-hidden bg-slate-900 text-slate-100 select-none">
+<body>
 
-    <!-- Header -->
-    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/60 p-3 flex justify-between items-center shadow-md z-20">
-        <div class="flex items-center space-x-2">
-            <div class="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
-                <i class="fa-solid fa-car-side text-lg"></i>
-            </div>
-            <div>
-                <h1 class="text-base font-bold leading-none text-slate-100">Trip Tracker</h1>
-                <span class="text-xs text-slate-400">ระบบบันทึกเส้นทาง driving GPS</span>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <!-- GPS Status Badge -->
-            <div id="gpsStatusBadge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-                <span id="gpsDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span id="gpsText">รอ GPS...</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Container -->
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        
-        <!-- Metrics Panel -->
-        <div class="w-full md:w-80 lg:w-96 bg-slate-800/80 backdrop-blur border-b md:border-b-0 md:border-r border-slate-700/60 p-4 flex flex-col justify-between space-y-4 z-20 overflow-y-auto">
-            
-            <!-- Hero Speed Tracker -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/80 rounded-2xl p-4 text-center shadow-inner relative overflow-hidden">
-                <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">ความเร็วปัจจุบัน</div>
-                <div class="flex justify-center items-baseline space-x-1">
-                    <span id="currentSpeedVal" class="text-6xl font-black text-blue-400 tracking-tight font-mono">0</span>
-                    <span class="text-base font-medium text-slate-400">km/h</span>
+    <div class="app-container">
+        <!-- Top App Bar -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Trip Tracker</h1>
+                    <p>ระบบบันทึกเส้นทาง driving GPS</p>
                 </div>
             </div>
+            <div class="status-badge" id="statusBadge">
+                <div class="status-dot"></div>
+                <span id="statusText">พร้อมใช้งาน</span>
+            </div>
+        </header>
 
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-2 gap-3">
-                <!-- Max Speed -->
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div class="flex items-center justify-between text-slate-400 mb-1">
-                        <span class="text-xs font-medium">ความเร็วสูงสุด</span>
-                        <i class="fa-solid fa-gauge-high text-amber-400 text-xs"></i>
-                    </div>
-                    <div class="text-2xl font-bold font-mono text-slate-100">
-                        <span id="maxSpeedVal">0.0</span> <span class="text-xs font-normal text-slate-400">km/h</span>
+        <!-- Main Content (Dashboard + Map) -->
+        <div class="content-body">
+            <!-- Dashboard Stats Panel -->
+            <div class="dashboard-panel">
+                <!-- Speed Card -->
+                <div class="speed-card-main">
+                    <div class="speed-title">ความเร็วปัจจุบัน</div>
+                    <div class="speed-value-group">
+                        <span class="speed-number" id="currentSpeed">0</span>
+                        <span class="speed-unit">km/h</span>
                     </div>
                 </div>
 
-                <!-- Average Speed -->
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div class="flex items-center justify-between text-slate-400 mb-1">
-                        <span class="text-xs font-medium">ความเร็วเฉลี่ย</span>
-                        <i class="fa-solid fa-chart-line text-emerald-400 text-xs"></i>
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>ความเร็วสูงสุด</span>
+                            <i class="fa-solid fa-gauge-high stat-icon" style="color: var(--accent-amber)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="maxSpeed">0.0</span>
+                            <span class="stat-unit">km/h</span>
+                        </div>
                     </div>
-                    <div class="text-2xl font-bold font-mono text-slate-100">
-                        <span id="avgSpeedVal">0.0</span> <span class="text-xs font-normal text-slate-400">km/h</span>
+
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>ความเร็วเฉลี่ย</span>
+                            <i class="fa-solid fa-chart-line stat-icon" style="color: var(--accent-green)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="avgSpeed">0.0</span>
+                            <span class="stat-unit">km/h</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>ระยะทางรวม</span>
+                            <i class="fa-solid fa-route stat-icon" style="color: var(--accent-blue)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="totalDistance">0.00</span>
+                            <span class="stat-unit">km</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>เวลาที่ใช้</span>
+                            <i class="fa-solid fa-stopwatch stat-icon" style="color: var(--accent-cyan)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="duration">00:00:00</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Distance -->
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div class="flex items-center justify-between text-slate-400 mb-1">
-                        <span class="text-xs font-medium">ระยะทางรวม</span>
-                        <i class="fa-solid fa-route text-indigo-400 text-xs"></i>
-                    </div>
-                    <div class="text-2xl font-bold font-mono text-slate-100">
-                        <span id="distanceVal">0.00</span> <span class="text-xs font-normal text-slate-400">km</span>
-                    </div>
-                </div>
-
-                <!-- Timer -->
-                <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-                    <div class="flex items-center justify-between text-slate-400 mb-1">
-                        <span class="text-xs font-medium">เวลาที่ใช้</span>
-                        <i class="fa-solid fa-stopwatch text-cyan-400 text-xs"></i>
-                    </div>
-                    <div class="text-xl font-bold font-mono text-slate-100 py-0.5" id="timerVal">
-                        00:00:00
-                    </div>
+                <!-- GPS Status Info -->
+                <div class="gps-info-row">
+                    <span id="gpsCoords">พิกัด GPS: -</span>
+                    <span id="gpsAccuracy">ความแม่นยำ: -</span>
                 </div>
             </div>
 
-            <!-- Export Panel (Visible after finish) -->
-            <div id="exportPanel" class="hidden flex flex-col space-y-2 pt-1">
-                <button onclick="openSummaryModal()" class="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-xs font-semibold rounded-lg text-white transition flex items-center justify-center space-x-2 shadow">
-                    <i class="fa-solid fa-receipt text-sm"></i>
-                    <span>ดูสรุปผลการเดินทาง</span>
+            <!-- Map Area -->
+            <div class="map-wrapper">
+                <div id="map"></div>
+                <button class="map-recenter-btn" id="recenterBtn" title="จัดกึ่งกลางตามตำแหน่งปัจจุบัน">
+                    <i class="fa-solid fa-crosshairs"></i>
                 </button>
             </div>
-            
-            <!-- Quick GPS Info Footer -->
-            <div class="text-[11px] text-slate-500 flex justify-between px-1">
-                <span>พิกัด GPS: <span id="latLngText" class="font-mono text-slate-400">-</span></span>
-                <span>ความแม่นยำ: <span id="accuracyText" class="font-mono text-slate-400">-</span></span>
-            </div>
         </div>
 
-        <!-- Map View -->
-        <div class="flex-1 relative h-full">
-            <div id="map"></div>
-            
-            <!-- Recenter Map Button -->
-            <button id="recenterBtn" onclick="recenterMap()" class="absolute bottom-4 right-4 z-20 bg-slate-800/90 hover:bg-slate-700 text-slate-200 p-3 rounded-full shadow-lg border border-slate-600 transition active:scale-95" title="กลับไปตำแหน่งปัจจุบัน">
-                <i class="fa-solid fa-location-crosshairs text-lg"></i>
+        <!-- Bottom Fixed Controls -->
+        <div class="controls-bar">
+            <button class="btn btn-start" id="startBtn">
+                <i class="fa-solid fa-play"></i> เริ่มการเดินทาง
+            </button>
+            <button class="btn btn-finish" id="finishBtn" disabled>
+                <i class="fa-solid fa-flag-checkered"></i> สิ้นสุด
+            </button>
+            <button class="btn btn-reset" id="resetBtn" title="รีเซ็ตข้อมูล">
+                <i class="fa-solid fa-rotate-right"></i>
             </button>
         </div>
-    </main>
+    </div>
 
-    <!-- Control Bar (Bottom Footer) -->
-    <footer class="bg-slate-800/95 backdrop-blur border-t border-slate-700/60 p-4 z-30 shadow-2xl">
-        <div class="max-w-md mx-auto flex items-center justify-center space-x-3">
-            
-            <!-- Start / Pause Button -->
-            <button id="startBtn" onclick="toggleTracking()" class="flex-1 py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition flex items-center justify-center space-x-2 text-base">
-                <i id="startBtnIcon" class="fa-solid fa-play"></i>
-                <span id="startBtnText">เริ่มการเดินทาง</span>
-            </button>
-
-            <!-- Finish Button -->
-            <button id="finishBtn" onclick="finishTracking()" disabled class="flex-1 py-3.5 px-6 bg-red-600/50 text-white/50 font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base cursor-not-allowed">
-                <i class="fa-solid fa-flag-checkered"></i>
-                <span>สิ้นสุด</span>
-            </button>
-
-            <!-- Reset Button -->
-            <button id="resetBtn" onclick="confirmReset()" class="py-3.5 px-4 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-300 font-bold rounded-xl border border-slate-600 transition flex items-center justify-center shadow">
-                <i class="fa-solid fa-rotate-right text-base"></i>
-            </button>
-        </div>
-    </footer>
-
-    <!-- TRIP SUMMARY MODAL (MATCHING REFERENCE DESIGN) -->
-    <div id="summaryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto hidden">
-        <div class="bg-white text-slate-800 rounded-2xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl space-y-6 relative border border-slate-200">
-            
-            <!-- Header Badge Info -->
-            <div class="flex items-center space-x-3">
-                <div class="bg-black text-white px-3 py-1 rounded-full text-xs font-bold font-mono uppercase tracking-wider">
-                    DRIVE
+    <!-- Trip Summary Modal Screen -->
+    <div class="modal-overlay" id="summaryModal">
+        <div class="summary-card">
+            <!-- Modal Header Summary -->
+            <div class="summary-header-bar">
+                <div class="summary-main-metrics" id="modalHeaderSummary">
+                    0.00 kilometers <span>|</span> 0 min
                 </div>
-                <div class="text-xl sm:text-2xl font-bold text-slate-700 font-inter">
-                    <span id="summaryDistanceHeader">0.00</span> kilometers | <span id="summaryDurationHeader">0 min</span>
-                </div>
+                <button class="close-modal-btn" id="closeModalBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <!-- Content Grid: Left Timeline / Right Map -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                
-                <!-- Left: Timeline Address View (7 Cols) -->
-                <div class="md:col-span-7 flex space-x-4 pl-1">
-                    
-                    <!-- Vertical Timeline Graphic -->
-                    <div class="flex flex-col items-center py-1 relative min-w-[20px]">
-                        <!-- Top Square Node -->
-                        <div class="w-3.5 h-3.5 bg-black border-2 border-black flex-shrink-0"></div>
-                        <!-- Vertical Connecting Line -->
-                        <div class="w-1 bg-black flex-1 my-1"></div>
-                        <!-- Bottom Square Node -->
-                        <div class="w-3.5 h-3.5 bg-black border-2 border-black flex-shrink-0"></div>
-                    </div>
-
-                    <!-- Address & Time Details -->
-                    <div class="flex-1 space-y-6">
+            <!-- Modal Content -->
+            <div class="summary-body">
+                <!-- Timeline Info Column -->
+                <div class="summary-timeline-col">
+                    <div class="timeline-container">
+                        <div class="timeline-line"></div>
+                        
                         <!-- Start Point -->
-                        <div>
-                            <div id="summaryStartTime" class="text-base sm:text-lg font-bold text-black font-inter">
-                                --:-- --
-                            </div>
-                            <div id="summaryStartAddress" class="text-sm sm:text-base text-blue-600 hover:underline cursor-pointer font-medium leading-snug mt-1">
-                                กำลังดึงข้อมูลสถานที่เริ่มต้น...
-                            </div>
+                        <div class="timeline-point">
+                            <div class="timeline-marker start"></div>
+                            <div class="point-time" id="modalStartTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalStartAddress">กำลังดึงข้อมูลสถานที่...</div>
                         </div>
 
                         <!-- End Point -->
-                        <div>
-                            <div id="summaryEndTime" class="text-base sm:text-lg font-bold text-black font-inter">
-                                --:-- --
-                            </div>
-                            <div id="summaryEndAddress" class="text-sm sm:text-base text-slate-800 font-medium leading-snug mt-1">
-                                กำลังดึงข้อมูลสถานที่สิ้นสุด...
-                            </div>
+                        <div class="timeline-point">
+                            <div class="timeline-marker end"></div>
+                            <div class="point-time" id="modalEndTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalEndAddress">กำลังดึงข้อมูลสถานที่...</div>
                         </div>
+                    </div>
+
+                    <!-- Additional Extra Stats -->
+                    <div class="summary-extra-stats">
+                        <div>ความเร็วสูงสุด: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
+                        <div>ความเร็วเฉลี่ย: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
                     </div>
                 </div>
 
-                <!-- Right: Map Preview Card (5 Cols) -->
-                <div class="md:col-span-5 h-64 md:h-72 w-full rounded-xl overflow-hidden border border-slate-300 relative shadow-inner bg-slate-100">
+                <!-- Mini Preview Map Column -->
+                <div class="summary-map-col">
                     <div id="summaryMap"></div>
                 </div>
             </div>
 
-            <!-- Additional Stats Badge Strip -->
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-around text-center text-xs sm:text-sm font-medium text-slate-600">
-                <div>
-                    <span class="block text-slate-400 text-[11px]">ความเร็วสูงสุด</span>
-                    <span id="summaryMaxSpeed" class="font-bold text-slate-800 text-base font-mono">0.0</span> km/h
-                </div>
-                <div class="border-r border-slate-200"></div>
-                <div>
-                    <span class="block text-slate-400 text-[11px]">ความเร็วเฉลี่ย</span>
-                    <span id="summaryAvgSpeed" class="font-bold text-slate-800 text-base font-mono">0.0</span> km/h
-                </div>
-                <div class="border-r border-slate-200"></div>
-                <div>
-                    <span class="block text-slate-400 text-[11px]">บันทึกพิกัด</span>
-                    <span id="summaryPointsCount" class="font-bold text-slate-800 text-base font-mono">0</span> จุด
-                </div>
-            </div>
-
-            <!-- Bottom Actions -->
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2 border-t border-slate-100">
-                <div class="flex space-x-2 w-full sm:w-auto">
-                    <button onclick="exportRoute('gpx')" class="flex-1 sm:flex-none px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-300 flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-download"></i>
-                        <span>GPX</span>
-                    </button>
-                    <button onclick="exportRoute('geojson')" class="flex-1 sm:flex-none px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-300 flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-file-code"></i>
-                        <span>GeoJSON</span>
-                    </button>
-                </div>
-
-                <div class="flex space-x-2 w-full sm:w-auto">
-                    <button onclick="closeSummaryModal()" class="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition shadow">
-                        ปิดหน้าต่าง
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
-            <div id="modalIcon" class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-            <h3 id="modalTitle" class="text-lg font-bold text-slate-100">ยืนยันการทำรายการ</h3>
-            <p id="modalMessage" class="text-sm text-slate-300">คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตข้อมูลทั้งหมด?</p>
-            <div class="flex space-x-3 pt-2">
-                <button id="modalCancelBtn" onclick="closeModal()" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-semibold rounded-xl border border-slate-600 transition">
-                    ยกเลิก
+            <!-- Modal Bottom Actions -->
+            <div class="summary-actions-bar">
+                <button class="btn-modal" id="exportGpxBtn">
+                    <i class="fa-solid fa-download"></i> ดาวน์โหลด GPX
                 </button>
-                <button id="modalConfirmBtn" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl shadow transition">
+                <button class="btn-modal btn-modal-primary" id="confirmCloseModalBtn">
                     ตกลง
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
-        /* State Variables */
-        let map, userMarker, routePolyline;
-        let summaryMap = null, summaryPolyline = null;
-        let startMarker = null, finishMarker = null;
-        let trackingState = 'IDLE'; // 'IDLE', 'TRACKING', 'PAUSED', 'FINISHED'
-        let watchId = null;
+        // --- State Management ---
+        let isTracking = false;
+        let watchPositionId = null;
         let timerInterval = null;
+        let startTime = null;
+        let endTime = null;
+        let elapsedTime = 0; // seconds
+
+        let positions = []; // Array of {lat, lng, speed, timestamp}
+        let totalDistanceKm = 0;
+        let maxSpeedKmh = 0;
+        let currentSpeedKmh = 0;
+
+        let map = null;
+        let routePolyline = null;
+        let userMarker = null;
+
+        let summaryMap = null;
+        let summaryPolyline = null;
+        let summaryStartMarker = null;
+        let summaryEndMarker = null;
+
         let wakeLock = null;
 
-        // Trip Statistics
-        let tripData = {
-            positions: [], // Array of {lat, lng, speed, timestamp}
-            totalDistanceMeters: 0,
-            startTime: null,
-            endTime: null,
-            elapsedSeconds: 0,
-            currentSpeedKmH: 0,
-            maxSpeedKmH: 0,
-            avgSpeedKmH: 0
-        };
+        // --- DOM Elements ---
+        const startBtn = document.getElementById('startBtn');
+        const finishBtn = document.getElementById('finishBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const recenterBtn = document.getElementById('recenterBtn');
 
-        /* Initialize App on Load */
-        window.onload = function () {
-            initMap();
-            setupGeolocation();
-            updateUI();
-        };
+        const currentSpeedEl = document.getElementById('currentSpeed');
+        const maxSpeedEl = document.getElementById('maxSpeed');
+        const avgSpeedEl = document.getElementById('avgSpeed');
+        const totalDistanceEl = document.getElementById('totalDistance');
+        const durationEl = document.getElementById('duration');
 
-        function initMap() {
-            const defaultLat = 13.7563;
-            const defaultLng = 100.5018;
+        const gpsCoordsEl = document.getElementById('gpsCoords');
+        const gpsAccuracyEl = document.getElementById('gpsAccuracy');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
 
-            map = L.map('map', { zoomControl: false }).setView([defaultLat, defaultLng], 15);
+        // Modal Elements
+        const summaryModal = document.getElementById('summaryModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const confirmCloseModalBtn = document.getElementById('confirmCloseModalBtn');
+        const modalHeaderSummary = document.getElementById('modalHeaderSummary');
+        const modalStartTime = document.getElementById('modalStartTime');
+        const modalEndTime = document.getElementById('modalEndTime');
+        const modalStartAddress = document.getElementById('modalStartAddress');
+        const modalEndAddress = document.getElementById('modalEndAddress');
+        const modalMaxSpeed = document.getElementById('modalMaxSpeed');
+        const modalAvgSpeed = document.getElementById('modalAvgSpeed');
+        const exportGpxBtn = document.getElementById('exportGpxBtn');
 
-            // Esri World Dark Gray Canvas
-            const esriDarkTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Base/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 16
+        // --- Tile Layer Mirrors (Reliable and Free) ---
+        const primaryTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const fallbackTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+
+        // --- Initialize Application ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initMainMap();
+            setupEventListeners();
+        });
+
+        function initMainMap() {
+            // Default center at Bangkok
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: true
+            }).setView([13.7563, 100.5018], 15);
+
+            // Add Tile Layer with Fallback logic
+            const tileLayer = L.tileLayer(primaryTileUrl, {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            tileLayer.on('tileerror', function() {
+                console.warn('Primary tile server failed, switching to fallback...');
+                this.setUrl(fallbackTileUrl);
             });
 
-            const osmDeTiles = L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap',
-                maxZoom: 19
-            });
-
-            esriDarkTiles.on('tileerror', function() {
-                if (map.hasLayer(esriDarkTiles)) {
-                    map.removeLayer(esriDarkTiles);
-                    osmDeTiles.addTo(map);
-                }
-            });
-
-            esriDarkTiles.addTo(map);
-
+            // Route Polyline
             routePolyline = L.polyline([], {
-                color: '#3B82F6',
-                weight: 5,
-                opacity: 0.9,
+                color: '#3b82f6',
+                weight: 6,
+                opacity: 0.85,
                 lineJoin: 'round'
             }).addTo(map);
 
+            // User Location Marker
             const customIcon = L.divIcon({
-                className: 'custom-gps-marker',
-                html: '<div class="pulsing-dot"></div>',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
+                className: 'user-location-marker',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
             });
 
-            userMarker = L.marker([defaultLat, defaultLng], { icon: customIcon }).addTo(map);
-        }
+            userMarker = L.marker([13.7563, 100.5018], { icon: customIcon }).addTo(map);
 
-        function setupGeolocation() {
-            if (!("geolocation" in navigator)) {
-                showToast("Error", "เบราว์เซอร์นี้ไม่รองรับการติดตาม GPS", "error");
-                return;
-            }
-
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
-
-                    document.getElementById('latLngText').innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    document.getElementById('accuracyText').innerText = `±${Math.round(accuracy)}m`;
-
-                    if (trackingState === 'IDLE' && tripData.positions.length === 0) {
-                        const latLng = [lat, lng];
-                        userMarker.setLatLng(latLng);
-                        map.setView(latLng, 16);
-                        updateGPSStatus('READY', 'พร้อมใช้งาน');
-                    }
-                },
-                (error) => handleGPSError(error),
-                { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
-            );
-        }
-
-        async function toggleTracking() {
-            if (trackingState === 'IDLE' || trackingState === 'PAUSED') {
-                startTracking();
-            } else if (trackingState === 'TRACKING') {
-                pauseTracking();
+            // Try getting initial position once
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        map.setView([lat, lng], 16);
+                        userMarker.setLatLng([lat, lng]);
+                        updateGpsInfo(pos);
+                    },
+                    err => console.warn('Initial geolocation error:', err),
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
             }
         }
 
-        async function startTracking() {
-            trackingState = 'TRACKING';
-            if (!tripData.startTime) {
-                tripData.startTime = new Date();
-            }
+        // --- Event Listeners Setup ---
+        function setupEventListeners() {
+            startBtn.addEventListener('click', startTrip);
+            finishBtn.addEventListener('click', finishTrip);
+            resetBtn.addEventListener('click', resetTrip);
+            recenterBtn.addEventListener('click', recenterMap);
 
+            closeModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
+            confirmCloseModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
+            exportGpxBtn.addEventListener('click', exportGPX);
+        }
+
+        // --- GPS Tracking Functions ---
+        function startTrip() {
+            if (isTracking) return;
+
+            isTracking = true;
+            startTime = new Date();
+            
+            // UI State Changes
+            startBtn.disabled = true;
+            finishBtn.disabled = false;
+            statusBadge.classList.add('recording');
+            statusText.textContent = 'กำลังบันทึก GPS';
+
+            // Request Screen Wake Lock
             requestWakeLock();
 
-            if (finishMarker) {
-                map.removeLayer(finishMarker);
-                finishMarker = null;
+            // Start Timer
+            timerInterval = setInterval(() => {
+                elapsedTime++;
+                durationEl.textContent = formatDuration(elapsedTime);
+                updateAverageSpeed();
+            }, 1000);
+
+            // Start Geolocation Watch
+            if ("geolocation" in navigator) {
+                watchPositionId = navigator.geolocation.watchPosition(
+                    handleGpsPosition,
+                    handleGpsError,
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 10000
+                    }
+                );
+            } else {
+                alert('เบราว์เซอร์ของคุณไม่รองรับการใช้งาน GPS');
             }
-
-            startTimer();
-
-            watchId = navigator.geolocation.watchPosition(
-                onLocationUpdate,
-                handleGPSError,
-                { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-            );
-
-            updateGPSStatus('ACTIVE', 'กำลังบันทึก GPS');
-            updateUI();
         }
 
-        function pauseTracking() {
-            trackingState = 'PAUSED';
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            stopTimer();
-            releaseWakeLock();
-            updateGPSStatus('PAUSED', 'หยุดชั่วคราว');
-            updateUI();
-        }
-
-        function finishTracking() {
-            if (tripData.positions.length < 2) {
-                showToast("คำเตือน", "ไม่มีข้อมูลการเดินทางเพียงพอสำหรับบันทึก", "warning");
-                return;
-            }
-
-            trackingState = 'FINISHED';
-            tripData.endTime = new Date();
-
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            stopTimer();
-            releaseWakeLock();
-
-            tripData.currentSpeedKmH = 0;
-
-            const lastPos = tripData.positions[tripData.positions.length - 1];
-            finishMarker = L.marker([lastPos.lat, lastPos.lng], {
-                icon: L.divIcon({
-                    html: '<div class="bg-red-600 text-white rounded-full p-2 w-8 h-8 flex items-center justify-center shadow-lg border-2 border-white"><i class="fa-solid fa-flag-checkered text-xs"></i></div>',
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16]
-                })
-            }).addTo(map);
-
-            if (routePolyline.getBounds().isValid()) {
-                map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
-            }
-
-            updateGPSStatus('FINISHED', 'สิ้นสุดการเดินทาง');
-            document.getElementById('exportPanel').classList.remove('hidden');
-            updateUI();
-
-            // Open Summary View Automatically
-            openSummaryModal();
-        }
-
-        function onLocationUpdate(position) {
+        function handleGpsPosition(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const accuracy = position.coords.accuracy;
-            const timestamp = position.timestamp || Date.now();
+            let speed = position.coords.speed; // meters per second
 
-            if (accuracy > 35) return;
+            updateGpsInfo(position);
 
-            const newPoint = { lat, lng, timestamp };
+            // Convert speed to km/h
+            if (speed !== null && !isNaN(speed) && speed >= 0) {
+                currentSpeedKmh = speed * 3.6;
+            } else {
+                currentSpeedKmh = 0;
+            }
 
-            if (tripData.positions.length > 0) {
-                const prevPoint = tripData.positions[tripData.positions.length - 1];
-                const distDelta = calculateDistanceMeters(prevPoint.lat, prevPoint.lng, lat, lng);
+            // GPS Noise Filter: Ignore updates if speed is below threshold or accuracy is poor (> 50m)
+            if (accuracy > 50) return;
 
-                if (distDelta < 2.5) return;
+            const currentPoint = { lat, lng, speed: currentSpeedKmh, timestamp: new Date() };
 
-                tripData.totalDistanceMeters += distDelta;
+            if (positions.length > 0) {
+                const prevPoint = positions[positions.length - 1];
+                const dist = calculateDistanceKm(prevPoint.lat, prevPoint.lng, lat, lng);
 
-                let calculatedSpeed = 0;
-                if (position.coords.speed !== null && !isNaN(position.coords.speed) && position.coords.speed >= 0) {
-                    calculatedSpeed = position.coords.speed * 3.6;
-                } else {
-                    const timeDeltaSec = (timestamp - prevPoint.timestamp) / 1000;
-                    if (timeDeltaSec > 0) {
-                        calculatedSpeed = (distDelta / timeDeltaSec) * 3.6;
+                // Filter out small GPS jitter when stationary (< 3 meters)
+                if (dist > 0.003) {
+                    totalDistanceKm += dist;
+
+                    // Calculate speed manually if native speed is unreliable
+                    if (speed === null || isNaN(speed)) {
+                        const timeDiffSec = (currentPoint.timestamp - prevPoint.timestamp) / 1000;
+                        if (timeDiffSec > 0) {
+                            currentSpeedKmh = (dist / timeDiffSec) * 3600;
+                        }
                     }
+
+                    positions.push(currentPoint);
+                    routePolyline.addLatLng([lat, lng]);
                 }
-
-                if (calculatedSpeed > 220) return;
-
-                tripData.currentSpeedKmH = calculatedSpeed;
-                if (calculatedSpeed > tripData.maxSpeedKmH) {
-                    tripData.maxSpeedKmH = calculatedSpeed;
-                }
-
-                if (tripData.elapsedSeconds > 0) {
-                    const hours = tripData.elapsedSeconds / 3600;
-                    tripData.avgSpeedKmH = (tripData.totalDistanceMeters / 1000) / hours;
-                }
-
             } else {
-                startMarker = L.marker([lat, lng], {
-                    icon: L.divIcon({
-                        html: '<div class="bg-emerald-600 text-white rounded-full p-2 w-8 h-8 flex items-center justify-center shadow-lg border-2 border-white"><i class="fa-solid fa-play text-xs"></i></div>',
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16]
-                    })
-                }).addTo(map);
+                positions.push(currentPoint);
+                routePolyline.addLatLng([lat, lng]);
             }
 
-            tripData.positions.push(newPoint);
-
-            const latLng = [lat, lng];
-            userMarker.setLatLng(latLng);
-            routePolyline.addLatLng(latLng);
-            map.panTo(latLng);
-
-            updateUI();
-        }
-
-        function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371e3;
-            const φ1 = lat1 * Math.PI / 180;
-            const φ2 = lat2 * Math.PI / 180;
-            const Δφ = (lat2 - lat1) * Math.PI / 180;
-            const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                      Math.cos(φ1) * Math.cos(φ2) *
-                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-            return R * c;
-        }
-
-        function startTimer() {
-            if (!timerInterval) {
-                timerInterval = setInterval(() => {
-                    tripData.elapsedSeconds++;
-                    document.getElementById('timerVal').innerText = formatTime(tripData.elapsedSeconds);
-                }, 1000);
+            // Update Max Speed
+            if (currentSpeedKmh > maxSpeedKmh) {
+                maxSpeedKmh = currentSpeedKmh;
             }
+
+            // Update UI Metrics
+            currentSpeedEl.textContent = Math.round(currentSpeedKmh);
+            maxSpeedEl.textContent = maxSpeedKmh.toFixed(1);
+            totalDistanceEl.textContent = totalDistanceKm.toFixed(2);
+
+            // Center map on user
+            userMarker.setLatLng([lat, lng]);
+            map.panTo([lat, lng], { animate: true });
         }
 
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
+        function handleGpsError(error) {
+            console.warn('GPS Error:', error.message);
+            gpsCoordsEl.textContent = 'สัญญาณ GPS ขัดข้อง';
+        }
+
+        function updateGpsInfo(position) {
+            const lat = position.coords.latitude.toFixed(4);
+            const lng = position.coords.longitude.toFixed(4);
+            const acc = Math.round(position.coords.accuracy);
+
+            gpsCoordsEl.textContent = `พิกัด GPS: ${lat}, ${lng}`;
+            gpsAccuracyEl.textContent = `ความแม่นยำ: ±${acc}m`;
+        }
+
+        function updateAverageSpeed() {
+            if (elapsedTime > 0 && totalDistanceKm > 0) {
+                const avg = (totalDistanceKm / (elapsedTime / 3600));
+                avgSpeedEl.textContent = avg.toFixed(1);
+            } else {
+                avgSpeedEl.textContent = '0.0';
             }
         }
 
-        function formatTime(totalSec) {
-            const hrs = Math.floor(totalSec / 3600);
-            const mins = Math.floor((totalSec % 3600) / 60);
-            const secs = totalSec % 60;
-            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
+        function finishTrip() {
+            if (!isTracking) return;
 
-        function format12HourTime(date) {
-            if (!date) return '--:-- --';
-            let hours = date.getHours();
-            let minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            return `${hours}:${minutes} ${ampm}`;
-        }
+            isTracking = false;
+            endTime = new Date();
 
-        /* SUMMARY MODAL & REVERSE GEOCODING */
-        async function openSummaryModal() {
-            const modal = document.getElementById('summaryModal');
-            modal.classList.remove('hidden');
-
-            const distKm = (tripData.totalDistanceMeters / 1000).toFixed(2);
-            const durationMin = Math.max(1, Math.round(tripData.elapsedSeconds / 60));
-
-            document.getElementById('summaryDistanceHeader').innerText = distKm;
-            document.getElementById('summaryDurationHeader').innerText = `${durationMin} min`;
-
-            document.getElementById('summaryStartTime').innerText = format12HourTime(tripData.startTime);
-            document.getElementById('summaryEndTime').innerText = format12HourTime(tripData.endTime || new Date());
-
-            document.getElementById('summaryMaxSpeed').innerText = tripData.maxSpeedKmH.toFixed(1);
-            document.getElementById('summaryAvgSpeed').innerText = tripData.avgSpeedKmH.toFixed(1);
-            document.getElementById('summaryPointsCount').innerText = tripData.positions.length;
-
-            // Render Mini Summary Map
-            setTimeout(() => {
-                renderSummaryMap();
-            }, 100);
-
-            // Fetch Reverse Geocoding Addresses
-            if (tripData.positions.length > 0) {
-                const startPos = tripData.positions[0];
-                const endPos = tripData.positions[tripData.positions.length - 1];
-
-                fetchAddress(startPos.lat, startPos.lng, 'summaryStartAddress');
-                fetchAddress(endPos.lat, endPos.lng, 'summaryEndAddress');
+            // Clear Watcher and Timer
+            if (watchPositionId !== null) {
+                navigator.geolocation.clearWatch(watchPositionId);
+                watchPositionId = null;
             }
+            clearInterval(timerInterval);
+            releaseWakeLock();
+
+            // Update UI State
+            startBtn.disabled = false;
+            finishBtn.disabled = true;
+            statusBadge.classList.remove('recording');
+            statusText.textContent = 'เสร็จสิ้นการเดินทาง';
+            currentSpeedEl.textContent = '0';
+
+            // Show Trip Summary Modal
+            showSummaryModal();
         }
 
-        function closeSummaryModal() {
-            document.getElementById('summaryModal').classList.add('hidden');
-        }
-
-        function renderSummaryMap() {
-            const mapContainer = document.getElementById('summaryMap');
-            if (!mapContainer) return;
-
-            if (summaryMap) {
-                summaryMap.remove();
-                summaryMap = null;
-            }
-
-            summaryMap = L.map('summaryMap', {
-                zoomControl: false,
-                attributionControl: false
-            });
-
-            // Standard Light Map Tiles for Clean Summary Card Look
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18
-            }).addTo(summaryMap);
-
-            if (tripData.positions.length > 0) {
-                const latLngs = tripData.positions.map(p => [p.lat, p.lng]);
-
-                // Draw Clean Black Line matching reference image
-                summaryPolyline = L.polyline(latLngs, {
-                    color: '#000000',
-                    weight: 4,
-                    opacity: 1
-                }).addTo(summaryMap);
-
-                // Start Square Node
-                const startPt = latLngs[0];
-                L.marker(startPt, {
-                    icon: L.divIcon({
-                        className: 'square-marker',
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
-                    })
-                }).addTo(summaryMap);
-
-                // End Square Node
-                const endPt = latLngs[latLngs.length - 1];
-                L.marker(endPt, {
-                    icon: L.divIcon({
-                        className: 'square-marker',
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
-                    })
-                }).addTo(summaryMap);
-
-                summaryMap.fitBounds(summaryPolyline.getBounds(), { padding: [25, 25] });
-            }
-        }
-
-        async function fetchAddress(lat, lng, elementId) {
-            const el = document.getElementById(elementId);
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=th,en`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.display_name) {
-                        el.innerText = data.display_name;
-                        return;
-                    }
+        function resetTrip() {
+            if (isTracking) {
+                if (!confirm('กำลังบันทึกเส้นทางอยู่ คุณต้องการยกเลิกและรีเซ็ตหรือไม่?')) {
+                    return;
                 }
-                el.innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-            } catch (err) {
-                el.innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                finishTrip();
             }
-        }
 
-        function updateUI() {
-            document.getElementById('currentSpeedVal').innerText = Math.round(tripData.currentSpeedKmH);
-            document.getElementById('maxSpeedVal').innerText = tripData.maxSpeedKmH.toFixed(1);
-            document.getElementById('avgSpeedVal').innerText = tripData.avgSpeedKmH.toFixed(1);
+            // Reset States
+            positions = [];
+            totalDistanceKm = 0;
+            maxSpeedKmh = 0;
+            currentSpeedKmh = 0;
+            elapsedTime = 0;
 
-            const km = (tripData.totalDistanceMeters / 1000).toFixed(2);
-            document.getElementById('distanceVal').innerText = km;
+            // Reset UI
+            currentSpeedEl.textContent = '0';
+            maxSpeedEl.textContent = '0.0';
+            avgSpeedEl.textContent = '0.0';
+            totalDistanceEl.textContent = '0.00';
+            durationEl.textContent = '00:00:00';
+            statusText.textContent = 'พร้อมใช้งาน';
 
-            const startBtn = document.getElementById('startBtn');
-            const startBtnText = document.getElementById('startBtnText');
-            const startBtnIcon = document.getElementById('startBtnIcon');
-            const finishBtn = document.getElementById('finishBtn');
-
-            if (trackingState === 'TRACKING') {
-                startBtn.className = "flex-1 py-3.5 px-6 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base";
-                startBtnText.innerText = "พักการเดินทาง";
-                startBtnIcon.className = "fa-solid fa-pause";
-
-                finishBtn.disabled = false;
-                finishBtn.className = "flex-1 py-3.5 px-6 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-900/30 transition flex items-center justify-center space-x-2 text-base cursor-pointer";
-            } else if (trackingState === 'PAUSED') {
-                startBtn.className = "flex-1 py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base";
-                startBtnText.innerText = "เดินทางต่อ";
-                startBtnIcon.className = "fa-solid fa-play";
-
-                finishBtn.disabled = false;
-                finishBtn.className = "flex-1 py-3.5 px-6 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-base cursor-pointer";
-            } else if (trackingState === 'FINISHED') {
-                startBtn.className = "flex-1 py-3.5 px-6 bg-slate-700 text-slate-500 font-bold rounded-xl transition flex items-center justify-center space-x-2 text-base cursor-not-allowed";
-                startBtn.disabled = true;
-                startBtnText.innerText = "การเดินทางจบแล้ว";
-                startBtnIcon.className = "fa-solid fa-check";
-
-                finishBtn.disabled = true;
-                finishBtn.className = "flex-1 py-3.5 px-6 bg-slate-800 text-slate-600 font-bold rounded-xl transition flex items-center justify-center space-x-2 text-base cursor-not-allowed";
-            } else {
-                startBtn.disabled = false;
-                startBtn.className = "flex-1 py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition flex items-center justify-center space-x-2 text-base";
-                startBtnText.innerText = "เริ่มการเดินทาง";
-                startBtnIcon.className = "fa-solid fa-play";
-
-                finishBtn.disabled = true;
-                finishBtn.className = "flex-1 py-3.5 px-6 bg-red-600/40 text-white/40 font-bold rounded-xl transition flex items-center justify-center space-x-2 text-base cursor-not-allowed";
-            }
-        }
-
-        function updateGPSStatus(type, text) {
-            const gpsDot = document.getElementById('gpsDot');
-            const gpsText = document.getElementById('gpsText');
-            const badge = document.getElementById('gpsStatusBadge');
-
-            gpsText.innerText = text;
-
-            if (type === 'ACTIVE') {
-                gpsDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                badge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800/50";
-            } else if (type === 'PAUSED') {
-                gpsDot.className = "w-2 h-2 rounded-full bg-amber-400";
-                badge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-950/80 text-amber-300 border border-amber-800/50";
-            } else if (type === 'READY') {
-                gpsDot.className = "w-2 h-2 rounded-full bg-blue-400";
-                badge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-950/80 text-blue-300 border border-blue-800/50";
-            } else if (type === 'FINISHED') {
-                gpsDot.className = "w-2 h-2 rounded-full bg-purple-400";
-                badge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-950/80 text-purple-300 border border-purple-800/50";
-            } else {
-                gpsDot.className = "w-2 h-2 rounded-full bg-slate-400";
-                badge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300";
-            }
+            // Clear Map Routes
+            if (routePolyline) routePolyline.setLatLngs([]);
         }
 
         function recenterMap() {
             if (userMarker) {
-                map.setView(userMarker.getLatLng(), 17, { animate: true });
+                map.setView(userMarker.getLatLng(), 16, { animate: true });
             }
         }
 
-        function confirmReset() {
-            showModal(
-                "รีเซ็ตข้อมูลการเดินทาง",
-                "คุณต้องการลบข้อมูลการเดินทางปัจจุบันและเริ่มต้นใหม่ใช่หรือไม่?",
-                () => resetTracking()
-            );
+        // --- Summary Modal & Geocoding ---
+        function showSummaryModal() {
+            const durationMin = Math.ceil(elapsedTime / 60);
+            const avgSpeedKmh = elapsedTime > 0 ? (totalDistanceKm / (elapsedTime / 3600)).toFixed(1) : '0.0';
+
+            // Header info
+            modalHeaderSummary.innerHTML = `${totalDistanceKm.toFixed(2)} kilometers <span>|</span> ${durationMin} min`;
+            modalStartTime.textContent = formatTimeStr(startTime || new Date());
+            modalEndTime.textContent = formatTimeStr(endTime || new Date());
+            modalMaxSpeed.textContent = `${maxSpeedKmh.toFixed(1)} km/h`;
+            modalAvgSpeed.textContent = `${avgSpeedKmh} km/h`;
+
+            summaryModal.classList.add('active');
+
+            // Initialize or Refresh Summary Map
+            setTimeout(() => {
+                renderSummaryMap();
+            }, 200);
+
+            // Fetch Reverse Geocoding Addresses
+            fetchAddresses();
         }
 
-        function resetTracking() {
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
+        function renderSummaryMap() {
+            if (!summaryMap) {
+                summaryMap = L.map('summaryMap', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([13.7563, 100.5018], 13);
+
+                L.tileLayer(primaryTileUrl, { maxZoom: 19 }).addTo(summaryMap);
+
+                summaryPolyline = L.polyline([], {
+                    color: '#000000',
+                    weight: 4,
+                    opacity: 0.9
+                }).addTo(summaryMap);
             }
-            stopTimer();
-            releaseWakeLock();
 
-            routePolyline.setLatLngs([]);
-            if (startMarker) { map.removeLayer(startMarker); startMarker = null; }
-            if (finishMarker) { map.removeLayer(finishMarker); finishMarker = null; }
+            if (positions.length > 0) {
+                const latLngs = positions.map(p => [p.lat, p.lng]);
+                summaryPolyline.setLatLngs(latLngs);
 
-            trackingState = 'IDLE';
-            tripData = {
-                positions: [],
-                totalDistanceMeters: 0,
-                startTime: null,
-                endTime: null,
-                elapsedSeconds: 0,
-                currentSpeedKmH: 0,
-                maxSpeedKmH: 0,
-                avgSpeedKmH: 0
-            };
+                // Add start and end square markers
+                const startPt = positions[0];
+                const endPt = positions[positions.length - 1];
 
-            document.getElementById('timerVal').innerText = "00:00:00";
-            document.getElementById('exportPanel').classList.add('hidden');
+                const squareIcon = L.divIcon({
+                    className: 'timeline-square-marker',
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
 
-            closeSummaryModal();
-            updateGPSStatus('READY', 'พร้อมใช้งาน');
-            updateUI();
-            closeModal();
-            showToast("สำเร็จ", "รีเซ็ตข้อมูลเรียบร้อยแล้ว", "success");
+                if (summaryStartMarker) summaryMap.removeLayer(summaryStartMarker);
+                if (summaryEndMarker) summaryMap.removeLayer(summaryEndMarker);
+
+                summaryStartMarker = L.marker([startPt.lat, startPt.lng], { icon: squareIcon }).addTo(summaryMap);
+                summaryEndMarker = L.marker([endPt.lat, endPt.lng], { icon: squareIcon }).addTo(summaryMap);
+
+                // Fit map bounds to show complete trip route
+                const bounds = L.latLngBounds(latLngs);
+                summaryMap.fitBounds(bounds, { padding: [30, 30] });
+            }
         }
 
+        async function fetchAddresses() {
+            if (positions.length === 0) {
+                modalStartAddress.textContent = "ไม่มีข้อมูลพิกัด";
+                modalEndAddress.textContent = "ไม่มีข้อมูลพิกัด";
+                return;
+            }
+
+            modalStartAddress.classList.add('loading');
+            modalEndAddress.classList.add('loading');
+            modalStartAddress.textContent = "กำลังดึงข้อมูลสถานที่...";
+            modalEndAddress.textContent = "กำลังดึงข้อมูลสถานที่...";
+
+            const startPt = positions[0];
+            const endPt = positions[positions.length - 1];
+
+            // Reverse Geocode Start Point
+            const startAddr = await reverseGeocode(startPt.lat, startPt.lng);
+            modalStartAddress.textContent = startAddr;
+            modalStartAddress.classList.remove('loading');
+
+            // Reverse Geocode End Point
+            const endAddr = await reverseGeocode(endPt.lat, endPt.lng);
+            modalEndAddress.textContent = endAddr;
+            modalEndAddress.classList.remove('loading');
+        }
+
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=th,en`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                }
+            } catch (e) {
+                console.warn('Geocoding error:', e);
+            }
+            return `พิกัด ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        }
+
+        // --- Export GPX File ---
+        function exportGPX() {
+            if (positions.length === 0) {
+                alert('ไม่มีข้อมูลเส้นทางสำหรับการดาวน์โหลด');
+                return;
+            }
+
+            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TripTracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Trip ${new Date().toLocaleDateString()}</name>
+    <trkseg>
+`;
+
+            positions.forEach(p => {
+                const timeISO = p.timestamp ? p.timestamp.toISOString() : new Date().toISOString();
+                gpxContent += `      <trkpt lat="${p.lat}" lon="${p.lng}">
+        <time>${timeISO}</time>
+        <speed>${(p.speed / 3.6).toFixed(2)}</speed>
+      </trkpt>\n`;
+            });
+
+            gpxContent += `    </trkseg>
+  </trk>
+</gpx>`;
+
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trip-log-${Date.now()}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- Utility Helper Functions ---
+        function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function toRad(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        function formatDuration(sec) {
+            const hrs = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            return `${padZero(hrs)}:${padZero(mins)}:${padZero(secs)}`;
+        }
+
+        function padZero(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        function formatTimeStr(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // --- Screen Wake Lock API ---
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                console.log('Wake lock request failed:', err.message);
+                console.warn('Wake Lock Error:', err.message);
             }
         }
 
@@ -842,111 +1286,6 @@
             if (wakeLock !== null) {
                 wakeLock.release().then(() => { wakeLock = null; });
             }
-        }
-
-        function handleGPSError(error) {
-            let msg = "ไม่สามารถเข้าถึงตำแหน่ง GPS ได้";
-            if (error.code === 1) msg = "กรุณากดอนุญาตสิทธิ์เข้าถึง GPS บนอุปกรณ์ของคุณ";
-            else if (error.code === 2) msg = "ไม่พบค้นหาสัญญาณ GPS ในพื้นที่นี้";
-            else if (error.code === 3) msg = "สัญญาณ GPS หมดเวลาการเชื่อมต่อ (Timeout)";
-
-            showToast("สิทธิ์ตำแหน่ง GPS", msg, "warning");
-            updateGPSStatus('ERROR', 'สัญญาณขัดข้อง');
-        }
-
-        function exportRoute(format) {
-            if (tripData.positions.length === 0) return;
-
-            let fileContent = "", fileName = `trip-${new Date().toISOString().slice(0, 10)}`;
-            let mimeType = "application/json";
-
-            if (format === 'geojson') {
-                const geojson = {
-                    type: "FeatureCollection",
-                    features: [{
-                        type: "Feature",
-                        geometry: {
-                            type: "LineString",
-                            coordinates: tripData.positions.map(p => [p.lng, p.lat])
-                        },
-                        properties: {
-                            startTime: tripData.startTime,
-                            endTime: tripData.endTime,
-                            distanceKm: (tripData.totalDistanceMeters / 1000).toFixed(2),
-                            maxSpeedKmH: tripData.maxSpeedKmH.toFixed(1),
-                            avgSpeedKmH: tripData.avgSpeedKmH.toFixed(1),
-                            durationSeconds: tripData.elapsedSeconds
-                        }
-                    }]
-                };
-                fileContent = JSON.stringify(geojson, null, 2);
-                fileName += ".geojson";
-            } else if (format === 'gpx') {
-                mimeType = "application/gpx+xml";
-                const trkpts = tripData.positions.map(p => 
-                    `<trkpt lat="${p.lat}" lon="${p.lng}"><time>${new Date(p.timestamp).toISOString()}</time></trkpt>`
-                ).join("\n");
-
-                fileContent = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="GPS Trip Tracker" xmlns="http://www.topografix.com/GPX/1/1">
-  <trk>
-    <name>Driving Trip ${new Date().toLocaleDateString('th-TH')}</name>
-    <trkseg>
-      ${trkpts}
-    </trkseg>
-  </trk>
-</gpx>`;
-                fileName += ".gpx";
-            }
-
-            const blob = new Blob([fileContent], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function showModal(title, message, onConfirm) {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalMessage').innerText = message;
-            const confirmBtn = document.getElementById('modalConfirmBtn');
-            
-            confirmBtn.onclick = () => {
-                onConfirm();
-            };
-
-            document.getElementById('customModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('customModal').classList.add('hidden');
-        }
-
-        function showToast(title, message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `fixed top-4 right-4 z-50 p-4 rounded-xl shadow-2xl border text-sm max-w-xs transition-all duration-300 transform translate-y-0 ${
-                type === 'error' ? 'bg-red-900/90 border-red-700 text-red-100' :
-                type === 'warning' ? 'bg-amber-900/90 border-amber-700 text-amber-100' :
-                'bg-slate-800/90 border-slate-700 text-slate-100'
-            }`;
-            
-            toast.innerHTML = `
-                <div class="font-bold flex items-center space-x-1 mb-1">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>${title}</span>
-                </div>
-                <div class="text-xs opacity-90">${message}</div>
-            `;
-            
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
         }
     </script>
 </body>

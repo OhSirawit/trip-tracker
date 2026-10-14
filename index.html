@@ -605,11 +605,10 @@
             display: flex;
             gap: 10px;
             justify-content: flex-end;
-            flex-wrap: wrap;
         }
 
         .btn-modal {
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 8px;
             font-size: 0.85rem;
             font-weight: 500;
@@ -704,4 +703,719 @@
                         </div>
                     </div>
 
-                    
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>Avg Speed</span>
+                            <i class="fa-solid fa-chart-line stat-icon" style="color: var(--accent-green)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="avgSpeed">0.0</span>
+                            <span class="stat-unit">km/h</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>Distance</span>
+                            <i class="fa-solid fa-route stat-icon" style="color: var(--accent-blue)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="totalDistance">0.00</span>
+                            <span class="stat-unit">km</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span>Duration</span>
+                            <i class="fa-solid fa-stopwatch stat-icon" style="color: var(--accent-cyan)"></i>
+                        </div>
+                        <div class="stat-value-group">
+                            <span class="stat-value" id="duration">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPS Status Info -->
+                <div class="gps-info-row">
+                    <span id="gpsCoords">GPS: -</span>
+                    <span id="gpsAccuracy">Accuracy: -</span>
+                </div>
+            </div>
+
+            <!-- Map Area -->
+            <div class="map-wrapper">
+                <div id="map"></div>
+                <button class="map-recenter-btn" id="recenterBtn" title="Recenter Location">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Fixed Controls Bar -->
+        <div class="controls-bar">
+            <button class="btn btn-start" id="startBtn">
+                <i class="fa-solid fa-play"></i> Start Drive
+            </button>
+            <button class="btn btn-finish" id="finishBtn" disabled>
+                <i class="fa-solid fa-flag-checkered"></i> Finish
+            </button>
+            <button class="btn btn-reset" id="resetBtn" title="Reset trip data">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Trip Summary Modal Screen -->
+    <div class="modal-overlay" id="summaryModal">
+        <div class="summary-card">
+            <!-- Modal Header Summary -->
+            <div class="summary-header-bar">
+                <div class="summary-main-metrics" id="modalHeaderSummary">
+                    0.00 kilometers <span>|</span> 0 min
+                </div>
+                <button class="close-modal-btn" id="closeModalBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="summary-body">
+                <!-- Timeline Info Column -->
+                <div class="summary-timeline-col">
+                    <div class="timeline-container">
+                        <div class="timeline-line"></div>
+                        
+                        <!-- Start Point -->
+                        <div class="timeline-point">
+                            <div class="timeline-marker start"></div>
+                            <div class="point-time" id="modalStartTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
+                        </div>
+
+                        <!-- End Point -->
+                        <div class="timeline-point">
+                            <div class="timeline-marker end"></div>
+                            <div class="point-time" id="modalEndTime">12:00 AM</div>
+                            <div class="point-address loading" id="modalEndAddress">Fetching location...</div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Extra Stats -->
+                    <div class="summary-extra-stats">
+                        <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
+                        <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
+                    </div>
+                </div>
+
+                <!-- Mini Preview Map Column -->
+                <div class="summary-map-col">
+                    <div id="summaryMap"></div>
+                </div>
+            </div>
+
+            <!-- Modal Bottom Actions -->
+            <div class="summary-actions-bar">
+                <button class="btn-modal" id="exportGpxBtn">
+                    <i class="fa-solid fa-download"></i> Download GPX
+                </button>
+                <button class="btn-modal btn-modal-primary" id="confirmCloseModalBtn">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Guide Modal (for iOS & unsupported browsers) -->
+    <div class="modal-overlay" id="installGuideModal">
+        <div class="summary-card" style="max-width: 440px; padding: 20px; text-align: center; color: #0f172a;">
+            <div style="font-size: 2.2rem; color: #ea580c; margin-bottom: 8px;">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Install Web App</h2>
+            <div style="font-size: 0.88rem; color: #334155; line-height: 1.6; text-align: left; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;" id="installGuideText">
+                <!-- Instructions dynamically injected based on device/browser -->
+            </div>
+            <button class="btn-modal btn-modal-primary" id="closeInstallGuideBtn" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 600;">
+                Got it
+            </button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS Engine -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        (function setupPWA() {
+            const manifestObj = {
+                name: "Trip Tracker - GPS Driving Log",
+                short_name: "TripTracker",
+                start_url: "./index.html",
+                display: "standalone",
+                background_color: "#0f172a",
+                theme_color: "#0f172a",
+                orientation: "portrait",
+                icons: [
+                    {
+                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    }
+                ]
+            };
+            
+            // Use Data URI for broader compatibility with mobile browsers
+            const manifestDataUri = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
+            document.getElementById('manifest-link').setAttribute('href', manifestDataUri);
+
+            // Register Service Worker
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(e => console.warn('SW:', e));
+            }
+        })();
+
+        // --- In-App Browser Detection ---
+        function isInAppBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return /FBAN|FBAV|Instagram|Line|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
+        }
+
+        // --- PWA Installation Prompt ---
+        let deferredPrompt;
+        const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+        const installGuideModal = document.getElementById('installGuideModal');
+        const closeInstallGuideBtn = document.getElementById('closeInstallGuideBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        pwaInstallBtn.addEventListener('click', async () => {
+            const guideText = document.getElementById('installGuideText');
+            
+            // 1. Check if opened inside LINE / Facebook / Messenger In-App Browser
+            if (isInAppBrowser()) {
+                guideText.innerHTML = `
+                    <strong style="color: #dc2626;">⚠️ Opened in App Browser (LINE / Facebook)</strong><br><br>
+                    In-app browsers do not support Web App installation or background GPS tracking.<br><br>
+                    <strong>How to fix:</strong><br>
+                    1. Tap the <strong>3 dots (⋮)</strong> or <strong>Share</strong> button at the top/bottom.<br>
+                    2. Select <strong>"Open in Chrome"</strong> (Android) or <strong>"Open in Safari"</strong> (iOS).
+                `;
+                installGuideModal.classList.add('active');
+                return;
+            }
+
+            // 2. Direct Chrome/Android auto-prompt
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    pwaInstallBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                // 3. Manual instruction prompt for iOS Safari or installed state
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS) {
+                    guideText.innerHTML = `
+                        <strong>📱 Installation on iOS (Safari):</strong><br><br>
+                        1. Make sure you are using <strong>Safari browser</strong>.<br>
+                        2. Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket" style="color: #2563eb;"></i> at the bottom toolbar.<br>
+                        3. Scroll down and select <strong>"Add to Home Screen"</strong> <i class="fa-regular fa-square-plus" style="color: #2563eb;"></i>.
+                    `;
+                } else {
+                    guideText.innerHTML = `
+                        <strong>📱 Installation on Android (Chrome):</strong><br><br>
+                        1. Tap the <strong>Chrome menu (⋮)</strong> at the top right.<br>
+                        2. Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.<br><br>
+                        <em>Note: If already installed, check your phone's app list.</em>
+                    `;
+                }
+                installGuideModal.classList.add('active');
+            }
+        });
+
+        closeInstallGuideBtn.addEventListener('click', () => {
+            installGuideModal.classList.remove('active');
+        });
+
+        // --- Application State Management ---
+        let isTracking = false;
+        let watchPositionId = null;
+        let timerInterval = null;
+        let startTime = null;
+        let endTime = null;
+        let elapsedTime = 0;
+
+        let positions = [];
+        let totalDistanceKm = 0;
+        let maxSpeedKmh = 0;
+        let currentSpeedKmh = 0;
+
+        let map = null;
+        let routePolyline = null;
+        let userMarker = null;
+
+        let summaryMap = null;
+        let summaryPolyline = null;
+        let summaryStartMarker = null;
+        let summaryEndMarker = null;
+
+        let wakeLock = null;
+
+        // --- DOM Elements ---
+        const startBtn = document.getElementById('startBtn');
+        const finishBtn = document.getElementById('finishBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const recenterBtn = document.getElementById('recenterBtn');
+
+        const currentSpeedEl = document.getElementById('currentSpeed');
+        const maxSpeedEl = document.getElementById('maxSpeed');
+        const avgSpeedEl = document.getElementById('avgSpeed');
+        const totalDistanceEl = document.getElementById('totalDistance');
+        const durationEl = document.getElementById('duration');
+
+        const gpsCoordsEl = document.getElementById('gpsCoords');
+        const gpsAccuracyEl = document.getElementById('gpsAccuracy');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+
+        const summaryModal = document.getElementById('summaryModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const confirmCloseModalBtn = document.getElementById('confirmCloseModalBtn');
+        const modalHeaderSummary = document.getElementById('modalHeaderSummary');
+        const modalStartTime = document.getElementById('modalStartTime');
+        const modalEndTime = document.getElementById('modalEndTime');
+        const modalStartAddress = document.getElementById('modalStartAddress');
+        const modalEndAddress = document.getElementById('modalEndAddress');
+        const modalMaxSpeed = document.getElementById('modalMaxSpeed');
+        const modalAvgSpeed = document.getElementById('modalAvgSpeed');
+        const exportGpxBtn = document.getElementById('exportGpxBtn');
+
+        const primaryTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const fallbackTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initMainMap();
+            setupEventListeners();
+        });
+
+        function initMainMap() {
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: true
+            }).setView([13.7563, 100.5018], 15);
+
+            const tileLayer = L.tileLayer(primaryTileUrl, {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            tileLayer.on('tileerror', function() {
+                this.setUrl(fallbackTileUrl);
+            });
+
+            routePolyline = L.polyline([], {
+                color: '#3b82f6',
+                weight: 6,
+                opacity: 0.85,
+                lineJoin: 'round'
+            }).addTo(map);
+
+            const customIcon = L.divIcon({
+                className: 'user-location-marker',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            userMarker = L.marker([13.7563, 100.5018], { icon: customIcon }).addTo(map);
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        map.setView([lat, lng], 16);
+                        userMarker.setLatLng([lat, lng]);
+                        updateGpsInfo(pos);
+                    },
+                    err => console.warn('Geolocation init:', err),
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            }
+        }
+
+        function setupEventListeners() {
+            startBtn.addEventListener('click', startTrip);
+            finishBtn.addEventListener('click', finishTrip);
+            resetBtn.addEventListener('click', resetTrip);
+            recenterBtn.addEventListener('click', recenterMap);
+
+            closeModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
+            confirmCloseModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
+            exportGpxBtn.addEventListener('click', exportGPX);
+        }
+
+        function startTrip() {
+            if (isTracking) return;
+
+            isTracking = true;
+            startTime = new Date();
+            
+            startBtn.disabled = true;
+            finishBtn.disabled = false;
+            statusBadge.style.display = 'flex';
+            statusBadge.classList.add('recording');
+            statusText.textContent = 'Tracking...';
+            pwaInstallBtn.style.display = 'none'; // Hide install button while tracking
+
+            requestWakeLock();
+
+            timerInterval = setInterval(() => {
+                elapsedTime++;
+                durationEl.textContent = formatDuration(elapsedTime);
+                updateAverageSpeed();
+            }, 1000);
+
+            if ("geolocation" in navigator) {
+                watchPositionId = navigator.geolocation.watchPosition(
+                    handleGpsPosition,
+                    handleGpsError,
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 10000
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        }
+
+        function handleGpsPosition(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            let speed = position.coords.speed;
+
+            updateGpsInfo(position);
+
+            if (speed !== null && !isNaN(speed) && speed >= 0) {
+                currentSpeedKmh = speed * 3.6;
+            } else {
+                currentSpeedKmh = 0;
+            }
+
+            if (accuracy > 50) return;
+
+            const currentPoint = { lat, lng, speed: currentSpeedKmh, timestamp: new Date() };
+
+            if (positions.length > 0) {
+                const prevPoint = positions[positions.length - 1];
+                const dist = calculateDistanceKm(prevPoint.lat, prevPoint.lng, lat, lng);
+
+                if (dist > 0.003) {
+                    totalDistanceKm += dist;
+
+                    if (speed === null || isNaN(speed)) {
+                        const timeDiffSec = (currentPoint.timestamp - prevPoint.timestamp) / 1000;
+                        if (timeDiffSec > 0) {
+                            currentSpeedKmh = (dist / timeDiffSec) * 3600;
+                        }
+                    }
+
+                    positions.push(currentPoint);
+                    routePolyline.addLatLng([lat, lng]);
+                }
+            } else {
+                positions.push(currentPoint);
+                routePolyline.addLatLng([lat, lng]);
+            }
+
+            if (currentSpeedKmh > maxSpeedKmh) {
+                maxSpeedKmh = currentSpeedKmh;
+            }
+
+            currentSpeedEl.textContent = Math.round(currentSpeedKmh);
+            maxSpeedEl.textContent = maxSpeedKmh.toFixed(1);
+            totalDistanceEl.textContent = totalDistanceKm.toFixed(2);
+
+            userMarker.setLatLng([lat, lng]);
+            map.panTo([lat, lng], { animate: true });
+        }
+
+        function handleGpsError(error) {
+            console.warn('GPS Error:', error.message);
+            gpsCoordsEl.textContent = 'GPS Signal Lost';
+        }
+
+        function updateGpsInfo(position) {
+            const lat = position.coords.latitude.toFixed(4);
+            const lng = position.coords.longitude.toFixed(4);
+            const acc = Math.round(position.coords.accuracy);
+
+            gpsCoordsEl.textContent = `GPS: ${lat}, ${lng}`;
+            gpsAccuracyEl.textContent = `Accuracy: ±${acc}m`;
+        }
+
+        function updateAverageSpeed() {
+            if (elapsedTime > 0 && totalDistanceKm > 0) {
+                const avg = (totalDistanceKm / (elapsedTime / 3600));
+                avgSpeedEl.textContent = avg.toFixed(1);
+            } else {
+                avgSpeedEl.textContent = '0.0';
+            }
+        }
+
+        function finishTrip() {
+            if (!isTracking) return;
+
+            isTracking = false;
+            endTime = new Date();
+
+            if (watchPositionId !== null) {
+                navigator.geolocation.clearWatch(watchPositionId);
+                watchPositionId = null;
+            }
+            clearInterval(timerInterval);
+            releaseWakeLock();
+
+            startBtn.disabled = false;
+            finishBtn.disabled = true;
+            statusBadge.classList.remove('recording');
+            statusText.textContent = 'Trip Finished';
+            currentSpeedEl.textContent = '0';
+
+            showSummaryModal();
+        }
+
+        function resetTrip() {
+            if (isTracking) {
+                if (!confirm('A trip is currently being recorded. Are you sure you want to cancel and reset?')) {
+                    return;
+                }
+                finishTrip();
+            }
+
+            positions = [];
+            totalDistanceKm = 0;
+            maxSpeedKmh = 0;
+            currentSpeedKmh = 0;
+            elapsedTime = 0;
+
+            currentSpeedEl.textContent = '0';
+            maxSpeedEl.textContent = '0.0';
+            avgSpeedEl.textContent = '0.0';
+            totalDistanceEl.textContent = '0.00';
+            durationEl.textContent = '00:00:00';
+            statusText.textContent = 'Ready';
+
+            if (routePolyline) routePolyline.setLatLngs([]);
+        }
+
+        function recenterMap() {
+            if (userMarker) {
+                map.setView(userMarker.getLatLng(), 16, { animate: true });
+            }
+        }
+
+        function showSummaryModal() {
+            const durationMin = Math.ceil(elapsedTime / 60);
+            const avgSpeedKmh = elapsedTime > 0 ? (totalDistanceKm / (elapsedTime / 3600)).toFixed(1) : '0.0';
+
+            modalHeaderSummary.innerHTML = `${totalDistanceKm.toFixed(2)} kilometers <span>|</span> ${durationMin} min`;
+            modalStartTime.textContent = formatTimeStr(startTime || new Date());
+            modalEndTime.textContent = formatTimeStr(endTime || new Date());
+            modalMaxSpeed.textContent = `${maxSpeedKmh.toFixed(1)} km/h`;
+            modalAvgSpeed.textContent = `${avgSpeedKmh} km/h`;
+
+            summaryModal.classList.add('active');
+
+            setTimeout(() => {
+                renderSummaryMap();
+            }, 200);
+
+            fetchAddresses();
+        }
+
+        function renderSummaryMap() {
+            if (!summaryMap) {
+                summaryMap = L.map('summaryMap', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([13.7563, 100.5018], 13);
+
+                L.tileLayer(primaryTileUrl, { maxZoom: 19 }).addTo(summaryMap);
+
+                summaryPolyline = L.polyline([], {
+                    color: '#000000',
+                    weight: 4,
+                    opacity: 0.9
+                }).addTo(summaryMap);
+            }
+
+            if (positions.length > 0) {
+                const latLngs = positions.map(p => [p.lat, p.lng]);
+                summaryPolyline.setLatLngs(latLngs);
+
+                const startPt = positions[0];
+                const endPt = positions[positions.length - 1];
+
+                const squareIcon = L.divIcon({
+                    className: 'timeline-square-marker',
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+
+                if (summaryStartMarker) summaryMap.removeLayer(summaryStartMarker);
+                if (summaryEndMarker) summaryMap.removeLayer(summaryEndMarker);
+
+                summaryStartMarker = L.marker([startPt.lat, startPt.lng], { icon: squareIcon }).addTo(summaryMap);
+                summaryEndMarker = L.marker([endPt.lat, endPt.lng], { icon: squareIcon }).addTo(summaryMap);
+
+                const bounds = L.latLngBounds(latLngs);
+                summaryMap.fitBounds(bounds, { padding: [30, 30] });
+            }
+        }
+
+        async function fetchAddresses() {
+            if (positions.length === 0) {
+                modalStartAddress.textContent = "No coordinates available";
+                modalEndAddress.textContent = "No coordinates available";
+                return;
+            }
+
+            modalStartAddress.classList.add('loading');
+            modalEndAddress.classList.add('loading');
+            modalStartAddress.textContent = "Fetching location...";
+            modalEndAddress.textContent = "Fetching location...";
+
+            const startPt = positions[0];
+            const endPt = positions[positions.length - 1];
+
+            const startAddr = await reverseGeocode(startPt.lat, startPt.lng);
+            modalStartAddress.textContent = startAddr;
+            modalStartAddress.classList.remove('loading');
+
+            const endAddr = await reverseGeocode(endPt.lat, endPt.lng);
+            modalEndAddress.textContent = endAddr;
+            modalEndAddress.classList.remove('loading');
+        }
+
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                }
+            } catch (e) {
+                console.warn('Geocoding error:', e);
+            }
+            return `Coords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        }
+
+        function exportGPX() {
+            if (positions.length === 0) {
+                alert('No route data available to download.');
+                return;
+            }
+
+            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TripTracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Trip ${new Date().toLocaleDateString()}</name>
+    <trkseg>
+`;
+
+            positions.forEach(p => {
+                const timeISO = p.timestamp ? p.timestamp.toISOString() : new Date().toISOString();
+                gpxContent += `      <trkpt lat="${p.lat}" lon="${p.lng}">
+        <time>${timeISO}</time>
+        <speed>${(p.speed / 3.6).toFixed(2)}</speed>
+      </trkpt>\n`;
+            });
+
+            gpxContent += `    </trkseg>
+  </trk>
+</gpx>`;
+
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trip-log-${Date.now()}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function toRad(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        function formatDuration(sec) {
+            const hrs = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            return `${padZero(hrs)}:${padZero(mins)}:${padZero(secs)}`;
+        }
+
+        function padZero(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        function formatTimeStr(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.warn('Wake Lock:', err.message);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+        }
+    </script>
+</body>
+</html>
+```

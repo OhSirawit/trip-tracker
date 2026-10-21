@@ -424,7 +424,6 @@
                     <div class="space-y-1.5">
                         <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-edit text-[#D9383A]"></i> Note / Details <span class="text-[#D9383A]">*</span></label>
                         <textarea id="details" rows="2" placeholder="What did you buy?" class="w-full input-style p-4 text-[13px] font-medium outline-none resize-none" required></textarea>
-                        <!-- NOTE: Quick Tags Container is rendered here! -->
                         <div id="quick-tags-container" class="flex flex-wrap gap-1.5 mt-2 px-1"></div>
                     </div>
                     
@@ -577,8 +576,8 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 135)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxpPbTmPCZuSCSiraS5CaidmjAIGz64VAkZyG3XI7qtrX3yDeIGkyWa-zqDJ8qZ9MiI/exec";
+        // API URL (Version 136)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxUs0D1AaCRBe1p8DdwKmzFUCXMajMkmQ4h5fiv9cQLiIVriSGfDmCT6ZHkJbrrPRe1/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -852,7 +851,6 @@
             }
 
             fetchExchangeRate(); 
-            // เรนเดอร์ Quick Tags ทันทีที่โหลดหน้าเสร็จ
             renderQuickTags(); 
 
             // Auto bypass login
@@ -1199,7 +1197,7 @@
             list.innerHTML = ''; 
             stats.innerHTML = ''; 
             pSum.innerHTML = ''; 
-            if(uSum) uSum.innerHTML = '';
+            if(window.uSum) uSum.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0; 
             const daily = {}; 

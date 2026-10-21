@@ -379,10 +379,10 @@
                                 <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
                                 <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer">
                                     <option value="Cash">💵 Cash</option>
-                                    <option value="Credit Card">💳 Credit Card</option>
-                                    <option value="Travel Card">🌍 Travel Card</option>
+                                    <option value="JCB Thida">💳 JCB Thida</option>
+                                    <option value="JCB Oh">💳 JCB Oh</option>
                                     <option value="IC Card">🚉 IC Card</option>
-                                    <option value="QR Code">📲 QR Code</option>
+                                    <option value="QR Payment">📲 QR Payment</option>
                                 </select>
                             </div>
                         </div>
@@ -1101,10 +1101,12 @@
             list.innerHTML = ''; 
             stats.innerHTML = ''; 
             pSum.innerHTML = ''; 
+            if(uSum) uSum.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0; 
             const daily = {}; 
-            const payStats = { 'Cash': 0, 'Credit Card': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Code': 0 }; 
+            const payStats = { 'Cash': 0, 'JCB Thida': 0, 'JCB Oh': 0, 'IC Card': 0, 'QR Payment': 0 }; 
+            const userStats = {};
             
             const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             
@@ -1161,9 +1163,14 @@
                     globalDailyCategoryStats[item.date][item.category] += amt; 
                 }
                 
+                let uKey = item.username.toUpperCase(); 
+                if (!userStats[uKey]) userStats[uKey] = 0; 
+                userStats[uKey] += impact;
+
                 let pKey = item.payment; 
-                if (pKey === "Visa/Master" || pKey === "Visa / Master") pKey = "Credit Card"; 
-                if (pKey === "JCB Card-Thida" || pKey === "JCB Card-OHSirawit" || pKey === "JCB" || pKey === "Refund-JCB") pKey = "Credit Card";
+                if (pKey === "QR Code") pKey = "QR Payment"; 
+                if (pKey === "JCB Card-Thida") pKey = "JCB Thida";
+                if (pKey === "JCB Card-OHSirawit") pKey = "JCB Oh";
                 
                 if (!payStats.hasOwnProperty(pKey)) payStats[pKey] = 0; 
                 if (pKey === "Cash") cashUsed += impact; 
@@ -1280,7 +1287,7 @@
             const currentBudget = getBudget();
 
             Object.entries(payStats).forEach(([method, total]) => { 
-                if (total !== 0 || method === 'Cash' || method === 'Credit Card') { 
+                if (total !== 0 || method === 'Cash' || method === 'JCB Thida' || method === 'JCB Oh') { 
                     const payDiv = document.createElement('div'); 
                     payDiv.className = "modern-card p-5 text-left border border-[#EAE6DF] shadow-sm"; 
                     

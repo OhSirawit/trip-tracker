@@ -757,19 +757,28 @@
 
         function triggerFileInput(type) {
             const fileInput = document.getElementById('receipt-file');
+            
+            // 1. รีเซ็ตแอตทริบิวต์เพื่อป้องกันมือถือจำค่าการเปิดกล้องค้างไว้
+            fileInput.value = '';
+            fileInput.removeAttribute("capture");
+            fileInput.removeAttribute("accept");
+
             if (type === 'camera') {
-                fileInput.accept = "image/*";
-                fileInput.setAttribute("capture", "environment");
+                fileInput.setAttribute("accept", "image/*");
+                fileInput.setAttribute("capture", "environment"); // บังคับเปิดกล้อง
             } else if (type === 'gallery') {
-                fileInput.accept = "image/*";
-                fileInput.removeAttribute("capture");
+                // 2. การระบุนามสกุลไฟล์เจาะจง จะช่วยบังคับให้มือถือเปิด Gallery ชัวร์ๆ แทนที่จะเด้งกล้อง
+                fileInput.setAttribute("accept", "image/jpeg, image/png, image/jpg, image/webp");
             } else if (type === 'file') {
-                fileInput.accept = "application/pdf,.doc,.docx,.xls,.xlsx,text/plain";
-                fileInput.removeAttribute("capture");
+                fileInput.setAttribute("accept", "application/pdf,.doc,.docx,.xls,.xlsx,text/plain");
             }
+            
+            // 3. ห้ามใช้ setTimeout ในการ click() เพราะระบบความปลอดภัยมือถือจะบล็อก
+            // ให้สั่งเปิด File Picker ทันที
+            fileInput.click();
+            
+            // ค่อยปิด Modal ตามหลัง
             closeAttachmentModal();
-            // Wait slightly for modal to close before triggering OS file picker
-            setTimeout(() => { fileInput.click(); }, 300);
         }
 
         function saveBudget() {

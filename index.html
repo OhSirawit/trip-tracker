@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PLADAO TRIP</title>
+    <title>MyTrip</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,7 +13,7 @@
     
     <script>
         const manifestJSON = {
-            "name": "PLADAO TRIP",
+            "name": "MyTrip",
             "short_name": "Trip Wallet",
             "start_url": window.location.href.split('?')[0],
             "display": "standalone",
@@ -153,6 +153,8 @@
         body.dark-mode .tax-refund-card { background-color: #5c5531 !important; border-color: #8c824c !important; }
         body.dark-mode .bg-\[\#f0ebe1\] { background-color: #334155 !important; }
         body.dark-mode .bg-\[\#fffaf9\] { background-color: #1e293b !important; }
+        body.dark-mode #trip-desc { border-color: #334155; color: #94a3b8; }
+        body.dark-mode #trip-desc:focus { border-color: #c75b43; color: #f1f5f9; }
     </style>
 </head>
 <body class="pb-32 relative">
@@ -194,8 +196,9 @@
                 <div class="w-10 h-10 bg-[#c75b43] rounded-[12px] flex items-center justify-center text-white shadow-md shadow-[#c75b43]/20">
                     <i class="fas fa-plane text-sm"></i>
                 </div>
-                <div>
-                    <span class="font-bold text-gray-800 text-[13px] block leading-tight">PLADAO TRIP</span>
+                <div class="flex flex-col">
+                    <span class="font-bold text-gray-800 text-[14px] leading-tight">MyTrip</span>
+                    <input type="text" id="trip-desc" placeholder="เพิ่มรายละเอียดทริป..." class="text-[10px] font-medium text-gray-500 bg-transparent border-b border-dashed border-[#eaddcf] outline-none w-32 sm:w-40 placeholder-gray-400 focus:border-[#c75b43] transition-colors py-0.5 my-0.5" onchange="localStorage.setItem('tripDesc', this.value)">
                     <span class="text-[9px] font-medium text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced</span>
                 </div>
             </div>
@@ -728,6 +731,11 @@
                 document.getElementById('theme-icon').className = "fas fa-sun";
             }
             
+            const savedTripDesc = localStorage.getItem('tripDesc');
+            if (savedTripDesc) {
+                document.getElementById('trip-desc').value = savedTripDesc;
+            }
+
             fetchExchangeRate(); 
             renderQuickTags(); 
 

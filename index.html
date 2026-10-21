@@ -8,7 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#fdfcf8">
+    <!-- Washi Paper Color -->
+    <meta name="theme-color" content="#F7F6F2">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2060/2060284.png">
     
     <script>
@@ -17,8 +18,8 @@
             "short_name": "Trip Wallet",
             "start_url": window.location.href.split('?')[0],
             "display": "standalone",
-            "background_color": "#fdfcf8",
-            "theme_color": "#fdfcf8",
+            "background_color": "#F7F6F2",
+            "theme_color": "#F7F6F2",
             "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2060/2060284.png", "sizes": "512x512", "type": "image/png"}]
         };
         const stringManifest = JSON.stringify(manifestJSON);
@@ -37,41 +38,42 @@
         
         body { 
             font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; 
-            color: #2d2a26; 
+            color: #1C2536; /* Sumi Black */
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding: 0;
-            background-color: #fdfcf8;
+            background-color: #F7F6F2; /* Washi Paper */
             overflow-x: hidden; 
             transition: background-color 0.3s ease;
         }
 
+        /* Modern Zen Cards */
         .modern-card { 
             background: #ffffff; 
-            border: 1px solid #eaddcf; 
-            border-radius: 24px; 
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04); 
+            border: 1px solid #EAE6DF; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.04); 
             transition: all 0.3s ease;
         }
         
-        .form-card-warm {
-            background-color: #f6f3ed;
-            border: 1px solid #eaddcf;
-            border-radius: 24px;
+        .form-card-zen {
+            background-color: #ffffff;
+            border: 1px solid #EAE6DF;
+            border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
         .input-style { 
             background: #ffffff; 
-            border: 1px solid #e2dcd0; 
+            border: 1px solid #EAE6DF; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             appearance: none; 
             border-radius: 12px; 
-            color: #2d2a26;
+            color: #1C2536;
         }
         .input-style:focus { 
-            border-color: #c75b43; 
-            box-shadow: 0 0 0 3px rgba(199, 91, 67, 0.1); 
+            border-color: #D9383A; /* Torii Red */
+            box-shadow: 0 0 0 3px rgba(217, 56, 58, 0.1); 
             outline: none;
         }
         
@@ -83,42 +85,42 @@
             font-weight: 500;
             padding: 2px 4px;
             border-radius: 4px;
-            width: 130px;
+            width: 140px;
             outline: none;
             transition: all 0.2s ease;
             margin-top: 2px;
         }
         .trip-detail-input:focus, .trip-detail-input:hover {
-            border-color: #cbd5e1;
-            background: rgba(255, 255, 255, 0.5);
+            border-color: #D9383A;
+            background: rgba(255, 255, 255, 0.8);
         }
         .trip-detail-input::placeholder {
             color: #94a3b8;
         }
 
         .btn-modern { 
-            background: #2d3748; 
+            background: #1C2536; 
             color: white; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             border: none;
             border-radius: 14px;
-            box-shadow: 0 8px 20px -4px rgba(45, 55, 72, 0.3);
+            box-shadow: 0 8px 20px -4px rgba(28, 37, 54, 0.3);
         }
-        .btn-modern:active { transform: scale(0.98) translateY(2px); box-shadow: 0 4px 10px rgba(45, 55, 72, 0.2); }
+        .btn-modern:active { transform: scale(0.98) translateY(2px); box-shadow: 0 4px 10px rgba(28, 37, 54, 0.2); }
         
         .btn-cancel {
             background: #ffffff;
             color: #64748b;
-            border: 1px solid #e2dcd0;
+            border: 1px solid #EAE6DF;
             border-radius: 14px;
             transition: all 0.3s ease;
         }
         .btn-cancel:active { transform: scale(0.97); }
 
         .nav-btn { transition: all 0.3s ease; color: #a19d94; }
-        .nav-active { color: #c75b43 !important; font-weight: 800; }
+        .nav-active { color: #D9383A !important; font-weight: 800; }
         .nav-active i { transform: translateY(-2px); }
-        .nav-active span { color: #c75b43; }
+        .nav-active span { color: #D9383A; }
         
         .page-content { display: none; }
         .page-active { display: block; animation: smoothFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -152,38 +154,37 @@
         }
         @keyframes placeholderShimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
 
-        .tax-refund-card { background-color: #FFEC8B !important; border-color: #e5d47e !important; }
+        .tax-refund-card { background-color: #FDF8EB !important; border-color: #F2E3C6 !important; }
 
-        /* Dark Mode Styles */
-        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
-        body.dark-mode .modern-card, body.dark-mode .form-card-warm { background-color: #1e293b; border-color: #334155; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); }
-        body.dark-mode .input-style { background-color: #0f172a; color: #f1f5f9; border-color: #334155; }
-        body.dark-mode .input-style:focus { border-color: #c75b43; background-color: #1e293b; }
+        body.dark-mode { background-color: #0F172A; color: #f1f5f9; }
+        body.dark-mode .modern-card, body.dark-mode .form-card-zen { background-color: #1E293B; border-color: #334155; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); }
+        body.dark-mode .input-style { background-color: #0F172A; color: #f1f5f9; border-color: #334155; }
+        body.dark-mode .input-style:focus { border-color: #D9383A; background-color: #1E293B; }
         body.dark-mode nav { background-color: rgba(30, 41, 59, 0.8) !important; border-bottom-color: #334155; }
-        body.dark-mode .bg-white { background-color: #1e293b !important; }
-        body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #0f172a !important; }
+        body.dark-mode .bg-white { background-color: #1E293B !important; }
+        body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #0F172A !important; }
         body.dark-mode .text-slate-900, body.dark-mode .text-slate-800, body.dark-mode .text-gray-800 { color: #f8fafc !important; }
         body.dark-mode .text-slate-700 { color: #cbd5e1 !important; }
         body.dark-mode .text-slate-600, body.dark-mode .text-slate-500 { color: #94a3b8 !important; }
-        body.dark-mode .border-[#e2dcd0], body.dark-mode .border-[#eaddcf], body.dark-mode .border-[#e5e0d8] { border-color: #334155 !important; }
+        body.dark-mode .border-[#EAE6DF] { border-color: #334155 !important; }
         body.dark-mode .btn-cancel { background-color: #334155; color: #cbd5e1; border-color:#475569;}
         body.dark-mode .fixed.bottom-6 { background-color: rgba(30, 41, 59, 0.9); border-color: #334155; }
         body.dark-mode .nav-active span { color: #f1f5f9; }
         body.dark-mode #quick-tags-container button { background-color: #334155; border-color: #475569; color: #e2e8f0; }
-        body.dark-mode #quick-tags-container button:hover { background-color: #c75b43; color: white; }
+        body.dark-mode #quick-tags-container button:hover { background-color: #D9383A; color: white; border-color: #D9383A; }
         body.dark-mode .tax-refund-card { background-color: #5c5531 !important; border-color: #8c824c !important; }
-        body.dark-mode .bg-\[\#f0ebe1\] { background-color: #334155 !important; }
-        body.dark-mode .bg-\[\#fffaf9\] { background-color: #1e293b !important; }
+        body.dark-mode .bg-\[\#F5F4F0\] { background-color: #334155 !important; }
+        body.dark-mode .bg-\[\#FFF9F9\] { background-color: #1E293B !important; }
         body.dark-mode .trip-detail-input { color: #cbd5e1; }
-        body.dark-mode .trip-detail-input:focus, body.dark-mode .trip-detail-input:hover { border-color: #475569; background: rgba(30, 41, 59, 0.5); }
+        body.dark-mode .trip-detail-input:focus, body.dark-mode .trip-detail-input:hover { border-color: #D9383A; background: rgba(30, 41, 59, 0.5); }
     </style>
 </head>
 <body class="pb-32 relative">
 
     <!-- Toast Notification -->
     <div id="toast-notification" class="fixed top-8 left-1/2 transform -translate-x-1/2 z-[100] -translate-y-32 opacity-0 pointer-events-none w-auto whitespace-nowrap">
-        <div id="toast-bg" class="bg-[#2d3748]/95 backdrop-blur-md text-white px-5 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-3">
-            <i id="toast-icon" class="fas fa-check-circle text-emerald-400 text-lg"></i>
+        <div id="toast-bg" class="bg-[#1C2536]/95 backdrop-blur-md text-white px-5 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-3">
+            <i id="toast-icon" class="fas fa-check-circle text-[#8A9A5B] text-lg"></i>
             <span id="toast-message" class="font-bold text-sm tracking-wide">Success!</span>
         </div>
     </div>
@@ -191,20 +192,20 @@
     <!-- Budget Modal -->
     <div id="budget-modal" class="fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center px-6 transition-opacity duration-300 opacity-0">
         <div class="modern-card p-8 w-full max-w-sm text-center transform scale-95 transition-transform duration-300" id="budget-modal-content">
-            <div class="w-16 h-16 bg-[#f6f3ed] text-[#c75b43] rounded-full mx-auto flex items-center justify-center text-2xl mb-5 shadow-sm">
+            <div class="w-16 h-16 bg-[#FFF9F9] text-[#D9383A] rounded-full mx-auto flex items-center justify-center text-2xl mb-5 shadow-sm border border-[#F2E3C6]">
                 <i class="fas fa-wallet"></i>
             </div>
-            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-tight">Set Budget</h3>
+            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-wide">Set Budget</h3>
             <p class="text-xs font-medium text-slate-500 mb-6">Enter your total trip budget (JPY)</p>
 
             <div class="relative mb-6">
-                <input type="number" id="new-budget-input" class="w-full input-style bg-white p-4 text-2xl font-black text-center text-slate-800 outline-none border border-[#e2dcd0]" placeholder="0">
+                <input type="number" id="new-budget-input" class="w-full input-style bg-white p-4 text-2xl font-black text-center text-slate-800 outline-none border border-[#EAE6DF]" placeholder="0">
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">JPY</span>
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeBudgetModal()" class="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors border border-[#e2dcd0]">Cancel</button>
-                <button onclick="saveBudget()" class="flex-1 py-3.5 rounded-2xl bg-[#2d3748] text-white font-bold text-sm hover:bg-[#1a202c] transition-colors shadow-lg shadow-[#2d3748]/20">Save</button>
+                <button onclick="closeBudgetModal()" class="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors border border-[#EAE6DF]">Cancel</button>
+                <button onclick="saveBudget()" class="flex-1 py-3.5 rounded-2xl bg-[#1C2536] text-white font-bold text-sm hover:bg-[#0f172a] transition-colors shadow-lg shadow-[#1C2536]/20">Save</button>
             </div>
         </div>
     </div>
@@ -212,23 +213,24 @@
     <!-- Main App Content -->
     <div id="main-app">
         <!-- Navigation Bar -->
-        <nav class="sticky top-0 z-50 px-6 py-4 bg-[#fdfcf8]/90 backdrop-blur-xl border-b border-[#eaddcf] flex justify-between items-center relative">
+        <nav class="sticky top-0 z-50 px-6 py-4 bg-[#F7F6F2]/90 backdrop-blur-xl border-b border-[#EAE6DF] flex justify-between items-center relative">
             <div class="flex items-center gap-3 relative z-10">
-                <div class="w-10 h-10 bg-[#c75b43] rounded-[12px] flex items-center justify-center text-white shadow-md shadow-[#c75b43]/20">
+                <!-- Zen Circular Logo Logo -->
+                <div class="w-10 h-10 bg-[#D9383A] rounded-full flex items-center justify-center text-white shadow-md shadow-[#D9383A]/20">
                     <i class="fas fa-plane text-sm"></i>
                 </div>
                 <div>
-                    <span class="font-bold text-gray-800 text-[14px] block leading-tight">MyTrip</span>
+                    <span class="font-bold text-gray-800 text-[14px] block leading-tight tracking-wide">MyTrip</span>
                     <!-- Trip details input field -->
                     <input type="text" id="trip-detail-header" class="trip-detail-input block" placeholder="e.g. Japan Trip 2024" onchange="saveTripDetail(this.value)">
                 </div>
             </div>
             
             <div class="flex items-center gap-2.5 relative z-10">
-                <button onclick="toggleDarkMode()" class="text-slate-500 hover:text-[#c75b43] transition-colors w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf] focus:outline-none">
+                <button onclick="toggleDarkMode()" class="text-slate-500 hover:text-[#D9383A] transition-colors w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#EAE6DF] focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon"></i>
                 </button>
-                <button id="menu-btn" onclick="toggleMenu(event)" class="text-slate-500 hover:text-[#c75b43] transition-colors focus:outline-none w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf]">
+                <button id="menu-btn" onclick="toggleMenu(event)" class="text-slate-500 hover:text-[#D9383A] transition-colors focus:outline-none w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#EAE6DF]">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -238,34 +240,34 @@
                 <ul class="flex flex-col space-y-1">
                     <li>
                         <button onclick="switchPage('dashboard');" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-chart-pie w-4 text-[#c75b43]"></i> Analytics
+                            <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
                     
                     <li>
                         <a href="https://script.google.com/macros/s/AKfycbzrADnbwPkeXGG6IuXZyP-MVuFd31HCSO098xWnNfevKmDb_qVwJE4M0_8P2cCsjFbX/exec" target="_blank" onclick="toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-file-invoice-dollar w-4 text-amber-500"></i> Pre-Trip Expenses
+                            <i class="fas fa-file-invoice-dollar w-4 text-[#D4AF37]"></i> Pre-Trip Expenses
                         </a>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
 
                     <li>
                         <button onclick="toggleDropdown('airline-menu')" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-between">
-                            <div class="flex items-center gap-3"><i class="fas fa-ticket-alt w-4 text-sky-500"></i> Flight Tickets</div>
+                            <div class="flex items-center gap-3"><i class="fas fa-ticket-alt w-4 text-[#457B9D]"></i> Flight Tickets</div>
                             <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-300" id="icon-airline-menu"></i>
                         </button>
                         <div id="airline-menu" class="hidden flex-col pl-11 pr-4 py-2 space-y-4 bg-slate-50/50 rounded-xl mt-1 mb-1 border border-slate-100/50">
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-departure text-slate-300"></i> BKK <i class="fas fa-arrow-right text-[8px]"></i> NRT</p>
                                 <div class="space-y-3">
-                                    <a href="#" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Ticket 1</a>
+                                    <a href="#" class="block text-xs font-bold text-slate-600 hover:text-[#D9383A]">Ticket 1</a>
                                 </div>
                             </div>
                         </div>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
-                    <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-emerald-500"></i> Export Data</button></li>
+                    <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export Data</button></li>
                 </ul>
             </div>
         </nav>
@@ -273,10 +275,12 @@
         <!-- PAGE 1: HOME (Add Expense) -->
         <div id="page-home" class="page-content page-active max-w-xl mx-auto px-4 py-5 space-y-5">
             
-            <!-- Dashboard Widget -->
-            <div class="modern-card p-6 bg-[#2d3748] text-white border-none shadow-[0_8px_30px_rgba(45,55,72,0.2)] relative overflow-hidden rounded-[20px]">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#4a5568]/30 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[#c75b43]/20 rounded-full blur-2xl pointer-events-none"></div>
+            <!-- Dashboard Widget - Modern Japan Style -->
+            <div class="modern-card p-6 bg-[#1C2536] text-white border-none shadow-[0_10px_40px_rgba(28,37,54,0.25)] relative overflow-hidden rounded-[20px]">
+                <!-- Solid Torii Red Sun -->
+                <div class="absolute -top-10 -right-8 w-32 h-32 bg-[#D9383A] rounded-full pointer-events-none shadow-lg"></div>
+                <!-- Zen Enso Circle (Subtle lines) -->
+                <div class="absolute -bottom-16 -left-8 w-40 h-40 border-[16px] border-white/5 rounded-full pointer-events-none"></div>
                 
                 <div class="relative z-10">
                     <div class="flex justify-between items-center mb-1">
@@ -287,23 +291,24 @@
                     </div>
                     
                     <div class="flex items-baseline gap-2 mb-5 mt-1">
-                        <h3 id="cash-remaining" class="font-black text-white tracking-tight text-[40px] leading-none">0</h3>
+                        <h3 id="cash-remaining" class="font-black text-white tracking-wide text-[40px] leading-none">0</h3>
                         <span class="text-sm font-bold text-slate-300">JPY</span>
                     </div>
                     
-                    <div class="w-full bg-[#1a202c] rounded-full h-2 mb-3 overflow-hidden">
-                        <div id="budget-progress-bar" class="h-full rounded-full transition-all duration-1000 ease-out bg-[#c75b43] relative" style="width: 100%">
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-[#0F172A] rounded-full h-2 mb-3 overflow-hidden border border-white/10">
+                        <div id="budget-progress-bar" class="h-full rounded-full transition-all duration-1000 ease-out bg-[#D9383A] relative" style="width: 100%">
                             <div class="absolute top-0 left-0 w-full h-full bg-white/20 transform -skew-x-12 animate-[placeholderShimmer_2s_infinite]"></div>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center text-[11px] font-bold border-t border-[#4a5568] pt-3">
+                    <div class="flex justify-between items-center text-[11px] font-bold border-t border-white/10 pt-3">
                         <span class="text-slate-300">Spent: <span id="cash-used-text" class="text-white">0</span></span>
                         <span class="text-slate-300 flex items-center gap-1">
                             Budget: 
-                            <span class="text-white cursor-pointer hover:text-[#eaddcf] transition-colors flex items-center gap-1" onclick="openBudgetModal()">
+                            <span class="text-white cursor-pointer hover:text-[#EAE6DF] transition-colors flex items-center gap-1" onclick="openBudgetModal()">
                                 <span id="budget-text">150,000</span> 
-                                <i class="fas fa-pencil-alt text-[9px] text-slate-400 bg-[#1a202c] p-1.5 rounded-full"></i>
+                                <i class="fas fa-pencil-alt text-[9px] text-slate-400 bg-[#0F172A] p-1.5 rounded-full"></i>
                             </span>
                         </span>
                     </div>
@@ -311,14 +316,14 @@
             </div>
 
             <!-- Expense Form -->
-            <section class="form-card-warm relative shadow-sm p-5">
+            <section class="form-card-zen relative p-5">
                 <div class="flex justify-between items-start mb-6">
                     <div class="flex gap-3 items-center">
-                        <div class="w-10 h-10 rounded-[12px] bg-[#2d3748] text-white flex items-center justify-center shadow-md">
+                        <div class="w-10 h-10 rounded-[12px] bg-[#1C2536] text-white flex items-center justify-center shadow-md">
                             <i class="fas fa-pen-nib"></i>
                         </div>
                         <div>
-                            <h3 id="form-title" class="text-[15px] font-bold text-gray-800 tracking-tight">Add New Expense</h3>
+                            <h3 id="form-title" class="text-[15px] font-bold text-gray-800 tracking-wide">Add New Expense</h3>
                             <p class="text-[10px] text-gray-500">กรุณากรอกข้อมูลให้ครบถ้วน</p>
                         </div>
                     </div>
@@ -327,11 +332,11 @@
                 <form id="expense-form" class="space-y-5">
                     <div class="grid grid-cols-2 gap-3">
                         <div class="space-y-1.5">
-                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="far fa-calendar-alt text-[#c75b43]"></i> Date <span class="text-[#c75b43]">*</span></label>
+                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="far fa-calendar-alt text-[#D9383A]"></i> Date <span class="text-[#D9383A]">*</span></label>
                             <input type="date" id="date" class="w-full input-style p-3.5 text-[13px] font-bold outline-none" required>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-tags text-[#c75b43]"></i> Category <span class="text-[#c75b43]">*</span></label>
+                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-tags text-[#D9383A]"></i> Category <span class="text-[#D9383A]">*</span></label>
                             <select id="category" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer" required onchange="renderQuickTags()">
                                 <optgroup label="EXPENSES">
                                     <option value="Food">🍱 Food & Dining</option>
@@ -356,19 +361,19 @@
                     </div>
 
                     <!-- Inner Card for Amount & Payment -->
-                    <div class="bg-white border border-[#e5e0d8] rounded-[16px] p-4 shadow-sm relative">
-                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-[#f0ebe1]">
-                            <div class="text-[11px] font-bold text-[#c75b43] flex items-center gap-1.5"><i class="fas fa-coins"></i> Amount Details</div>
+                    <div class="bg-white border border-[#EAE6DF] rounded-[16px] p-4 shadow-sm relative">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                            <div class="text-[11px] font-bold text-[#D9383A] flex items-center gap-1.5"><i class="fas fa-coins"></i> Amount Details</div>
                             <div class="text-[9px] text-gray-400 font-bold uppercase">Currency: JPY</div>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
                                 <div class="flex justify-between items-center">
-                                    <label class="text-[11px] font-bold text-gray-700">Amount (Calc) <span class="text-[#c75b43]">*</span></label>
+                                    <label class="text-[11px] font-bold text-gray-700">Amount (Calc) <span class="text-[#D9383A]">*</span></label>
                                     <span id="thb-equivalent" class="text-[9px] font-bold text-white bg-indigo-400 px-2 py-0.5 rounded shadow-sm hidden transition-all"></span>
                                 </div>
-                                <input type="text" inputmode="decimal" id="amount" placeholder="e.g. 1500+250" class="w-full input-style p-3.5 text-2xl font-black outline-none focus:border-[#c75b43] text-gray-800" required oninput="calculateTHB()">
+                                <input type="text" inputmode="decimal" id="amount" placeholder="e.g. 1500+250" class="w-full input-style p-3.5 text-2xl font-black outline-none focus:border-[#D9383A] text-gray-800" required oninput="calculateTHB()">
                             </div>
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
                                 <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
@@ -384,7 +389,7 @@
                     </div>
                     
                     <div class="space-y-1.5">
-                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-edit text-[#c75b43]"></i> Note / Details <span class="text-[#c75b43]">*</span></label>
+                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-edit text-[#D9383A]"></i> Note / Details <span class="text-[#D9383A]">*</span></label>
                         <textarea id="details" rows="2" placeholder="What did you buy?" class="w-full input-style p-4 text-[13px] font-medium outline-none resize-none" required></textarea>
                         <div id="quick-tags-container" class="flex flex-wrap gap-1.5 mt-2 px-1"></div>
                     </div>
@@ -392,21 +397,21 @@
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div class="relative">
                             <input type="file" id="receipt-file" accept="image/*" capture="environment" class="hidden">
-                            <label for="receipt-file" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#e2dcd0] hover:border-[#c75b43] bg-[#fffaf9] rounded-[14px] cursor-pointer transition-colors">
-                                <i class="fas fa-camera text-[#c75b43] text-sm"></i>
-                                <span class="text-[11px] text-[#c75b43] font-bold truncate max-w-[80px]" id="receipt-text">แนบใบเสร็จ</span>
+                            <label for="receipt-file" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] hover:border-[#D9383A] bg-[#FFF9F9] rounded-[14px] cursor-pointer transition-colors">
+                                <i class="fas fa-camera text-[#D9383A] text-sm"></i>
+                                <span class="text-[11px] text-[#D9383A] font-bold truncate max-w-[80px]" id="receipt-text">แนบใบเสร็จ</span>
                             </label>
                         </div>
-                        <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#e2dcd0] rounded-[14px]">
-                            <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#8c8577] rounded cursor-pointer">
+                        <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
+                            <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#1C2536] rounded cursor-pointer">
                             <label for="save-location" class="text-[11px] font-bold text-gray-600 uppercase cursor-pointer">SAVE GPS</label>
                         </div>
-                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#e2dcd0] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-shared', 'icon-shared', 'text-[#c75b43]')">
+                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#EAE6DF] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-shared', 'icon-shared', 'text-[#D9383A]')">
                             <input type="checkbox" id="is-shared" class="hidden">
                             <i id="icon-shared" class="fas fa-users text-gray-300 text-sm transition-colors"></i>
                             <span class="text-[11px] font-bold text-gray-600 uppercase">SHARED</span>
                         </div>
-                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#e2dcd0] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-taxfree', 'icon-taxfree', 'text-[#c75b43]')">
+                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#EAE6DF] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-taxfree', 'icon-taxfree', 'text-[#D9383A]')">
                             <input type="checkbox" id="is-taxfree" class="hidden">
                             <i id="icon-taxfree" class="fas fa-tag text-gray-300 text-sm transition-colors"></i>
                             <span class="text-[11px] font-bold text-gray-600 uppercase">TAX-REFUND</span>
@@ -415,7 +420,8 @@
 
                     <div class="flex gap-3 mt-5 pt-2">
                         <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden w-1/3 btn-cancel py-4 text-sm font-bold flex justify-center items-center">ยกเลิก</button>
-                        <button type="submit" id="submit-btn" class="flex-1 btn-modern bg-[#2d3748] hover:bg-[#1a202c] py-4 text-sm font-bold flex justify-center items-center gap-2">บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i></button>
+                        <!-- Torii Red Primary Button -->
+                        <button type="submit" id="submit-btn" class="flex-1 btn-modern bg-[#D9383A] hover:bg-[#BA2E30] py-4 text-sm font-bold flex justify-center items-center gap-2 shadow-lg shadow-[#D9383A]/30">บันทึกข้อมูล <i class="fas fa-paper-plane"></i></button>
                     </div>
                 </form>
             </section>
@@ -424,7 +430,7 @@
         <!-- PAGE 2: HISTORY (Timeline) -->
         <div id="page-history" class="page-content max-w-xl mx-auto px-5 py-4 space-y-4">
             <div class="flex justify-between items-center mb-5 px-1">
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Timeline</h2>
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Timeline</h2>
                 <div class="relative bg-white rounded-xl border border-slate-200 shadow-sm">
                     <select id="sort-filter" onchange="updateUI()" class="bg-transparent text-slate-700 text-[10px] font-bold px-3 py-2.5 outline-none appearance-none cursor-pointer pr-8">
                         <option value="latest" selected>⏱️ Latest</option>
@@ -456,7 +462,7 @@
         
         <!-- PAGE 3: ANALYTICS -->
         <div id="page-analytics" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight px-1">Summary</h2>
+            <h2 class="text-2xl font-black text-slate-900 tracking-wide px-1">Summary</h2>
             
             <div class="modern-card p-6 text-center space-y-4 relative overflow-hidden bg-white">
                 <div class="flex justify-between text-xs font-bold text-slate-500">
@@ -485,8 +491,8 @@
         <!-- PAGE 4: DASHBOARD (Charts) -->
         <div id="page-dashboard" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Analytics</h2>
-                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#c75b43] transition-colors w-9 h-9 rounded-full bg-white border border-[#eaddcf] flex items-center justify-center shadow-sm">
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Analytics</h2>
+                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
@@ -519,16 +525,16 @@
         </div>
 
         <!-- Bottom Navigation Bar -->
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[360px] bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(15,23,42,0.08)] rounded-[24px] p-1.5 flex justify-between items-center">
-            <button onclick="switchPage('home')" id="nav-home" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 nav-active hover:bg-slate-50 transition-colors">
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[360px] bg-white/90 backdrop-blur-xl border border-[#EAE6DF] shadow-[0_10px_40px_rgba(28,37,54,0.08)] rounded-2xl p-1.5 flex justify-between items-center">
+            <button onclick="switchPage('home')" id="nav-home" class="nav-btn w-1/3 py-3 rounded-[12px] flex flex-col items-center gap-1 nav-active hover:bg-slate-50 transition-colors">
                 <i class="fas fa-plus text-[18px]"></i>
                 <span class="text-[9px] font-bold uppercase tracking-wider">Add</span>
             </button>
-            <button onclick="switchPage('history')" id="nav-history" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
+            <button onclick="switchPage('history')" id="nav-history" class="nav-btn w-1/3 py-3 rounded-[12px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
                 <i class="fas fa-list-ul text-[18px]"></i>
                 <span class="text-[9px] font-bold uppercase tracking-wider">History</span>
             </button>
-            <button onclick="switchPage('analytics')" id="nav-analytics" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
+            <button onclick="switchPage('analytics')" id="nav-analytics" class="nav-btn w-1/3 py-3 rounded-[12px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
                 <i class="fas fa-chart-pie text-[18px]"></i>
                 <span class="text-[9px] font-bold uppercase tracking-wider">Stats</span>
             </button>
@@ -549,17 +555,18 @@
         let oldReceiptUrl = "";
         let currentJpyToThbRate = 0; 
         
+        // Japanese Themed Color Palette for Charts
         const globalColorsMap = { 
-            'Food': '#f43f5e',        
-            'Transportation': '#3b82f6', 
-            'Gasoline': '#f97316',    
-            'Toll / ETC': '#8b5cf6',  
-            'Dessert/Beverage': '#ec4899', 
-            'Shopping': '#10b981',    
-            'Admission Fee': '#14b8a6', 
-            'Tops up IC Card': '#eab308', 
-            'Pre-Order': '#6366f1',   
-            'Other': '#64748b'        
+            'Food': '#D9383A',            // Torii Red
+            'Transportation': '#1C2536',  // Sumi Ink
+            'Gasoline': '#F4A261',        // Warm Wood
+            'Toll / ETC': '#8D99AE',      // Steel
+            'Dessert/Beverage': '#FFB7C5',// Sakura Pink
+            'Shopping': '#D4AF37',        // Kintsugi Gold
+            'Admission Fee': '#8A9A5B',   // Matcha Green
+            'Tops up IC Card': '#2A9D8F', // Ocean Teal
+            'Pre-Order': '#457B9D',       // Indigo Blue
+            'Other': '#A8DADC'            // Pale Blue
         };
         
         let receiptBase64 = null;
@@ -591,7 +598,7 @@
                 tags.forEach(tag => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'text-[10px] font-bold bg-white text-gray-600 px-2.5 py-1 rounded-md border border-[#e2dcd0] hover:bg-[#c75b43] hover:border-[#c75b43] hover:text-white transition-colors whitespace-nowrap shadow-sm';
+                    btn.className = 'text-[10px] font-bold bg-white text-gray-600 px-2.5 py-1 rounded-md border border-[#EAE6DF] hover:bg-[#D9383A] hover:border-[#D9383A] hover:text-white transition-colors whitespace-nowrap shadow-sm';
                     btn.innerText = tag;
                     btn.onclick = () => {
                         const noteInput = document.getElementById('details');
@@ -614,13 +621,13 @@
             if (cb.checked) {
                 icon.classList.remove('text-gray-300');
                 icon.classList.add(activeColor.replace('text-', 'text-'));
-                icon.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
-                icon.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+                icon.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]');
+                icon.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white');
             } else {
                 icon.classList.remove(activeColor.replace('text-', 'text-'));
                 icon.classList.add('text-gray-300');
-                icon.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-                icon.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                icon.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                icon.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
             }
         }
 
@@ -708,7 +715,7 @@
             if (navigator.onLine) {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = currentEditRowId ? 'Update Record <i class="fas fa-save"></i>' : 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>';
+                btn.innerHTML = currentEditRowId ? 'Update Record <i class="fas fa-save"></i>' : 'บันทึกข้อมูล <i class="fas fa-paper-plane"></i>';
             } else {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -810,7 +817,7 @@
             const toastIcon = document.getElementById('toast-icon'); 
             
             toastMsg.innerText = message; 
-            toastIcon.className = isError ? "fas fa-exclamation-circle text-rose-400 text-lg" : "fas fa-check-circle text-emerald-400 text-lg"; 
+            toastIcon.className = isError ? "fas fa-exclamation-circle text-rose-400 text-lg" : "fas fa-check-circle text-[#8A9A5B] text-lg"; 
             
             toast.classList.remove('-translate-y-32', 'opacity-0'); 
             toast.classList.add('translate-y-0', 'opacity-100'); 
@@ -861,7 +868,7 @@
 
         async function loadDataFromSheet() { 
             const list = document.getElementById('history-list'); 
-            if(list) list.innerHTML = '<div class="text-center p-10 text-slate-400 font-bold text-xs"><i class="fas fa-circle-notch fa-spin text-[#c75b43] text-3xl mb-4"></i><br>Syncing Data...</div>'; 
+            if(list) list.innerHTML = '<div class="text-center p-10 text-slate-400 font-bold text-xs"><i class="fas fa-circle-notch fa-spin text-[#D9383A] text-3xl mb-4"></i><br>Syncing Data...</div>'; 
             
             try {
                 const res = await fetch(API_URL + "?action=getExpenses").then(r => r.json());
@@ -938,7 +945,7 @@
                     plugins: { 
                         legend: { display: false }, 
                         tooltip: { 
-                            backgroundColor: '#2d3748', 
+                            backgroundColor: '#1C2536', 
                             padding: 12, 
                             cornerRadius: 12, 
                             callbacks: { 
@@ -1017,14 +1024,14 @@
             cbShared.checked = item.isShared;
             if(item.isShared) { 
                 iconShared.classList.remove('text-gray-300'); 
-                iconShared.classList.add('text-[#c75b43]'); 
-                iconShared.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
-                iconShared.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+                iconShared.classList.add('text-[#D9383A]'); 
+                iconShared.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconShared.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white');
             } else { 
-                iconShared.classList.remove('text-[#c75b43]'); 
+                iconShared.classList.remove('text-[#D9383A]'); 
                 iconShared.classList.add('text-gray-300'); 
-                iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-                iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
             }
 
             const cbTax = document.getElementById('is-taxfree');
@@ -1032,14 +1039,14 @@
             cbTax.checked = item.isTaxFree;
             if(item.isTaxFree) { 
                 iconTax.classList.remove('text-gray-300'); 
-                iconTax.classList.add('text-[#c75b43]'); 
-                iconTax.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
-                iconTax.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+                iconTax.classList.add('text-[#D9383A]'); 
+                iconTax.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconTax.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white');
             } else { 
-                iconTax.classList.remove('text-[#c75b43]'); 
+                iconTax.classList.remove('text-[#D9383A]'); 
                 iconTax.classList.add('text-gray-300');
-                iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-                iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
             }
             
             document.getElementById('submit-btn').innerHTML = 'Update Record <i class="fas fa-save"></i>';
@@ -1056,7 +1063,7 @@
             
             document.getElementById('expense-form').reset();
             document.getElementById('date').value = new Date().toLocaleDateString('en-CA');
-            document.getElementById('submit-btn').innerHTML = 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>';
+            document.getElementById('submit-btn').innerHTML = 'บันทึกข้อมูล <i class="fas fa-paper-plane"></i>';
             document.getElementById('form-title').innerHTML = 'Add New Expense';
             document.getElementById('cancel-edit-btn').classList.add('hidden');
             document.getElementById('thb-equivalent').classList.add('hidden'); 
@@ -1064,18 +1071,18 @@
             const cbShared = document.getElementById('is-shared');
             const iconShared = document.getElementById('icon-shared');
             cbShared.checked = false;
-            iconShared.classList.remove('text-[#c75b43]'); 
+            iconShared.classList.remove('text-[#D9383A]'); 
             iconShared.classList.add('text-gray-300'); 
-            iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-            iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+            iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
             
             const cbTax = document.getElementById('is-taxfree');
             const iconTax = document.getElementById('icon-taxfree');
             cbTax.checked = false;
-            iconTax.classList.remove('text-[#c75b43]'); 
+            iconTax.classList.remove('text-[#D9383A]'); 
             iconTax.classList.add('text-gray-300'); 
-            iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-            iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+            iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
 
             receiptBase64 = null;
             receiptName = null;
@@ -1183,7 +1190,7 @@
                 let thbLine = '';
                 if(appliedRate > 0) { 
                     thbLine = `
-                        <p class="text-[10px] font-bold text-[#c75b43] mt-0.5 whitespace-nowrap">
+                        <p class="text-[10px] font-bold text-[#D9383A] mt-0.5 whitespace-nowrap">
                             ≈ ${(amt * appliedRate).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} THB 
                             <span class="text-slate-400 font-medium">(Rate: ${appliedRate.toFixed(4)})</span>
                         </p>
@@ -1192,22 +1199,22 @@
 
                 let badgeHtml = '';
                 if(item.isShared) {
-                    badgeHtml += `<span class="text-[8px] font-bold bg-[#2d3748] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `;
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#1C2536] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `;
                 }
                 if(item.isTaxFree) {
-                    badgeHtml += `<span class="text-[8px] font-bold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-amber-100 whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>`;
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>`;
                 }
 
                 const div = document.createElement('div'); 
                 div.className = `modern-card p-4 flex justify-between items-start gap-2 ${item.isTaxFree ? 'tax-refund-card' : ''}`; 
                 div.innerHTML = `
                     <div class="flex gap-4 items-start text-left w-full overflow-hidden">
-                        <div class="w-12 h-12 flex-shrink-0 mt-0.5 ${isRef ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-[#f6f3ed] text-[#c75b43] border border-[#eaddcf]'} rounded-[16px] flex items-center justify-center">
+                        <div class="w-12 h-12 flex-shrink-0 mt-0.5 ${isRef ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-[#F5F4F0] text-[#D9383A] border border-[#EAE6DF]'} rounded-[16px] flex items-center justify-center">
                             <i class="fas ${getIcon(item.category)} text-[18px]"></i>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-1.5">
-                                <p class="font-bold text-gray-800 text-[13px] leading-tight">${item.category}</p>
+                                <p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p>
                                 <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${item.payment}</span>
                             </div>
                             <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
@@ -1221,9 +1228,9 @@
                             ${thbLine}
                         </div>
                         <div class="flex justify-end gap-3 mt-2 items-center">
-                            ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="text-gray-300 hover:text-[#c75b43] transition-colors"><i class="fas fa-image text-[13px]"></i></a>` : ''}
-                            ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#c75b43] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
-                            <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#c75b43] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
+                            ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></a>` : ''}
+                            ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
+                            <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#D9383A] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
                             <button onclick="deleteItem(${item.rowId})" class="text-gray-200 hover:text-rose-500 transition-colors ml-1"><i class="fas fa-trash-alt text-[13px]"></i></button>
                         </div>
                     </div>
@@ -1275,12 +1282,12 @@
             Object.entries(payStats).forEach(([method, total]) => { 
                 if (total !== 0 || method === 'Cash' || method === 'Credit Card') { 
                     const payDiv = document.createElement('div'); 
-                    payDiv.className = "modern-card p-5 text-left border border-gray-100 shadow-sm"; 
+                    payDiv.className = "modern-card p-5 text-left border border-[#EAE6DF] shadow-sm"; 
                     
                     let displayName = method; 
                     let bal = ""; 
                     if (method === "Cash") {
-                        bal = `<p class="text-[10px] font-bold text-[#c75b43] mt-1.5">Remain: ${(currentBudget - total).toLocaleString()}</p>`; 
+                        bal = `<p class="text-[10px] font-bold text-[#D9383A] mt-1.5">Remain: ${(currentBudget - total).toLocaleString()}</p>`; 
                     }
                     
                     payDiv.innerHTML = `
@@ -1295,11 +1302,11 @@
             Object.keys(daily).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { 
                 const data = daily[date];
                 const mainDiv = document.createElement('div'); 
-                mainDiv.className = "modern-card overflow-hidden shadow-sm mb-4 border border-gray-100"; 
+                mainDiv.className = "modern-card overflow-hidden shadow-sm mb-4 border border-[#EAE6DF]"; 
                 mainDiv.innerHTML = `
                     <div onclick="toggleDay('${date}')" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-[14px] bg-[#2d3748] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#2d3748]/10">
+                            <div class="w-11 h-11 rounded-[14px] bg-[#1C2536] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#1C2536]/10">
                                 ${date.split('-')[2]}
                             </div>
                             <p class="text-xs font-black text-gray-500 uppercase tracking-widest">${date}</p>
@@ -1309,11 +1316,11 @@
                             <i id="icon-${date}" class="fas fa-chevron-down text-gray-300 text-sm rotate-icon"></i>
                         </div>
                     </div>
-                    <div id="details-${date}" class="day-details pb-4 px-5 bg-[#fdfcf8] border-t border-gray-100 text-left">
+                    <div id="details-${date}" class="day-details pb-4 px-5 bg-[#FFFFFF] border-t border-[#EAE6DF] text-left">
                         ${Object.keys(data.categories).map(cat => {
                             const catInfo = data.categories[cat];
                             return `
-                                <div class="flex justify-between items-center text-xs py-3 border-b border-gray-100 last:border-0">
+                                <div class="flex justify-between items-center text-xs py-3 border-b border-gray-50 last:border-0">
                                     <div class="flex items-center gap-3">
                                         <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span>
                                         <span class="font-bold text-gray-700">${cat}</span>
@@ -1337,11 +1344,11 @@
             if(bar) { 
                 setTimeout(() => { bar.style.width = (percent * 100) + '%'; }, 100); 
                 if (remaining <= (currentBudget * 0.1)) {
-                    bar.style.background = "#ef4444"; 
+                    bar.style.background = "#D9383A"; 
                 } else if (remaining <= (currentBudget * 0.3)) {
-                    bar.style.background = "#f59e0b"; 
+                    bar.style.background = "#F4A261"; 
                 } else {
-                    bar.style.background = "#c75b43"; 
+                    bar.style.background = "#2A9D8F"; 
                 }
             }
             
@@ -1373,7 +1380,7 @@
                         <div class="flex items-center gap-3">
                             <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
                             <div class="flex items-baseline gap-1.5">
-                                <span class="font-bold text-gray-700">${item.label}</span>
+                                <span class="font-bold text-gray-700 tracking-wide">${item.label}</span>
                                 <span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span>
                             </div>
                         </div>
@@ -1491,18 +1498,18 @@
                         const cbShared = document.getElementById('is-shared');
                         const iconShared = document.getElementById('icon-shared');
                         cbShared.checked = false;
-                        iconShared.classList.remove('text-[#c75b43]'); 
+                        iconShared.classList.remove('text-[#D9383A]'); 
                         iconShared.classList.add('text-gray-300'); 
-                        iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-                        iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                        iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                        iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
                         
                         const cbTax = document.getElementById('is-taxfree');
                         const iconTax = document.getElementById('icon-taxfree');
                         cbTax.checked = false;
-                        iconTax.classList.remove('text-[#c75b43]'); 
+                        iconTax.classList.remove('text-[#D9383A]'); 
                         iconTax.classList.add('text-gray-300'); 
-                        iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
-                        iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                        iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                        iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
                         
                         receiptBase64 = null; 
                         receiptName = null; 
@@ -1517,7 +1524,7 @@
                 }
                 
                 btn.disabled = false; 
-                btn.innerHTML = 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>'; 
+                btn.innerHTML = 'บันทึกข้อมูล <i class="fas fa-paper-plane"></i>'; 
             }
         });
 

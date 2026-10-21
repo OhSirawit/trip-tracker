@@ -576,8 +576,8 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 136)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxUs0D1AaCRBe1p8DdwKmzFUCXMajMkmQ4h5fiv9cQLiIVriSGfDmCT6ZHkJbrrPRe1/exec";
+        // API URL (Version 138)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxyFa5WemBrHElkI7224fOuwB8MO3gfhoncaJ68PnR5hj2EPKRTzjnvfuBfWkVtaC_j/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -886,6 +886,15 @@
                             ctx.drawImage(img, 0, 0, width, height);
 
                             receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                            // สำเนาความละเอียดสูงกว่า สำหรับให้ AI อ่านตัวอักษรญี่ปุ่น
+                            const AI_MAX = 1600;
+                            let sw = img.width, sh = img.height;
+                            if (sw > AI_MAX) { sh = Math.round((sh * AI_MAX) / sw); sw = AI_MAX; }
+                            const sc = document.createElement('canvas');
+                            sc.width = sw; sc.height = sh;
+                            sc.getContext('2d').drawImage(img, 0, 0, sw, sh);
+                            scanReceiptWithAI(sc.toDataURL('image/jpeg', 0.85), file.name);
                         };
                         img.src = event.target.result;
                     } else {
@@ -906,6 +915,46 @@
                 }
             }
         });
+
+        // ===== AI Receipt Scan (ใบเสร็จภาษาญี่ปุ่น) =====
+        let scanSeq = 0;
+        async function scanReceiptWithAI(dataUrl, fileName) {
+            const mySeq = ++scanSeq;
+            const label = document.getElementById('receipt-text');
+            label.innerText = 'AI กำลังอ่าน...';
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'scanReceipt',
+                        mediaType: 'image/jpeg',
+                        image: dataUrl.split(',')[1]
+                    })
+                }).then(r => r.json());
+
+                if (mySeq !== scanSeq) return; // มีการแนบรูปใหม่แล้ว ข้ามผลเก่า
+                if (res.status !== 'success') throw new Error(res.message || 'scan failed');
+
+                const total = Number(res.total);
+                const store = (res.store || '').trim();
+                let filled = [];
+
+                if (isFinite(total) && total > 0) {
+                    document.getElementById('amount').value = String(total);
+                    if (typeof calculateTHB === 'function') calculateTHB();
+                    filled.push('ยอด ¥' + total.toLocaleString());
+                }
+                if (store) {
+                    document.getElementById('details').value = store;
+                    filled.push(store);
+                }
+                showToast(filled.length ? 'AI อ่านแล้ว: ' + filled.join(' / ') : 'AI อ่านไม่ออก กรุณากรอกเอง', !filled.length);
+            } catch (err) {
+                if (mySeq === scanSeq) showToast('AI อ่านใบเสร็จไม่สำเร็จ กรุณากรอกเอง', true);
+            } finally {
+                if (mySeq === scanSeq) label.innerText = fileName;
+            }
+        }
 
         function showToast(message, isError = false) { 
             const toast = document.getElementById('toast-notification'); 

@@ -576,8 +576,8 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 138)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxyFa5WemBrHElkI7224fOuwB8MO3gfhoncaJ68PnR5hj2EPKRTzjnvfuBfWkVtaC_j/exec";
+        // API URL (Version 139)
+        const API_URL = "https://script.google.com/macros/s/AKfycbyXBzUoG0pi7jww8IMyhE8OLFVgeWaqBRp0Phc7PPt111ewjQHDbJqcwhS2Qi6cxO7g/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -935,7 +935,7 @@
                 if (mySeq !== scanSeq) return; // มีการแนบรูปใหม่แล้ว ข้ามผลเก่า
                 if (res.status !== 'success') throw new Error(res.message || 'scan failed');
 
-                const total = Number(res.total);
+                const total = Number(String(res.total).replace(/[^0-9.]/g, ''));
                 const store = (res.store || '').trim();
                 let filled = [];
 
@@ -950,7 +950,8 @@
                 }
                 showToast(filled.length ? 'AI อ่านแล้ว: ' + filled.join(' / ') : 'AI อ่านไม่ออก กรุณากรอกเอง', !filled.length);
             } catch (err) {
-                if (mySeq === scanSeq) showToast('AI อ่านใบเสร็จไม่สำเร็จ กรุณากรอกเอง', true);
+                console.error('scanReceipt error:', err);
+                if (mySeq === scanSeq) showToast('AI อ่านไม่สำเร็จ: ' + (err && err.message ? err.message : err), true);
             } finally {
                 if (mySeq === scanSeq) label.innerText = fileName;
             }

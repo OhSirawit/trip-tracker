@@ -75,6 +75,27 @@
             outline: none;
         }
         
+        .trip-detail-input {
+            background: transparent;
+            border: 1px dashed transparent;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 4px;
+            border-radius: 4px;
+            width: 130px;
+            outline: none;
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+        .trip-detail-input:focus, .trip-detail-input:hover {
+            border-color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .trip-detail-input::placeholder {
+            color: #94a3b8;
+        }
+
         .btn-modern { 
             background: #2d3748; 
             color: white; 
@@ -153,8 +174,8 @@
         body.dark-mode .tax-refund-card { background-color: #5c5531 !important; border-color: #8c824c !important; }
         body.dark-mode .bg-\[\#f0ebe1\] { background-color: #334155 !important; }
         body.dark-mode .bg-\[\#fffaf9\] { background-color: #1e293b !important; }
-        body.dark-mode #trip-desc { border-color: #334155; color: #94a3b8; }
-        body.dark-mode #trip-desc:focus { border-color: #c75b43; color: #f1f5f9; }
+        body.dark-mode .trip-detail-input { color: #cbd5e1; }
+        body.dark-mode .trip-detail-input:focus, body.dark-mode .trip-detail-input:hover { border-color: #475569; background: rgba(30, 41, 59, 0.5); }
     </style>
 </head>
 <body class="pb-32 relative">
@@ -189,17 +210,17 @@
     </div>
 
     <!-- Main App Content -->
-    <div id="main-app" class="hidden">
-        
+    <div id="main-app">
+        <!-- Navigation Bar -->
         <nav class="sticky top-0 z-50 px-6 py-4 bg-[#fdfcf8]/90 backdrop-blur-xl border-b border-[#eaddcf] flex justify-between items-center relative">
             <div class="flex items-center gap-3 relative z-10">
                 <div class="w-10 h-10 bg-[#c75b43] rounded-[12px] flex items-center justify-center text-white shadow-md shadow-[#c75b43]/20">
                     <i class="fas fa-plane text-sm"></i>
                 </div>
-                <div class="flex flex-col">
-                    <span class="font-bold text-gray-800 text-[14px] leading-tight">MyTrip</span>
-                    <input type="text" id="trip-desc" placeholder="เพิ่มรายละเอียดทริป..." class="text-[10px] font-medium text-gray-500 bg-transparent border-b border-dashed border-[#eaddcf] outline-none w-32 sm:w-40 placeholder-gray-400 focus:border-[#c75b43] transition-colors py-0.5 my-0.5" onchange="localStorage.setItem('tripDesc', this.value)">
-                    <span class="text-[9px] font-medium text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced</span>
+                <div>
+                    <span class="font-bold text-gray-800 text-[14px] block leading-tight">MyTrip</span>
+                    <!-- Trip details input field -->
+                    <input type="text" id="trip-detail-header" class="trip-detail-input block" placeholder="e.g. Japan Trip 2024" onchange="saveTripDetail(this.value)">
                 </div>
             </div>
             
@@ -207,12 +228,12 @@
                 <button onclick="toggleDarkMode()" class="text-slate-500 hover:text-[#c75b43] transition-colors w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf] focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon"></i>
                 </button>
-                <span id="display-username" class="text-[10px] font-bold text-slate-600 bg-white shadow-sm px-3 py-2 rounded-[10px] border border-[#eaddcf]"></span>
                 <button id="menu-btn" onclick="toggleMenu(event)" class="text-slate-500 hover:text-[#c75b43] transition-colors focus:outline-none w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf]">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
 
+            <!-- Dropdown Menu -->
             <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
                 <ul class="flex flex-col space-y-1">
                     <li>
@@ -238,17 +259,8 @@
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-departure text-slate-300"></i> BKK <i class="fas fa-arrow-right text-[8px]"></i> NRT</p>
                                 <div class="space-y-3">
-                                    <a href="https://drive.google.com/file/d/1B_fLG5nHxuYCMYFWpXHwWHtP42QBGHI0/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Duangkamon</a>
-                                    <a href="https://drive.google.com/file/d/1piK-w0epxvxrKfOHA46WubSP6G8JRTwP/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Chayada</a>
-                                    <a href="https://drive.google.com/file/d/1fmnmdX93P6U7XkKSm83cvo0iDMhmyre3/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Thalerngsak</a>
-                                    <a href="https://drive.google.com/file/d/1Ek96HHGnaL1cEIm1HdRBnXpPCks4qao3/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Paran</a>
-                                    <a href="https://drive.google.com/file/d/12nkElJiNFviM7uiEIAliyjg0NbzyUC5G/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Sirawit</a>
-                                    <a href="https://drive.google.com/file/d/1-TdABp9WSjQ9dU2WlR0xtNiecu37ZyXT/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Thidaporn</a>
+                                    <a href="#" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Ticket 1</a>
                                 </div>
-                            </div>
-                            <div class="pt-3 border-t border-slate-200/60">
-                                <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-arrival text-slate-300"></i> NRT <i class="fas fa-arrow-right text-[8px]"></i> BKK</p>
-                                <div class="space-y-3"><a href="https://drive.google.com/file/d/19nPpN0u30VGh5p2ADhi1q_QG1NhmxuKS/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Group Ticket (Everyone)</a></div>
                             </div>
                         </div>
                     </li>
@@ -261,6 +273,7 @@
         <!-- PAGE 1: HOME (Add Expense) -->
         <div id="page-home" class="page-content page-active max-w-xl mx-auto px-4 py-5 space-y-5">
             
+            <!-- Dashboard Widget -->
             <div class="modern-card p-6 bg-[#2d3748] text-white border-none shadow-[0_8px_30px_rgba(45,55,72,0.2)] relative overflow-hidden rounded-[20px]">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#4a5568]/30 rounded-full blur-2xl pointer-events-none"></div>
                 <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[#c75b43]/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -297,7 +310,8 @@
                 </div>
             </div>
 
-            <section class="form-card-warm relative shadow-sm">
+            <!-- Expense Form -->
+            <section class="form-card-warm relative shadow-sm p-5">
                 <div class="flex justify-between items-start mb-6">
                     <div class="flex gap-3 items-center">
                         <div class="w-10 h-10 rounded-[12px] bg-[#2d3748] text-white flex items-center justify-center shadow-md">
@@ -341,6 +355,7 @@
                         </div>
                     </div>
 
+                    <!-- Inner Card for Amount & Payment -->
                     <div class="bg-white border border-[#e5e0d8] rounded-[16px] p-4 shadow-sm relative">
                         <div class="flex justify-between items-center mb-4 pb-2 border-b border-[#f0ebe1]">
                             <div class="text-[11px] font-bold text-[#c75b43] flex items-center gap-1.5"><i class="fas fa-coins"></i> Amount Details</div>
@@ -416,7 +431,6 @@
                         <option value="date">📅 Date</option>
                         <option value="payment">💳 Payment</option>
                         <option value="category">📂 Category</option>
-                        <option value="user">👤 User</option>
                         <option value="price-high">💰 Price (High)</option>
                         <option value="price-low">💰 Price (Low)</option>
                     </select>
@@ -460,9 +474,6 @@
                     </div>
                 </div>
             </div>
-
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By User</h3>
-            <div id="user-summary-container" class="grid grid-cols-2 gap-3"></div>
 
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Payment</h3>
             <div id="payment-summary-container" class="grid grid-cols-2 gap-3"></div>
@@ -526,8 +537,8 @@
 
     <!-- Scripts -->
     <script>
-        // เปลี่ยน URL นึ้เป็น Web App URL ใหม่ที่ได้จาก Google Apps Script
-        const API_URL = "https://script.google.com/macros/s/AKfycbxJP1qWM8600tNa-CIlfmQkoGi5YWg3kTZDLFSgs9gUglVHTiPU8zU8MAmhNlUa8aTg/exec";
+        // API URL (Version 135)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxpPbTmPCZuSCSiraS5CaidmjAIGz64VAkZyG3XI7qtrX3yDeIGkyWa-zqDJ8qZ9MiI/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -686,6 +697,11 @@
             }
         }
 
+        // Save Trip Detail
+        function saveTripDetail(val) {
+            localStorage.setItem('tripDetail', val);
+        }
+
         function updateNetworkStatus() {
             const btn = document.getElementById('submit-btn');
             if (!btn) return;
@@ -726,28 +742,23 @@
         });
 
         window.onload = function() { 
+            // Theme check
             if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('theme-icon').className = "fas fa-sun";
             }
-            
-            const savedTripDesc = localStorage.getItem('tripDesc');
-            if (savedTripDesc) {
-                document.getElementById('trip-desc').value = savedTripDesc;
+            // Trip Detail Check
+            const savedDetail = localStorage.getItem('tripDetail');
+            if(savedDetail) {
+                document.getElementById('trip-detail-header').value = savedDetail;
             }
 
             fetchExchangeRate(); 
             renderQuickTags(); 
 
-            // Bypass Login logic
-            localStorage.setItem('currentUser', 'USER'); // Default user name since login is removed
-            
-            document.getElementById('display-username').innerHTML = `<i class="fas fa-user mr-1 text-[#c75b43]"></i>USER`;
-            document.getElementById('main-app').classList.remove('hidden');
-            
+            // Auto bypass login
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
-            
             loadDataFromSheet(); 
 
             document.getElementById('receipt-file').addEventListener('change', function(e) {
@@ -1077,19 +1088,16 @@
             const list = document.getElementById('history-list');
             const stats = document.getElementById('stats-container');
             const pSum = document.getElementById('payment-summary-container');
-            const uSum = document.getElementById('user-summary-container');
             
             if(!list || !stats) return; 
             
             list.innerHTML = ''; 
             stats.innerHTML = ''; 
             pSum.innerHTML = ''; 
-            if(uSum) uSum.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0; 
             const daily = {}; 
             const payStats = { 'Cash': 0, 'Credit Card': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Code': 0 }; 
-            const userStats = {};
             
             const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             
@@ -1120,11 +1128,6 @@
                 if (sortType === 'date') return dateB - dateA; 
                 if (sortType === 'payment') return a.payment === b.payment ? dateB - dateA : a.payment.localeCompare(b.payment); 
                 if (sortType === 'category') return a.category === b.category ? dateB - dateA : a.category.localeCompare(b.category); 
-                if (sortType === 'user') { 
-                    let userA = (a.username || 'USER').toUpperCase(); 
-                    let userB = (b.username || 'USER').toUpperCase(); 
-                    return userA === userB ? dateB - dateA : userA.localeCompare(userB); 
-                }
                 if (sortType === 'price-high') return realAmtB - realAmtA; 
                 if (sortType === 'price-low') return realAmtA - realAmtB; 
                 
@@ -1151,10 +1154,6 @@
                     globalDailyCategoryStats[item.date][item.category] += amt; 
                 }
                 
-                let uKey = (item.username || 'USER').toUpperCase(); 
-                if (!userStats[uKey]) userStats[uKey] = 0; 
-                userStats[uKey] += impact;
-
                 let pKey = item.payment; 
                 if (pKey === "Visa/Master" || pKey === "Visa / Master") pKey = "Credit Card"; 
                 if (pKey === "JCB Card-Thida" || pKey === "JCB Card-OHSirawit" || pKey === "JCB" || pKey === "Refund-JCB") pKey = "Credit Card";
@@ -1210,9 +1209,6 @@
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <p class="font-bold text-gray-800 text-[13px] leading-tight">${item.category}</p>
                                 <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${item.payment}</span>
-                                <span class="text-[8px] font-bold bg-[#fffaf9] text-[#c75b43] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-[#eaddcf] whitespace-nowrap">
-                                    <i class="fas fa-user mr-1 text-[#c75b43]"></i>${item.username || 'USER'}
-                                </span>
                             </div>
                             <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
                             <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
@@ -1275,20 +1271,6 @@
             }
             
             const currentBudget = getBudget();
-            if (uSum) {
-                Object.entries(userStats).sort((a,b) => b[1] - a[1]).forEach(([user, total]) => {
-                    const uDiv = document.createElement('div'); 
-                    uDiv.className = "modern-card p-4 text-left border border-[#eaddcf] bg-[#f6f3ed]/50 shadow-sm"; 
-                    uDiv.innerHTML = `
-                        <div class="flex items-center gap-1.5 mb-1.5">
-                            <i class="fas fa-user-circle text-[#c75b43]"></i>
-                            <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">${user}</span>
-                        </div>
-                        <p class="text-lg font-black text-gray-800 leading-none">${total.toLocaleString()}</p>
-                    `;
-                    uSum.appendChild(uDiv);
-                });
-            }
 
             Object.entries(payStats).forEach(([method, total]) => { 
                 if (total !== 0 || method === 'Cash' || method === 'Credit Card') { 
@@ -1448,7 +1430,7 @@
                 location: loc, 
                 receiptBase64: receiptBase64, 
                 receiptName: receiptName,
-                username: 'USER',
+                username: 'USER', // By-pass login user
                 rate: currentJpyToThbRate,
                 isShared: document.getElementById('is-shared').checked,
                 isTaxFree: document.getElementById('is-taxfree').checked

@@ -2,1478 +2,1565 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PLADAO TRIP</title>
     
-    <!-- PWA & Mobile Web App Capabilities -->
-    <title>Trip Tracker - Driving GPS Log</title>
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TripTracker">
-    <meta name="theme-color" content="#0f172a">
-
-    <!-- Dynamic Web App Manifest Link Placeholder -->
-    <link id="manifest-link" rel="manifest">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202021.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#fdfcf8">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2060/2060284.png">
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        const manifestJSON = {
+            "name": "PLADAO TRIP",
+            "short_name": "Trip Wallet",
+            "start_url": window.location.href.split('?')[0],
+            "display": "standalone",
+            "background_color": "#fdfcf8",
+            "theme_color": "#fdfcf8",
+            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2060/2060284.png", "sizes": "512x512", "type": "image/png"}]
+        };
+        const stringManifest = JSON.stringify(manifestJSON);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.write('<link rel="manifest" href="' + manifestURL + '">');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        * {
-            box-sizing: border-box;
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; 
+            color: #2d2a26; 
+            -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            background-color: #fdfcf8;
+            overflow-x: hidden; 
+            transition: background-color 0.3s ease;
         }
 
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-accent: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent-green: #10b981;
-            --accent-green-hover: #059669;
-            --accent-red: #ef4444;
-            --accent-red-hover: #dc2626;
-            --accent-blue: #3b82f6;
-            --accent-amber: #f59e0b;
-            --accent-cyan: #06b6d4;
-            --border-color: #334155;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100vw;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            overflow: hidden;
-        }
-
-        /* App Layout Container */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
-            width: 100%;
-            position: relative;
-        }
-
-        /* Top Bar Header */
-        .header {
-            padding: 10px 16px;
-            background-color: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 1000;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .brand-text h1 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            line-height: 1.2;
-            color: var(--text-primary);
-        }
-
-        .brand-text p {
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pwa-install-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #ea580c, #c2410c);
-            color: #ffffff;
-            border: none;
-            padding: 7px 14px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(234, 88, 12, 0.4);
-            transition: all 0.2s ease;
-        }
-
-        .pwa-install-btn:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
-        }
-
-        .pwa-install-btn:active {
-            transform: translateY(0);
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background-color: rgba(30, 41, 59, 0.8);
-            border: 1px solid var(--border-color);
-            font-weight: 500;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--accent-blue);
-        }
-
-        .status-badge.recording .status-dot {
-            background-color: var(--accent-green);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* Main Content Viewport */
-        .content-body {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @media (min-width: 768px) {
-            .content-body {
-                flex-direction: row;
-            }
-        }
-
-        /* Dashboard Metrics Panel */
-        .dashboard-panel {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-color: var(--bg-main);
-            z-index: 10;
-            max-height: 46vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        @media (min-width: 768px) {
-            .dashboard-panel {
-                width: 380px;
-                max-height: 100%;
-                border-bottom: none;
-                border-right: 1px solid var(--border-color);
-            }
-        }
-
-        /* Primary Speed Gauge */
-        .speed-card-main {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 12px 16px;
-            text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .speed-title {
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
-        .speed-value-group {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .speed-number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1;
-            font-feature-settings: "tnum";
-            font-variant-numeric: tabular-nums;
-        }
-
-        .speed-unit {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        /* Grid Statistics Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .stat-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-icon {
-            font-size: 0.8rem;
-        }
-
-        .stat-value-group {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-            margin-top: 4px;
-        }
-
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            font-feature-settings: "tnum";
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-unit {
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-        }
-
-        /* Meta GPS Data Row */
-        .gps-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.68rem;
-            color: var(--text-secondary);
-            padding: 2px 4px;
-        }
-
-        /* Map Container */
-        .map-wrapper {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            min-height: 200px;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-            background-color: #12161f;
-        }
-
-        /* Floating Recenter Map Button */
-        .map-recenter-btn {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            width: 44px;
-            height: 44px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            cursor: pointer;
-            z-index: 500;
-            transition: all 0.2s;
-        }
-
-        .map-recenter-btn:active {
-            transform: scale(0.92);
-            background-color: var(--bg-card-accent);
-        }
-
-        /* Bottom Fixed Action Controls Bar */
-        .controls-bar {
-            padding: 12px 16px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
-            background-color: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-            z-index: 1000;
-            flex-shrink: 0;
-        }
-
-        .btn {
-            flex: 1;
-            height: 48px;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #10b981, #059669);
-            flex: 2;
-        }
-
-        .btn-start:not(:disabled):active {
-            background: #059669;
-            transform: translateY(1px);
-        }
-
-        .btn-finish {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            flex: 2;
-        }
-
-        .btn-finish:not(:disabled):active {
-            background: #dc2626;
-            transform: translateY(1px);
-        }
-
-        .btn-reset {
-            background-color: var(--bg-card-accent);
-            color: var(--text-primary);
-            flex: 1;
-            max-width: 60px;
-        }
-
-        .btn-reset:not(:disabled):active {
-            background-color: #475569;
-        }
-
-        /* Trip Summary Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(6px);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            opacity: 0;
-            visibility: hidden;
+        .modern-card { 
+            background: #ffffff; 
+            border: 1px solid #eaddcf; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04); 
             transition: all 0.3s ease;
         }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+        
+        .form-card-warm {
+            background-color: #f6f3ed;
+            border: 1px solid #eaddcf;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
-        .summary-card {
-            background-color: #ffffff;
-            color: #1e293b;
-            width: 100%;
-            max-width: 650px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            max-height: 90vh;
-            animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        .input-style { 
+            background: #ffffff; 
+            border: 1px solid #e2dcd0; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            appearance: none; 
+            border-radius: 12px; 
+            color: #2d2a26;
         }
-
-        @keyframes modalSlideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .input-style:focus { 
+            border-color: #c75b43; 
+            box-shadow: 0 0 0 3px rgba(199, 91, 67, 0.1); 
+            outline: none;
         }
-
-        .summary-header-bar {
-            padding: 16px 20px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .summary-main-metrics {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .summary-main-metrics span {
-            color: #64748b;
-            font-weight: 400;
-            margin: 0 4px;
-        }
-
-        .close-modal-btn {
-            background: #f1f5f9;
+        
+        .btn-modern { 
+            background: #2d3748; 
+            color: white; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px -4px rgba(45, 55, 72, 0.3);
+        }
+        .btn-modern:active { transform: scale(0.98) translateY(2px); box-shadow: 0 4px 10px rgba(45, 55, 72, 0.2); }
+        
+        .btn-cancel {
+            background: #ffffff;
             color: #64748b;
-            cursor: pointer;
-            font-size: 0.9rem;
+            border: 1px solid #e2dcd0;
+            border-radius: 14px;
+            transition: all 0.3s ease;
         }
+        .btn-cancel:active { transform: scale(0.97); }
 
-        .summary-body {
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
+        .nav-btn { transition: all 0.3s ease; color: #a19d94; }
+        .nav-active { color: #c75b43 !important; font-weight: 800; }
+        .nav-active i { transform: translateY(-2px); }
+        .nav-active span { color: #c75b43; }
+        
+        .page-content { display: none; }
+        .page-active { display: block; animation: smoothFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes smoothFade { from { opacity: 0; transform: translateY(12px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        .day-details { display: none; overflow: hidden; }
+        .day-details.active { display: block; animation: expandDown 0.25s ease-out forwards;}
+        @keyframes expandDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-        @media (min-width: 600px) {
-            .summary-body {
-                flex-direction: row;
-                min-height: 320px;
-            }
-        }
+        .rotate-icon { transition: transform 0.3s ease; }
+        .rotated { transform: rotate(180deg); }
+        
+        .menu-dropdown { opacity: 0; pointer-events: none; transform: translateY(-10px) scale(0.95); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: top right;}
+        .menu-dropdown.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+        
+        #toast-notification { transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        /* Left Side Timeline */
-        .summary-timeline-col {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 20px;
+        .shimmer {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 100%; 
+            animation-duration: 1.5s;
+            animation-fill-mode: forwards; 
+            animation-iteration-count: infinite;
+            animation-name: placeholderShimmer;
+            animation-timing-function: linear;
         }
+        @keyframes placeholderShimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
 
-        .timeline-container {
-            position: relative;
-            padding-left: 28px;
-        }
+        .tax-refund-card { background-color: #FFEC8B !important; border-color: #e5d47e !important; }
 
-        .timeline-line {
-            position: absolute;
-            left: 5px;
-            top: 12px;
-            bottom: 24px;
-            width: 2px;
-            background-color: #000000;
-        }
-
-        .timeline-point {
-            position: relative;
-            margin-bottom: 24px;
-        }
-
-        .timeline-point:last-child {
-            margin-bottom: 0;
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: -28px;
-            top: 4px;
-            width: 12px;
-            height: 12px;
-            background-color: #000000;
-            border-radius: 2px;
-        }
-
-        .point-time {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #000000;
-            margin-bottom: 4px;
-        }
-
-        .point-address {
-            font-size: 0.85rem;
-            color: #2563eb;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .point-address.loading {
-            color: #94a3b8;
-        }
-
-        .summary-extra-stats {
-            display: flex;
-            gap: 16px;
-            padding-top: 12px;
-            border-top: 1px dashed #e2e8f0;
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .summary-extra-stats strong {
-            color: #0f172a;
-        }
-
-        /* Right Side Map Preview */
-        .summary-map-col {
-            flex: 1;
-            min-height: 220px;
-            position: relative;
-            background-color: #e2e8f0;
-        }
-
-        #summaryMap {
-            width: 100%;
-            height: 100%;
-            min-height: 220px;
-        }
-
-        .summary-actions-bar {
-            padding: 12px 20px;
-            background-color: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .btn-modal {
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-modal-primary {
-            background-color: #0f172a;
-            color: #ffffff;
-            border: none;
-        }
-
-        /* Custom Leaflet Markers */
-        .user-location-marker {
-            width: 16px;
-            height: 16px;
-            background-color: #2563eb;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        .timeline-square-marker {
-            width: 12px;
-            height: 12px;
-            background-color: #000000;
-            border: 2px solid #ffffff;
-        }
-
-        /* Disable link popups on Leaflet attribution to avoid Android "Could not open app" toast */
-        .leaflet-control-attribution a {
-            pointer-events: none;
-            color: inherit;
-            text-decoration: none;
-        }
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+        body.dark-mode .modern-card, body.dark-mode .form-card-warm { background-color: #1e293b; border-color: #334155; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); }
+        body.dark-mode .input-style { background-color: #0f172a; color: #f1f5f9; border-color: #334155; }
+        body.dark-mode .input-style:focus { border-color: #c75b43; background-color: #1e293b; }
+        body.dark-mode nav { background-color: rgba(30, 41, 59, 0.8) !important; border-bottom-color: #334155; }
+        body.dark-mode .bg-white { background-color: #1e293b !important; }
+        body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #0f172a !important; }
+        body.dark-mode .text-slate-900, body.dark-mode .text-slate-800, body.dark-mode .text-gray-800 { color: #f8fafc !important; }
+        body.dark-mode .text-slate-700 { color: #cbd5e1 !important; }
+        body.dark-mode .text-slate-600, body.dark-mode .text-slate-500 { color: #94a3b8 !important; }
+        body.dark-mode .border-[#e2dcd0], body.dark-mode .border-[#eaddcf], body.dark-mode .border-[#e5e0d8] { border-color: #334155 !important; }
+        body.dark-mode .btn-cancel { background-color: #334155; color: #cbd5e1; border-color:#475569;}
+        body.dark-mode .fixed.bottom-6 { background-color: rgba(30, 41, 59, 0.9); border-color: #334155; }
+        body.dark-mode .nav-active span { color: #f1f5f9; }
+        body.dark-mode #quick-tags-container button { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+        body.dark-mode #quick-tags-container button:hover { background-color: #c75b43; color: white; }
+        body.dark-mode .tax-refund-card { background-color: #5c5531 !important; border-color: #8c824c !important; }
+        body.dark-mode .bg-\[\#f0ebe1\] { background-color: #334155 !important; }
+        body.dark-mode .bg-\[\#fffaf9\] { background-color: #1e293b !important; }
     </style>
 </head>
-<body>
+<body class="pb-32 relative">
 
-    <div class="app-container">
-        <!-- Top App Bar -->
-        <header class="header">
-            <div class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-car-side"></i>
-                </div>
-                <div class="brand-text">
-                    <h1>Trip Tracker</h1>
-                    <p>Driving GPS Log</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="pwa-install-btn" id="pwaInstallBtn">
-                    <i class="fa-solid fa-mobile-screen-button"></i> Install App
-                </button>
-                <div class="status-badge" id="statusBadge" style="display: none;">
-                    <div class="status-dot"></div>
-                    <span id="statusText">Ready</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Content (Dashboard + Map) -->
-        <div class="content-body">
-            <!-- Dashboard Stats Panel -->
-            <div class="dashboard-panel">
-                <!-- Speed Card -->
-                <div class="speed-card-main">
-                    <div class="speed-title">Current Speed</div>
-                    <div class="speed-value-group">
-                        <span class="speed-number" id="currentSpeed">0</span>
-                        <span class="speed-unit">km/h</span>
-                    </div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            <span>Max Speed</span>
-                            <i class="fa-solid fa-gauge-high stat-icon" style="color: var(--accent-amber)"></i>
-                        </div>
-                        <div class="stat-value-group">
-                            <span class="stat-value" id="maxSpeed">0.0</span>
-                            <span class="stat-unit">km/h</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            <span>Avg Speed</span>
-                            <i class="fa-solid fa-chart-line stat-icon" style="color: var(--accent-green)"></i>
-                        </div>
-                        <div class="stat-value-group">
-                            <span class="stat-value" id="avgSpeed">0.0</span>
-                            <span class="stat-unit">km/h</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            <span>Distance</span>
-                            <i class="fa-solid fa-route stat-icon" style="color: var(--accent-blue)"></i>
-                        </div>
-                        <div class="stat-value-group">
-                            <span class="stat-value" id="totalDistance">0.00</span>
-                            <span class="stat-unit">km</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            <span>Duration</span>
-                            <i class="fa-solid fa-stopwatch stat-icon" style="color: var(--accent-cyan)"></i>
-                        </div>
-                        <div class="stat-value-group">
-                            <span class="stat-value" id="duration">00:00:00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- GPS Status Info -->
-                <div class="gps-info-row">
-                    <span id="gpsCoords">GPS: -</span>
-                    <span id="gpsAccuracy">Accuracy: -</span>
-                </div>
-            </div>
-
-            <!-- Map Area -->
-            <div class="map-wrapper">
-                <div id="map"></div>
-                <button class="map-recenter-btn" id="recenterBtn" title="Recenter Location">
-                    <i class="fa-solid fa-crosshairs"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Bottom Fixed Controls Bar -->
-        <div class="controls-bar">
-            <button class="btn btn-start" id="startBtn">
-                <i class="fa-solid fa-play"></i> Start Drive
-            </button>
-            <button class="btn btn-finish" id="finishBtn" disabled>
-                <i class="fa-solid fa-flag-checkered"></i> Finish
-            </button>
-            <button class="btn btn-reset" id="resetBtn" title="Reset trip data">
-                <i class="fa-solid fa-rotate-right"></i>
-            </button>
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="fixed top-8 left-1/2 transform -translate-x-1/2 z-[100] -translate-y-32 opacity-0 pointer-events-none w-auto whitespace-nowrap">
+        <div id="toast-bg" class="bg-[#2d3748]/95 backdrop-blur-md text-white px-5 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-3">
+            <i id="toast-icon" class="fas fa-check-circle text-emerald-400 text-lg"></i>
+            <span id="toast-message" class="font-bold text-sm tracking-wide">Success!</span>
         </div>
     </div>
 
-    <!-- Trip Summary Modal Screen -->
-    <div class="modal-overlay" id="summaryModal">
-        <div class="summary-card">
-            <!-- Modal Header Summary -->
-            <div class="summary-header-bar">
-                <div class="summary-main-metrics" id="modalHeaderSummary">
-                    0.00 kilometers <span>|</span> 0 min
+    <!-- Budget Modal -->
+    <div id="budget-modal" class="fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center px-6 transition-opacity duration-300 opacity-0">
+        <div class="modern-card p-8 w-full max-w-sm text-center transform scale-95 transition-transform duration-300" id="budget-modal-content">
+            <div class="w-16 h-16 bg-[#f6f3ed] text-[#c75b43] rounded-full mx-auto flex items-center justify-center text-2xl mb-5 shadow-sm">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-tight">Set Budget</h3>
+            <p class="text-xs font-medium text-slate-500 mb-6">Enter your total trip budget (JPY)</p>
+
+            <div class="relative mb-6">
+                <input type="number" id="new-budget-input" class="w-full input-style bg-white p-4 text-2xl font-black text-center text-slate-800 outline-none border border-[#e2dcd0]" placeholder="0">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">JPY</span>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeBudgetModal()" class="flex-1 py-3.5 rounded-2xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors border border-[#e2dcd0]">Cancel</button>
+                <button onclick="saveBudget()" class="flex-1 py-3.5 rounded-2xl bg-[#2d3748] text-white font-bold text-sm hover:bg-[#1a202c] transition-colors shadow-lg shadow-[#2d3748]/20">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Content -->
+    <div id="main-app" class="hidden">
+        
+        <nav class="sticky top-0 z-50 px-6 py-4 bg-[#fdfcf8]/90 backdrop-blur-xl border-b border-[#eaddcf] flex justify-between items-center relative">
+            <div class="flex items-center gap-3 relative z-10">
+                <div class="w-10 h-10 bg-[#c75b43] rounded-[12px] flex items-center justify-center text-white shadow-md shadow-[#c75b43]/20">
+                    <i class="fas fa-plane text-sm"></i>
                 </div>
-                <button class="close-modal-btn" id="closeModalBtn">
-                    <i class="fa-solid fa-xmark"></i>
+                <div>
+                    <span class="font-bold text-gray-800 text-[13px] block leading-tight">PLADAO TRIP</span>
+                    <span class="text-[9px] font-medium text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2.5 relative z-10">
+                <button onclick="toggleDarkMode()" class="text-slate-500 hover:text-[#c75b43] transition-colors w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf] focus:outline-none">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+                <span id="display-username" class="text-[10px] font-bold text-slate-600 bg-white shadow-sm px-3 py-2 rounded-[10px] border border-[#eaddcf]"></span>
+                <button id="menu-btn" onclick="toggleMenu(event)" class="text-slate-500 hover:text-[#c75b43] transition-colors focus:outline-none w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#eaddcf]">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
 
-            <!-- Modal Content -->
-            <div class="summary-body">
-                <!-- Timeline Info Column -->
-                <div class="summary-timeline-col">
-                    <div class="timeline-container">
-                        <div class="timeline-line"></div>
+            <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
+                <ul class="flex flex-col space-y-1">
+                    <li>
+                        <button onclick="switchPage('dashboard');" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-chart-pie w-4 text-[#c75b43]"></i> Analytics
+                        </button>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    
+                    <li>
+                        <a href="https://script.google.com/macros/s/AKfycbzrADnbwPkeXGG6IuXZyP-MVuFd31HCSO098xWnNfevKmDb_qVwJE4M0_8P2cCsjFbX/exec" target="_blank" onclick="toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-file-invoice-dollar w-4 text-amber-500"></i> Pre-Trip Expenses
+                        </a>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+
+                    <li>
+                        <button onclick="toggleDropdown('airline-menu')" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-between">
+                            <div class="flex items-center gap-3"><i class="fas fa-ticket-alt w-4 text-sky-500"></i> Flight Tickets</div>
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-300" id="icon-airline-menu"></i>
+                        </button>
+                        <div id="airline-menu" class="hidden flex-col pl-11 pr-4 py-2 space-y-4 bg-slate-50/50 rounded-xl mt-1 mb-1 border border-slate-100/50">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-departure text-slate-300"></i> BKK <i class="fas fa-arrow-right text-[8px]"></i> NRT</p>
+                                <div class="space-y-3">
+                                    <a href="https://drive.google.com/file/d/1B_fLG5nHxuYCMYFWpXHwWHtP42QBGHI0/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Duangkamon</a>
+                                    <a href="https://drive.google.com/file/d/1piK-w0epxvxrKfOHA46WubSP6G8JRTwP/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Chayada</a>
+                                    <a href="https://drive.google.com/file/d/1fmnmdX93P6U7XkKSm83cvo0iDMhmyre3/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Thalerngsak</a>
+                                    <a href="https://drive.google.com/file/d/1Ek96HHGnaL1cEIm1HdRBnXpPCks4qao3/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Paran</a>
+                                    <a href="https://drive.google.com/file/d/12nkElJiNFviM7uiEIAliyjg0NbzyUC5G/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Sirawit</a>
+                                    <a href="https://drive.google.com/file/d/1-TdABp9WSjQ9dU2WlR0xtNiecu37ZyXT/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Thidaporn</a>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-200/60">
+                                <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-arrival text-slate-300"></i> NRT <i class="fas fa-arrow-right text-[8px]"></i> BKK</p>
+                                <div class="space-y-3"><a href="https://drive.google.com/file/d/19nPpN0u30VGh5p2ADhi1q_QG1NhmxuKS/view?usp=sharing" target="_blank" class="block text-xs font-bold text-slate-600 hover:text-[#c75b43]">Group Ticket (Everyone)</a></div>
+                            </div>
+                        </div>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-emerald-500"></i> Export Data</button></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- PAGE 1: HOME (Add Expense) -->
+        <div id="page-home" class="page-content page-active max-w-xl mx-auto px-4 py-5 space-y-5">
+            
+            <div class="modern-card p-6 bg-[#2d3748] text-white border-none shadow-[0_8px_30px_rgba(45,55,72,0.2)] relative overflow-hidden rounded-[20px]">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#4a5568]/30 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[#c75b43]/20 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-1">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-300">Available Balance</p>
+                        <div class="text-right">
+                            <span id="last-updated-text" class="text-[10px] font-bold text-slate-400">Last Updated : --:--:--</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-baseline gap-2 mb-5 mt-1">
+                        <h3 id="cash-remaining" class="font-black text-white tracking-tight text-[40px] leading-none">0</h3>
+                        <span class="text-sm font-bold text-slate-300">JPY</span>
+                    </div>
+                    
+                    <div class="w-full bg-[#1a202c] rounded-full h-2 mb-3 overflow-hidden">
+                        <div id="budget-progress-bar" class="h-full rounded-full transition-all duration-1000 ease-out bg-[#c75b43] relative" style="width: 100%">
+                            <div class="absolute top-0 left-0 w-full h-full bg-white/20 transform -skew-x-12 animate-[placeholderShimmer_2s_infinite]"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-[11px] font-bold border-t border-[#4a5568] pt-3">
+                        <span class="text-slate-300">Spent: <span id="cash-used-text" class="text-white">0</span></span>
+                        <span class="text-slate-300 flex items-center gap-1">
+                            Budget: 
+                            <span class="text-white cursor-pointer hover:text-[#eaddcf] transition-colors flex items-center gap-1" onclick="openBudgetModal()">
+                                <span id="budget-text">150,000</span> 
+                                <i class="fas fa-pencil-alt text-[9px] text-slate-400 bg-[#1a202c] p-1.5 rounded-full"></i>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="form-card-warm relative shadow-sm">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex gap-3 items-center">
+                        <div class="w-10 h-10 rounded-[12px] bg-[#2d3748] text-white flex items-center justify-center shadow-md">
+                            <i class="fas fa-pen-nib"></i>
+                        </div>
+                        <div>
+                            <h3 id="form-title" class="text-[15px] font-bold text-gray-800 tracking-tight">Add New Expense</h3>
+                            <p class="text-[10px] text-gray-500">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="expense-form" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="far fa-calendar-alt text-[#c75b43]"></i> Date <span class="text-[#c75b43]">*</span></label>
+                            <input type="date" id="date" class="w-full input-style p-3.5 text-[13px] font-bold outline-none" required>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-tags text-[#c75b43]"></i> Category <span class="text-[#c75b43]">*</span></label>
+                            <select id="category" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer" required onchange="renderQuickTags()">
+                                <optgroup label="EXPENSES">
+                                    <option value="Food">🍱 Food & Dining</option>
+                                    <option value="Transportation">🚆 Transport</option>
+                                    <option value="Dessert/Beverage">☕ Beverage / Dessert</option>
+                                    <option value="Shopping">🛍️ Shopping</option>
+                                    <option value="Admission Fee">🎟️ Admission</option>
+                                    <option value="Tops up IC Card">🔋 Top up IC Card</option>
+                                    <option value="Pre-Order">📦 Pre-Order</option>
+                                    <option value="Gasoline">⛽ Gasoline</option>
+                                    <option value="Toll / ETC">🛣️ Toll / ETC</option>
+                                    <option value="Other">✨ Others</option>
+                                </optgroup>
+                                <optgroup label="REFUND / ADVANCE">
+                                    <option value="Tax refund">💰 Tax Refund</option>
+                                    <option value="Advanced">⏳ Advanced</option>
+                                    <option value="Adjustment">⚙️ Adjustment</option>
+                                    <option value="Refund Pre-Order">↩️ Refund Pre-Order</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-[#e5e0d8] rounded-[16px] p-4 shadow-sm relative">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-[#f0ebe1]">
+                            <div class="text-[11px] font-bold text-[#c75b43] flex items-center gap-1.5"><i class="fas fa-coins"></i> Amount Details</div>
+                            <div class="text-[9px] text-gray-400 font-bold uppercase">Currency: JPY</div>
+                        </div>
                         
-                        <!-- Start Point -->
-                        <div class="timeline-point">
-                            <div class="timeline-marker start"></div>
-                            <div class="point-time" id="modalStartTime">12:00 AM</div>
-                            <div class="point-address loading" id="modalStartAddress">Fetching location...</div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5 col-span-2 sm:col-span-1">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[11px] font-bold text-gray-700">Amount (Calc) <span class="text-[#c75b43]">*</span></label>
+                                    <span id="thb-equivalent" class="text-[9px] font-bold text-white bg-indigo-400 px-2 py-0.5 rounded shadow-sm hidden transition-all"></span>
+                                </div>
+                                <input type="text" inputmode="decimal" id="amount" placeholder="e.g. 1500+250" class="w-full input-style p-3.5 text-2xl font-black outline-none focus:border-[#c75b43] text-gray-800" required oninput="calculateTHB()">
+                            </div>
+                            <div class="space-y-1.5 col-span-2 sm:col-span-1">
+                                <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
+                                <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer">
+                                    <option value="Cash">💵 Cash</option>
+                                    <option value="Credit Card">💳 Credit Card</option>
+                                    <option value="Travel Card">🌍 Travel Card</option>
+                                    <option value="IC Card">🚉 IC Card</option>
+                                    <option value="QR Code">📲 QR Code</option>
+                                </select>
+                            </div>
                         </div>
-
-                        <!-- End Point -->
-                        <div class="timeline-point">
-                            <div class="timeline-marker end"></div>
-                            <div class="point-time" id="modalEndTime">12:00 AM</div>
-                            <div class="point-address loading" id="modalEndAddress">Fetching location...</div>
+                    </div>
+                    
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-gray-700 flex items-center gap-1.5"><i class="fas fa-edit text-[#c75b43]"></i> Note / Details <span class="text-[#c75b43]">*</span></label>
+                        <textarea id="details" rows="2" placeholder="What did you buy?" class="w-full input-style p-4 text-[13px] font-medium outline-none resize-none" required></textarea>
+                        <div id="quick-tags-container" class="flex flex-wrap gap-1.5 mt-2 px-1"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div class="relative">
+                            <input type="file" id="receipt-file" accept="image/*" capture="environment" class="hidden">
+                            <label for="receipt-file" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#e2dcd0] hover:border-[#c75b43] bg-[#fffaf9] rounded-[14px] cursor-pointer transition-colors">
+                                <i class="fas fa-camera text-[#c75b43] text-sm"></i>
+                                <span class="text-[11px] text-[#c75b43] font-bold truncate max-w-[80px]" id="receipt-text">แนบใบเสร็จ</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#e2dcd0] rounded-[14px]">
+                            <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#8c8577] rounded cursor-pointer">
+                            <label for="save-location" class="text-[11px] font-bold text-gray-600 uppercase cursor-pointer">SAVE GPS</label>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#e2dcd0] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-shared', 'icon-shared', 'text-[#c75b43]')">
+                            <input type="checkbox" id="is-shared" class="hidden">
+                            <i id="icon-shared" class="fas fa-users text-gray-300 text-sm transition-colors"></i>
+                            <span class="text-[11px] font-bold text-gray-600 uppercase">SHARED</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#e2dcd0] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-taxfree', 'icon-taxfree', 'text-[#c75b43]')">
+                            <input type="checkbox" id="is-taxfree" class="hidden">
+                            <i id="icon-taxfree" class="fas fa-tag text-gray-300 text-sm transition-colors"></i>
+                            <span class="text-[11px] font-bold text-gray-600 uppercase">TAX-REFUND</span>
                         </div>
                     </div>
 
-                    <!-- Additional Extra Stats -->
-                    <div class="summary-extra-stats">
-                        <div>Max Speed: <strong id="modalMaxSpeed">0.0 km/h</strong></div>
-                        <div>Avg Speed: <strong id="modalAvgSpeed">0.0 km/h</strong></div>
+                    <div class="flex gap-3 mt-5 pt-2">
+                        <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden w-1/3 btn-cancel py-4 text-sm font-bold flex justify-center items-center">ยกเลิก</button>
+                        <button type="submit" id="submit-btn" class="flex-1 btn-modern bg-[#2d3748] hover:bg-[#1a202c] py-4 text-sm font-bold flex justify-center items-center gap-2">บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- PAGE 2: HISTORY (Timeline) -->
+        <div id="page-history" class="page-content max-w-xl mx-auto px-5 py-4 space-y-4">
+            <div class="flex justify-between items-center mb-5 px-1">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Timeline</h2>
+                <div class="relative bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <select id="sort-filter" onchange="updateUI()" class="bg-transparent text-slate-700 text-[10px] font-bold px-3 py-2.5 outline-none appearance-none cursor-pointer pr-8">
+                        <option value="latest" selected>⏱️ Latest</option>
+                        <option value="date">📅 Date</option>
+                        <option value="payment">💳 Payment</option>
+                        <option value="category">📂 Category</option>
+                        <option value="user">👤 User</option>
+                        <option value="price-high">💰 Price (High)</option>
+                        <option value="price-low">💰 Price (Low)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                        <i class="fas fa-chevron-down text-[8px]"></i>
                     </div>
                 </div>
+            </div>
+            
+            <div class="relative mb-4">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-slate-400 text-sm"></i>
+                </div>
+                <input type="text" id="search-input" onkeyup="updateUI()" placeholder="Search expenses..." class="w-full input-style py-3.5 pl-10 pr-4 text-sm font-medium outline-none">
+            </div>
 
-                <!-- Mini Preview Map Column -->
-                <div class="summary-map-col">
-                    <div id="summaryMap"></div>
+            <div id="offline-warning" class="hidden modern-card p-3 bg-rose-50 border-rose-200 text-center text-xs font-bold text-rose-600 shadow-sm mb-3">
+                <i class="fas fa-wifi"></i> มีรายการรอ Sync เมื่อต่อเน็ต (<span id="offline-count">0</span>)
+            </div>
+
+            <div id="history-list" class="space-y-3"></div>
+        </div>
+        
+        <!-- PAGE 3: ANALYTICS -->
+        <div id="page-analytics" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight px-1">Summary</h2>
+            
+            <div class="modern-card p-6 text-center space-y-4 relative overflow-hidden bg-white">
+                <div class="flex justify-between text-xs font-bold text-slate-500">
+                    <span>Total Spent</span>
+                    <span id="gross-total" class="text-slate-800">0 JPY</span>
+                </div>
+                <div class="flex justify-between text-xs font-bold text-emerald-500">
+                    <span>Refunds</span>
+                    <span id="refund-total">0 JPY</span>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-between items-end">
+                    <div class="flex flex-col text-left">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Spending</span>
+                        <span id="total-spent" class="text-4xl font-black text-slate-900 leading-none tracking-tight">0</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Modal Bottom Actions -->
-            <div class="summary-actions-bar">
-                <button class="btn-modal" id="saveImageBtn">
-                    <i class="fa-solid fa-camera"></i> Save Image
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By User</h3>
+            <div id="user-summary-container" class="grid grid-cols-2 gap-3"></div>
+
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Payment</h3>
+            <div id="payment-summary-container" class="grid grid-cols-2 gap-3"></div>
+            
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">Daily Log</h3>
+            <div id="stats-container" class="space-y-3"></div>
+        </div>
+
+        <!-- PAGE 4: DASHBOARD (Charts) -->
+        <div id="page-dashboard" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Analytics</h2>
+                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#c75b43] transition-colors w-9 h-9 rounded-full bg-white border border-[#eaddcf] flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
-                <button class="btn-modal" id="exportGpxBtn">
-                    <i class="fa-solid fa-download"></i> Download GPX
-                </button>
-                <button class="btn-modal btn-modal-primary" id="confirmCloseModalBtn">
-                    Close
-                </button>
+            </div>
+            
+            <div class="modern-card p-6 bg-white">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-5">Category Overview</h3>
+                <div class="relative w-full max-w-[200px] mx-auto">
+                    <canvas id="overallCategoryChart"></canvas>
+                </div>
+                <div id="category-dashboard-list" class="mt-7 space-y-1 border-t border-slate-100 pt-4"></div>
+            </div>
+
+            <div class="modern-card p-6 bg-white">
+                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daily Focus</h3>
+                    <div class="relative bg-slate-50 rounded-lg border border-slate-100">
+                        <select id="dashboard-date-filter" onchange="updateDailyCategoryChart()" class="bg-transparent text-slate-700 text-[10px] font-bold px-3 py-1.5 outline-none appearance-none pr-7 cursor-pointer">
+                            <option value="">No Data</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                            <i class="fas fa-chevron-down text-[8px]"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative w-full max-w-[200px] mx-auto pt-2">
+                    <canvas id="dailyCategoryChart"></canvas>
+                </div>
+                <div id="daily-category-list" class="mt-7 space-y-1 border-t border-slate-100 pt-4"></div>
             </div>
         </div>
-    </div>
 
-    <!-- PWA Install Guide Modal (for iOS & unsupported browsers) -->
-    <div class="modal-overlay" id="installGuideModal">
-        <div class="summary-card" style="max-width: 440px; padding: 20px; text-align: center; color: #0f172a;">
-            <div style="font-size: 2.2rem; color: #ea580c; margin-bottom: 8px;">
-                <i class="fa-solid fa-mobile-screen-button"></i>
-            </div>
-            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Install Web App</h2>
-            <div style="font-size: 0.88rem; color: #334155; line-height: 1.6; text-align: left; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;" id="installGuideText">
-                <!-- Instructions dynamically injected based on device/browser -->
-            </div>
-            <button class="btn-modal btn-modal-primary" id="closeInstallGuideBtn" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 600;">
-                Got it
+        <!-- Bottom Navigation Bar -->
+        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[360px] bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(15,23,42,0.08)] rounded-[24px] p-1.5 flex justify-between items-center">
+            <button onclick="switchPage('home')" id="nav-home" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 nav-active hover:bg-slate-50 transition-colors">
+                <i class="fas fa-plus text-[18px]"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Add</span>
+            </button>
+            <button onclick="switchPage('history')" id="nav-history" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
+                <i class="fas fa-list-ul text-[18px]"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">History</span>
+            </button>
+            <button onclick="switchPage('analytics')" id="nav-analytics" class="nav-btn w-1/3 py-3 rounded-[20px] flex flex-col items-center gap-1 hover:bg-slate-50 transition-colors">
+                <i class="fas fa-chart-pie text-[18px]"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Stats</span>
             </button>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- html2canvas for saving image -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+    <!-- Scripts -->
     <script>
-        // --- PWA Setup & Installation Logic ---
-        (function setupPWA() {
-            const manifestObj = {
-                name: "Trip Tracker - GPS Driving Log",
-                short_name: "TripTracker",
-                start_url: "./index.html",
-                display: "standalone",
-                background_color: "#0f172a",
-                theme_color: "#0f172a",
-                orientation: "portrait",
-                icons: [
-                    {
-                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
-                        sizes: "192x192",
-                        type: "image/png",
-                        purpose: "any maskable"
-                    },
-                    {
-                        src: "https://cdn-icons-png.flaticon.com/512/3202/3202021.png",
-                        sizes: "512x512",
-                        type: "image/png",
-                        purpose: "any maskable"
+        // เปลี่ยน URL นึ้เป็น Web App URL ใหม่ที่ได้จาก Google Apps Script
+        const API_URL = "https://script.google.com/macros/s/AKfycbxJP1qWM8600tNa-CIlfmQkoGi5YWg3kTZDLFSgs9gUglVHTiPU8zU8MAmhNlUa8aTg/exec";
+
+        let expenses = []; 
+        let myOverallCategoryChart = null; 
+        let myDailyCategoryChart = null; 
+        let globalDailyCategoryStats = {};
+        
+        let currentEditRowId = null;
+        let oldReceiptUrl = "";
+        let currentJpyToThbRate = 0; 
+        
+        const globalColorsMap = { 
+            'Food': '#f43f5e',        
+            'Transportation': '#3b82f6', 
+            'Gasoline': '#f97316',    
+            'Toll / ETC': '#8b5cf6',  
+            'Dessert/Beverage': '#ec4899', 
+            'Shopping': '#10b981',    
+            'Admission Fee': '#14b8a6', 
+            'Tops up IC Card': '#eab308', 
+            'Pre-Order': '#6366f1',   
+            'Other': '#64748b'        
+        };
+        
+        let receiptBase64 = null;
+        let receiptName = null;
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('theme-icon').className = isDark ? "fas fa-sun" : "fas fa-moon";
+        }
+
+        const quickTagsMap = {
+            'Food': ['7-Eleven', 'Lawson', 'FamilyMart', 'Ramen', 'Yakiniku', 'Water/Drink'],
+            'Transportation': ['Suica / Pasmo', 'Train Ticket', 'Taxi', 'Shinkansen'],
+            'Dessert/Beverage': ['Coffee', 'Cafe', 'Ice Cream', 'Vending Machine'],
+            'Shopping': ['Don Quijote', 'Uniqlo', 'On Cloud', 'OWNDAYS', 'Drugstore', 'Daiso', 'Gashapon'],
+            'Gasoline': ['Fill up', 'LPG'],
+            'Tops up IC Card': ['Suica', 'Pasmo', 'Icoca']
+        };
+
+        function renderQuickTags() {
+            const category = document.getElementById('category').value;
+            const container = document.getElementById('quick-tags-container');
+            container.innerHTML = '';
+            
+            const tags = quickTagsMap[category];
+            if (tags && tags.length > 0) {
+                tags.forEach(tag => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'text-[10px] font-bold bg-white text-gray-600 px-2.5 py-1 rounded-md border border-[#e2dcd0] hover:bg-[#c75b43] hover:border-[#c75b43] hover:text-white transition-colors whitespace-nowrap shadow-sm';
+                    btn.innerText = tag;
+                    btn.onclick = () => {
+                        const noteInput = document.getElementById('details');
+                        if (noteInput.value.trim() === '') {
+                            noteInput.value = tag;
+                        } else {
+                            noteInput.value = noteInput.value.trim() + ' ' + tag;
+                        }
+                    };
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        function toggleCheckbox(inputId, iconId, activeColor) {
+            const cb = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            cb.checked = !cb.checked;
+            
+            if (cb.checked) {
+                icon.classList.remove('text-gray-300');
+                icon.classList.add(activeColor.replace('text-', 'text-'));
+                icon.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
+                icon.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+            } else {
+                icon.classList.remove(activeColor.replace('text-', 'text-'));
+                icon.classList.add('text-gray-300');
+                icon.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+                icon.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            }
+        }
+
+        async function fetchExchangeRate() {
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+                const data = await res.json();
+                currentJpyToThbRate = data.rates.THB;
+            } catch (e) {
+                console.log('Cannot fetch exchange rate');
+            }
+        }
+
+        function getSafeAmount(val) {
+            try {
+                let expr = val.replace(/[^0-9+\-*/.]/g, ''); 
+                return expr ? Math.abs(Function("return " + expr)()) : 0;
+            } catch (e) { return 0; }
+        }
+
+        function calculateTHB() {
+            const amountInput = document.getElementById('amount');
+            const thbEl = document.getElementById('thb-equivalent');
+            amountInput.setCustomValidity(''); 
+            
+            const amountVal = getSafeAmount(amountInput.value);
+            
+            if (amountVal && amountVal > 0 && currentJpyToThbRate > 0) {
+                const thb = (amountVal * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                thbEl.innerHTML = `≈ ${thb} THB <span class="text-[7px] text-indigo-100 font-normal ml-0.5">(Rate: ${currentJpyToThbRate.toFixed(4)})</span>`;
+                thbEl.classList.remove('hidden');
+            } else {
+                thbEl.classList.add('hidden');
+            }
+        }
+
+        function getBudget() { 
+            return parseFloat(localStorage.getItem('tripBudget')) || 150000; 
+        }
+
+        function openBudgetModal() {
+            document.getElementById('new-budget-input').value = getBudget();
+            const modal = document.getElementById('budget-modal'); 
+            const content = document.getElementById('budget-modal-content'); 
+            modal.classList.remove('hidden'); 
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                content.classList.remove('scale-95'); 
+                content.classList.add('scale-100'); 
+            }, 10); 
+        }
+
+        function closeBudgetModal() {
+            const modal = document.getElementById('budget-modal'); 
+            const content = document.getElementById('budget-modal-content'); 
+            modal.classList.add('opacity-0'); 
+            content.classList.remove('scale-100'); 
+            content.classList.add('scale-95'); 
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+            }, 300); 
+        }
+
+        function saveBudget() {
+            const inputVal = document.getElementById('new-budget-input').value;
+            const newBudget = parseFloat(inputVal);
+            if (!isNaN(newBudget) && newBudget > 0) {
+                localStorage.setItem('tripBudget', newBudget);
+                updateUI();
+                closeBudgetModal();
+                showToast("Budget updated successfully!");
+            } else {
+                showToast("Please enter a valid amount!", true);
+            }
+        }
+
+        function updateNetworkStatus() {
+            const btn = document.getElementById('submit-btn');
+            if (!btn) return;
+            if (navigator.onLine) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = currentEditRowId ? 'Update Record <i class="fas fa-save"></i>' : 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = '<i class="fas fa-wifi text-rose-400"></i> ออฟไลน์ (Offline)';
+            }
+        }
+
+        window.addEventListener('online', async () => {
+            updateNetworkStatus();
+            
+            const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+            if (queue.length > 0) {
+                showToast(`Syncing ${queue.length} offline items...`);
+                for(let payload of queue) {
+                    try { 
+                        await fetch(API_URL, { 
+                            method: 'POST', 
+                            body: JSON.stringify({ action: 'addExpense', data: payload }) 
+                        }); 
+                    } catch(e) {}
+                }
+                localStorage.removeItem('offlineQueue');
+                showToast("Offline records synced!");
+                loadDataFromSheet();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            updateNetworkStatus();
+            showToast("You are offline. Data will be saved locally.", true);
+        });
+
+        window.onload = function() { 
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').className = "fas fa-sun";
+            }
+            
+            fetchExchangeRate(); 
+            renderQuickTags(); 
+
+            // Bypass Login logic
+            localStorage.setItem('currentUser', 'USER'); // Default user name since login is removed
+            
+            document.getElementById('display-username').innerHTML = `<i class="fas fa-user mr-1 text-[#c75b43]"></i>USER`;
+            document.getElementById('main-app').classList.remove('hidden');
+            
+            let todayStr = new Date().toLocaleDateString('en-CA'); 
+            document.getElementById('date').value = todayStr; 
+            
+            loadDataFromSheet(); 
+
+            document.getElementById('receipt-file').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                document.getElementById('receipt-text').innerText = file.name;
+                receiptName = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) { 
+                            height = Math.round((height * MAX_WIDTH) / width); 
+                            width = MAX_WIDTH; 
+                        }
+
+                        canvas.width = width; 
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('top-menu');
+            const menuBtn = document.getElementById('menu-btn');
+            if (menu && menuBtn) {
+                if (menu.classList.contains('active') && !menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                    menu.classList.remove('active');
+                }
+            }
+        });
+
+        function showToast(message, isError = false) { 
+            const toast = document.getElementById('toast-notification'); 
+            const toastMsg = document.getElementById('toast-message'); 
+            const toastIcon = document.getElementById('toast-icon'); 
+            
+            toastMsg.innerText = message; 
+            toastIcon.className = isError ? "fas fa-exclamation-circle text-rose-400 text-lg" : "fas fa-check-circle text-emerald-400 text-lg"; 
+            
+            toast.classList.remove('-translate-y-32', 'opacity-0'); 
+            toast.classList.add('translate-y-0', 'opacity-100'); 
+            
+            setTimeout(() => { 
+                toast.classList.remove('translate-y-0', 'opacity-100'); 
+                toast.classList.add('-translate-y-32', 'opacity-0'); 
+            }, 3000); 
+        }
+
+        function toggleDropdown(id) { 
+            const el = document.getElementById(id); 
+            const icon = document.getElementById('icon-' + id);
+            if(el.classList.contains('hidden')) { 
+                el.classList.remove('hidden'); 
+                el.classList.add('flex'); 
+                if(icon) icon.classList.add('rotate-180');
+            } else { 
+                el.classList.add('hidden'); 
+                el.classList.remove('flex'); 
+                if(icon) icon.classList.remove('rotate-180');
+            } 
+        }
+
+        function toggleMenu(e) { 
+            if(e) e.stopPropagation(); 
+            document.getElementById('top-menu').classList.toggle('active'); 
+        }
+
+        function switchPage(pageId) { 
+            ['home', 'history', 'analytics', 'dashboard'].forEach(id => { 
+                const pageEl = document.getElementById('page-' + id); 
+                if(pageEl) pageEl.classList.remove('page-active'); 
+                const navEl = document.getElementById('nav-' + id); 
+                if(navEl) navEl.classList.remove('nav-active'); 
+            }); 
+            
+            document.getElementById('page-' + pageId).classList.add('page-active'); 
+            const targetNav = document.getElementById('nav-' + pageId); 
+            if(targetNav) targetNav.classList.add('nav-active'); 
+            
+            document.getElementById('top-menu').classList.remove('active'); 
+            if (pageId === 'history' || pageId === 'analytics' || pageId === 'dashboard') { 
+                updateUI(); 
+            }
+            window.scrollTo(0,0); 
+        }
+
+        async function loadDataFromSheet() { 
+            const list = document.getElementById('history-list'); 
+            if(list) list.innerHTML = '<div class="text-center p-10 text-slate-400 font-bold text-xs"><i class="fas fa-circle-notch fa-spin text-[#c75b43] text-3xl mb-4"></i><br>Syncing Data...</div>'; 
+            
+            try {
+                const res = await fetch(API_URL + "?action=getExpenses").then(r => r.json());
+                if(res.status === 'success' && res.data) { 
+                    expenses = res.data; 
+                } 
+                updateUI(); 
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const updatedEl = document.getElementById('last-updated-text');
+                if(updatedEl) updatedEl.innerText = 'Last Updated : ' + timeStr;
+
+            } catch (err) {
+                console.error("Error loading data:", err);
+                if(list) list.innerHTML = '<div class="text-center p-10 text-rose-400 font-bold text-xs">Failed to load data.</div>';
+                updateUI();
+            }
+        }
+
+        function toggleDay(date) { 
+            const el = document.getElementById('details-' + date); 
+            const icon = document.getElementById('icon-' + date); 
+            if(el) el.classList.toggle('active'); 
+            if(icon) icon.classList.toggle('rotated'); 
+        }
+
+        function getIcon(cat) { 
+            const icons = { 
+                'Food': 'fa-utensils', 
+                'Transportation': 'fa-train', 
+                'Gasoline': 'fa-gas-pump', 
+                'Toll / ETC': 'fa-road',
+                'Dessert/Beverage': 'fa-mug-hot', 
+                'Shopping': 'fa-bag-shopping', 
+                'Admission Fee': 'fa-ticket-alt', 
+                'Tops up IC Card': 'fa-battery-full', 
+                'Pre-Order': 'fa-box', 
+                'Refund Pre-Order': 'fa-undo-alt', 
+                'Tax refund': 'fa-hand-holding-dollar', 
+                'Advanced': 'fa-hourglass-half', 
+                'Adjustment': 'fa-sliders', 
+                'Other': 'fa-receipt' 
+            }; 
+            return icons[cat] || 'fa-receipt'; 
+        }
+
+        function renderDoughnutChart(ctxId, chartVar, dataObj) { 
+            const ctx = document.getElementById(ctxId); 
+            if(!ctx) return chartVar; 
+            
+            const labels = Object.keys(dataObj); 
+            const dataValues = Object.values(dataObj); 
+            const bgColors = labels.map(cat => globalColorsMap[cat] || '#94a3b8'); 
+            
+            if(chartVar) chartVar.destroy(); 
+            Chart.defaults.font.family = "'Plus Jakarta Sans', 'Kanit', sans-serif";
+            
+            return new Chart(ctx, { 
+                type: 'doughnut', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        data: dataValues, 
+                        backgroundColor: bgColors, 
+                        borderWidth: 3, 
+                        borderColor: '#ffffff', 
+                        hoverOffset: 6 
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    cutout: '72%', 
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { 
+                            backgroundColor: '#2d3748', 
+                            padding: 12, 
+                            cornerRadius: 12, 
+                            callbacks: { 
+                                label: function(context) { 
+                                    return ' ' + new Intl.NumberFormat('en-US').format(context.parsed) + ' JPY'; 
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+            }); 
+        }
+
+        function updateDailyCategoryChart() { 
+            const dateStr = document.getElementById('dashboard-date-filter').value; 
+            const dataObj = globalDailyCategoryStats[dateStr] || {}; 
+            myDailyCategoryChart = renderDoughnutChart('dailyCategoryChart', myDailyCategoryChart, dataObj); 
+            
+            const listContainer = document.getElementById('daily-category-list'); 
+            listContainer.innerHTML = ''; 
+            
+            const sortedCat = Object.keys(dataObj).map(k => ({label: k, val: dataObj[k]})).sort((a,b) => b.val - a.val); 
+            
+            if(sortedCat.length === 0) { 
+                listContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4 font-medium">No transactions on this date</div>'; 
+                return; 
+            } 
+            
+            const dailyTotal = sortedCat.reduce((sum, item) => sum + item.val, 0);
+            
+            sortedCat.forEach(item => { 
+                const percent = dailyTotal > 0 ? ((item.val / dailyTotal) * 100).toFixed(1) : 0;
+                const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
+
+                const div = document.createElement('div'); 
+                div.className = "flex justify-between items-center text-xs px-2 py-3 border-b border-slate-50 last:border-0"; 
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="font-bold text-slate-700">${item.label}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">(${displayPercent}%)</span>
+                        </div>
+                    </div>
+                    <span class="font-black text-slate-900">${item.val.toLocaleString()} JPY</span>
+                `; 
+                listContainer.appendChild(div); 
+            }); 
+        }
+
+        function editItem(rowId) {
+            const item = expenses.find(e => e.rowId === rowId);
+            if(!item) return;
+
+            currentEditRowId = rowId;
+            document.getElementById('amount').value = item.amount;
+            calculateTHB(); 
+            
+            let rawDate = new Date(item.date);
+            if(!isNaN(rawDate.getTime())) { 
+                document.getElementById('date').value = rawDate.toLocaleDateString('en-CA'); 
+            } else { 
+                document.getElementById('date').value = item.date; 
+            }
+
+            document.getElementById('payment').value = item.payment;
+            document.getElementById('category').value = item.category;
+            
+            renderQuickTags();
+
+            document.getElementById('details').value = item.details;
+            oldReceiptUrl = item.receipt;
+
+            const cbShared = document.getElementById('is-shared');
+            const iconShared = document.getElementById('icon-shared');
+            cbShared.checked = item.isShared;
+            if(item.isShared) { 
+                iconShared.classList.remove('text-gray-300'); 
+                iconShared.classList.add('text-[#c75b43]'); 
+                iconShared.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
+                iconShared.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+            } else { 
+                iconShared.classList.remove('text-[#c75b43]'); 
+                iconShared.classList.add('text-gray-300'); 
+                iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+                iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            }
+
+            const cbTax = document.getElementById('is-taxfree');
+            const iconTax = document.getElementById('icon-taxfree');
+            cbTax.checked = item.isTaxFree;
+            if(item.isTaxFree) { 
+                iconTax.classList.remove('text-gray-300'); 
+                iconTax.classList.add('text-[#c75b43]'); 
+                iconTax.parentElement.classList.add('border-[#c75b43]', 'bg-[#fffaf9]');
+                iconTax.parentElement.classList.remove('border-[#e2dcd0]', 'bg-white');
+            } else { 
+                iconTax.classList.remove('text-[#c75b43]'); 
+                iconTax.classList.add('text-gray-300');
+                iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+                iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            }
+            
+            document.getElementById('submit-btn').innerHTML = 'Update Record <i class="fas fa-save"></i>';
+            document.getElementById('form-title').innerHTML = 'Edit Expense';
+            
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            switchPage('home');
+        }
+
+        function cancelEdit() {
+            currentEditRowId = null;
+            oldReceiptUrl = "";
+            
+            document.getElementById('expense-form').reset();
+            document.getElementById('date').value = new Date().toLocaleDateString('en-CA');
+            document.getElementById('submit-btn').innerHTML = 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>';
+            document.getElementById('form-title').innerHTML = 'Add New Expense';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('thb-equivalent').classList.add('hidden'); 
+
+            const cbShared = document.getElementById('is-shared');
+            const iconShared = document.getElementById('icon-shared');
+            cbShared.checked = false;
+            iconShared.classList.remove('text-[#c75b43]'); 
+            iconShared.classList.add('text-gray-300'); 
+            iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+            iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+            
+            const cbTax = document.getElementById('is-taxfree');
+            const iconTax = document.getElementById('icon-taxfree');
+            cbTax.checked = false;
+            iconTax.classList.remove('text-[#c75b43]'); 
+            iconTax.classList.add('text-gray-300'); 
+            iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+            iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+
+            receiptBase64 = null;
+            receiptName = null;
+            document.getElementById('receipt-text').innerText = "แนบใบเสร็จ";
+            
+            renderQuickTags();
+        }
+
+        function updateUI() {
+            const list = document.getElementById('history-list');
+            const stats = document.getElementById('stats-container');
+            const pSum = document.getElementById('payment-summary-container');
+            const uSum = document.getElementById('user-summary-container');
+            
+            if(!list || !stats) return; 
+            
+            list.innerHTML = ''; 
+            stats.innerHTML = ''; 
+            pSum.innerHTML = ''; 
+            if(uSum) uSum.innerHTML = '';
+            
+            let gross = 0, refund = 0, cashUsed = 0; 
+            const daily = {}; 
+            const payStats = { 'Cash': 0, 'Credit Card': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Code': 0 }; 
+            const userStats = {};
+            
+            const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
+            
+            let filteredExpenses = expenses.filter(item => {
+                if(!searchTerm) return true;
+                return (
+                    item.category.toLowerCase().includes(searchTerm) || 
+                    item.details.toLowerCase().includes(searchTerm) || 
+                    item.payment.toLowerCase().includes(searchTerm) || 
+                    item.amount.toString().includes(searchTerm)
+                );
+            });
+
+            let sortType = document.getElementById('sort-filter') ? document.getElementById('sort-filter').value : 'latest';
+            
+            filteredExpenses.sort((a,b) => {
+                let dateB = new Date(b.date + ' ' + (b.time || '00:00')); 
+                let dateA = new Date(a.date + ' ' + (a.time || '00:00'));
+                let isRefA = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(a.category); 
+                let amtA = parseFloat(a.amount) || 0; 
+                let realAmtA = isRefA ? amtA : -amtA;
+                
+                let isRefB = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(b.category); 
+                let amtB = parseFloat(b.amount) || 0; 
+                let realAmtB = isRefB ? amtB : -amtB;
+                
+                if (sortType === 'latest') return expenses.indexOf(b) - expenses.indexOf(a); 
+                if (sortType === 'date') return dateB - dateA; 
+                if (sortType === 'payment') return a.payment === b.payment ? dateB - dateA : a.payment.localeCompare(b.payment); 
+                if (sortType === 'category') return a.category === b.category ? dateB - dateA : a.category.localeCompare(b.category); 
+                if (sortType === 'user') { 
+                    let userA = (a.username || 'USER').toUpperCase(); 
+                    let userB = (b.username || 'USER').toUpperCase(); 
+                    return userA === userB ? dateB - dateA : userA.localeCompare(userB); 
+                }
+                if (sortType === 'price-high') return realAmtB - realAmtA; 
+                if (sortType === 'price-low') return realAmtA - realAmtB; 
+                
+                return 0;
+            });
+            
+            const categoryStats = {}; 
+            globalDailyCategoryStats = {};
+
+            filteredExpenses.forEach((item) => {
+                const isRef = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(item.category);
+                const amt = parseFloat(item.amount) || 0;
+                const impact = isRef ? -amt : amt;
+                
+                if (isRef) { 
+                    refund += amt; 
+                } else { 
+                    gross += amt; 
+                    if (!categoryStats[item.category]) categoryStats[item.category] = 0; 
+                    categoryStats[item.category] += amt; 
+                    
+                    if (!globalDailyCategoryStats[item.date]) globalDailyCategoryStats[item.date] = {}; 
+                    if (!globalDailyCategoryStats[item.date][item.category]) globalDailyCategoryStats[item.date][item.category] = 0; 
+                    globalDailyCategoryStats[item.date][item.category] += amt; 
+                }
+                
+                let uKey = (item.username || 'USER').toUpperCase(); 
+                if (!userStats[uKey]) userStats[uKey] = 0; 
+                userStats[uKey] += impact;
+
+                let pKey = item.payment; 
+                if (pKey === "Visa/Master" || pKey === "Visa / Master") pKey = "Credit Card"; 
+                if (pKey === "JCB Card-Thida" || pKey === "JCB Card-OHSirawit" || pKey === "JCB" || pKey === "Refund-JCB") pKey = "Credit Card";
+                
+                if (!payStats.hasOwnProperty(pKey)) payStats[pKey] = 0; 
+                if (pKey === "Cash") cashUsed += impact; 
+                payStats[pKey] += impact;
+                
+                if (!daily[item.date]) daily[item.date] = { total: 0, categories: {} }; 
+                daily[item.date].total += impact; 
+                
+                if (!daily[item.date].categories[item.category]) { 
+                    daily[item.date].categories[item.category] = { amt: 0, isRef: isRef }; 
+                }
+                daily[item.date].categories[item.category].amt += amt;
+                
+                const dMatch = item.receipt ? item.receipt.match(/\/d\/(.+?)\//) : null;
+                const thumbHtml = dMatch ? `
+                    <div class="mt-2.5">
+                        <a href="${item.receipt}" target="_blank" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <img src="https://drive.google.com/uc?export=view&id=${dMatch[1]}" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
+                        </a>
+                    </div>
+                ` : '';
+
+                let appliedRate = item.rate ? parseFloat(item.rate) : currentJpyToThbRate;
+                let thbLine = '';
+                if(appliedRate > 0) { 
+                    thbLine = `
+                        <p class="text-[10px] font-bold text-[#c75b43] mt-0.5 whitespace-nowrap">
+                            ≈ ${(amt * appliedRate).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} THB 
+                            <span class="text-slate-400 font-medium">(Rate: ${appliedRate.toFixed(4)})</span>
+                        </p>
+                    `; 
+                }
+
+                let badgeHtml = '';
+                if(item.isShared) {
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#2d3748] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `;
+                }
+                if(item.isTaxFree) {
+                    badgeHtml += `<span class="text-[8px] font-bold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-amber-100 whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>`;
+                }
+
+                const div = document.createElement('div'); 
+                div.className = `modern-card p-4 flex justify-between items-start gap-2 ${item.isTaxFree ? 'tax-refund-card' : ''}`; 
+                div.innerHTML = `
+                    <div class="flex gap-4 items-start text-left w-full overflow-hidden">
+                        <div class="w-12 h-12 flex-shrink-0 mt-0.5 ${isRef ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-[#f6f3ed] text-[#c75b43] border border-[#eaddcf]'} rounded-[16px] flex items-center justify-center">
+                            <i class="fas ${getIcon(item.category)} text-[18px]"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <p class="font-bold text-gray-800 text-[13px] leading-tight">${item.category}</p>
+                                <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${item.payment}</span>
+                                <span class="text-[8px] font-bold bg-[#fffaf9] text-[#c75b43] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-[#eaddcf] whitespace-nowrap">
+                                    <i class="fas fa-user mr-1 text-[#c75b43]"></i>${item.username || 'USER'}
+                                </span>
+                            </div>
+                            <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
+                            <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
+                            ${thumbHtml}
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-between h-full items-end">
+                        <div class="text-right">
+                            <p class="text-[16px] font-black ${isRef ? 'text-emerald-500' : 'text-gray-900'}">${isRef ? '+' : '-'}${amt.toLocaleString()} JPY</p>
+                            ${thbLine}
+                        </div>
+                        <div class="flex justify-end gap-3 mt-2 items-center">
+                            ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="text-gray-300 hover:text-[#c75b43] transition-colors"><i class="fas fa-image text-[13px]"></i></a>` : ''}
+                            ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#c75b43] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
+                            <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#c75b43] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
+                            <button onclick="deleteItem(${item.rowId})" class="text-gray-200 hover:text-rose-500 transition-colors ml-1"><i class="fas fa-trash-alt text-[13px]"></i></button>
+                        </div>
+                    </div>
+                `; 
+                list.appendChild(div);
+            });
+
+            if(filteredExpenses.length === 0 && list) { 
+                list.innerHTML = `
+                    <div class="text-center p-8 text-gray-400 font-bold text-xs">
+                        <i class="fas fa-search text-2xl mb-2 text-gray-300"></i><br>No matching records
+                    </div>
+                `; 
+            }
+
+            const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+            const offlineWarning = document.getElementById('offline-warning');
+            if(queue.length > 0) {
+                document.getElementById('offline-count').innerText = queue.length;
+                offlineWarning.classList.remove('hidden');
+            } else {
+                offlineWarning.classList.add('hidden');
+            }
+
+            const dateDropdown = document.getElementById('dashboard-date-filter'); 
+            if (dateDropdown) { 
+                const currentSelectedDate = dateDropdown.value; 
+                dateDropdown.innerHTML = ''; 
+                const sortedDates = Object.keys(globalDailyCategoryStats).sort((a,b) => new Date(b) - new Date(a)); 
+                
+                if(sortedDates.length === 0) { 
+                    dateDropdown.innerHTML = '<option value="">No Data</option>'; 
+                } else { 
+                    sortedDates.forEach(date => { 
+                        const opt = document.createElement('option'); 
+                        opt.value = date; 
+                        opt.text = date; 
+                        if(date === currentSelectedDate) opt.selected = true; 
+                        dateDropdown.appendChild(opt); 
+                    }); 
+                    if(!currentSelectedDate || !globalDailyCategoryStats[currentSelectedDate]) { 
+                        dateDropdown.value = sortedDates[0]; 
+                    } 
+                } 
+            }
+            
+            const currentBudget = getBudget();
+            if (uSum) {
+                Object.entries(userStats).sort((a,b) => b[1] - a[1]).forEach(([user, total]) => {
+                    const uDiv = document.createElement('div'); 
+                    uDiv.className = "modern-card p-4 text-left border border-[#eaddcf] bg-[#f6f3ed]/50 shadow-sm"; 
+                    uDiv.innerHTML = `
+                        <div class="flex items-center gap-1.5 mb-1.5">
+                            <i class="fas fa-user-circle text-[#c75b43]"></i>
+                            <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">${user}</span>
+                        </div>
+                        <p class="text-lg font-black text-gray-800 leading-none">${total.toLocaleString()}</p>
+                    `;
+                    uSum.appendChild(uDiv);
+                });
+            }
+
+            Object.entries(payStats).forEach(([method, total]) => { 
+                if (total !== 0 || method === 'Cash' || method === 'Credit Card') { 
+                    const payDiv = document.createElement('div'); 
+                    payDiv.className = "modern-card p-5 text-left border border-gray-100 shadow-sm"; 
+                    
+                    let displayName = method; 
+                    let bal = ""; 
+                    if (method === "Cash") {
+                        bal = `<p class="text-[10px] font-bold text-[#c75b43] mt-1.5">Remain: ${(currentBudget - total).toLocaleString()}</p>`; 
                     }
-                ]
+                    
+                    payDiv.innerHTML = `
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${displayName}</span>
+                        <p class="text-xl font-black text-gray-900 mt-1.5 leading-none">${total.toLocaleString()}</p>
+                        ${bal}
+                    `; 
+                    pSum.appendChild(payDiv); 
+                } 
+            });
+            
+            Object.keys(daily).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { 
+                const data = daily[date];
+                const mainDiv = document.createElement('div'); 
+                mainDiv.className = "modern-card overflow-hidden shadow-sm mb-4 border border-gray-100"; 
+                mainDiv.innerHTML = `
+                    <div onclick="toggleDay('${date}')" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-[14px] bg-[#2d3748] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#2d3748]/10">
+                                ${date.split('-')[2]}
+                            </div>
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-widest">${date}</p>
+                        </div>
+                        <div class="flex items-center gap-3.5 text-right">
+                            <p class="text-[17px] font-black text-gray-900">${data.total.toLocaleString()} JPY</p>
+                            <i id="icon-${date}" class="fas fa-chevron-down text-gray-300 text-sm rotate-icon"></i>
+                        </div>
+                    </div>
+                    <div id="details-${date}" class="day-details pb-4 px-5 bg-[#fdfcf8] border-t border-gray-100 text-left">
+                        ${Object.keys(data.categories).map(cat => {
+                            const catInfo = data.categories[cat];
+                            return `
+                                <div class="flex justify-between items-center text-xs py-3 border-b border-gray-100 last:border-0">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span>
+                                        <span class="font-bold text-gray-700">${cat}</span>
+                                    </div>
+                                    <span class="font-black ${catInfo.isRef ? 'text-emerald-500' : 'text-gray-800'}">
+                                        ${catInfo.isRef ? '+' : '-'}${catInfo.amt.toLocaleString()} JPY
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `; 
+                stats.appendChild(mainDiv); 
+            });
+
+            const remaining = currentBudget - cashUsed; 
+            let percent = remaining / currentBudget; 
+            percent = Math.max(0, Math.min(1, percent)); 
+            
+            const bar = document.getElementById('budget-progress-bar');
+            if(bar) { 
+                setTimeout(() => { bar.style.width = (percent * 100) + '%'; }, 100); 
+                if (remaining <= (currentBudget * 0.1)) {
+                    bar.style.background = "#ef4444"; 
+                } else if (remaining <= (currentBudget * 0.3)) {
+                    bar.style.background = "#f59e0b"; 
+                } else {
+                    bar.style.background = "#c75b43"; 
+                }
+            }
+            
+            document.getElementById('cash-remaining').innerText = Math.floor(remaining).toLocaleString(); 
+            
+            const usedEl = document.getElementById('cash-used-text'); 
+            if(usedEl) usedEl.innerText = cashUsed.toLocaleString();
+            
+            document.getElementById('budget-text').innerText = currentBudget.toLocaleString();
+            document.getElementById('gross-total').innerText = gross.toLocaleString() + " JPY"; 
+            document.getElementById('refund-total').innerText = refund.toLocaleString() + " JPY"; 
+            document.getElementById('total-spent').innerText = (gross - refund).toLocaleString();
+            
+            myOverallCategoryChart = renderDoughnutChart('overallCategoryChart', myOverallCategoryChart, categoryStats);
+            
+            const overallListContainer = document.getElementById('category-dashboard-list'); 
+            if(overallListContainer) { 
+                overallListContainer.innerHTML = ''; 
+                const sortedCatOverall = Object.keys(categoryStats).map(k => ({label: k, val: categoryStats[k]})).sort((a,b) => b.val - a.val); 
+                const overallTotal = sortedCatOverall.reduce((sum, item) => sum + item.val, 0);
+                
+                sortedCatOverall.forEach(item => { 
+                    const percent = overallTotal > 0 ? ((item.val / overallTotal) * 100).toFixed(1) : 0;
+                    const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
+                    
+                    const div = document.createElement('div'); 
+                    div.className = "flex justify-between items-center text-xs px-2 py-3 border-b border-gray-50 last:border-0"; 
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="font-bold text-gray-700">${item.label}</span>
+                                <span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span>
+                            </div>
+                        </div>
+                        <span class="font-black text-gray-900">${item.val.toLocaleString()} JPY</span>
+                    `; 
+                    overallListContainer.appendChild(div); 
+                }); 
+            }
+            updateDailyCategoryChart();
+        }
+
+        async function getCurrentLocation() { 
+            return new Promise(res => { 
+                if(!navigator.geolocation) return res(""); 
+                navigator.geolocation.getCurrentPosition( 
+                    p => res(`https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`), 
+                    () => res(""), 
+                    { timeout: 5000 } 
+                ); 
+            }); 
+        }
+
+        document.getElementById('expense-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            
+            const detailsVal = document.getElementById('details').value; 
+            let amountVal = getSafeAmount(document.getElementById('amount').value);
+            
+            if (!detailsVal || !detailsVal.trim()) { 
+                showToast("Please enter a Note!", true); 
+                return; 
+            }
+            if (!amountVal || amountVal <= 0) { 
+                showToast("Please enter a valid amount!", true); 
+                return; 
+            }
+            
+            const btn = document.getElementById('submit-btn'); 
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...'; 
+            
+            let loc = "";
+            if (document.getElementById('save-location').checked) {
+                try { loc = await getCurrentLocation(); } catch(err) { loc = ""; }
+            }
+            
+            const payload = { 
+                date: document.getElementById('date').value, 
+                time: new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false, hour: '2-digit', minute: '2-digit' }), 
+                payment: document.getElementById('payment').value, 
+                category: document.getElementById('category').value, 
+                details: detailsVal.trim(), 
+                amount: amountVal, 
+                location: loc, 
+                receiptBase64: receiptBase64, 
+                receiptName: receiptName,
+                username: 'USER',
+                rate: currentJpyToThbRate,
+                isShared: document.getElementById('is-shared').checked,
+                isTaxFree: document.getElementById('is-taxfree').checked
             };
             
-            // Use Data URI for broader compatibility with mobile browsers
-            const manifestDataUri = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifestObj));
-            document.getElementById('manifest-link').setAttribute('href', manifestDataUri);
-
-            // Register Service Worker
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    self.addEventListener('install', e => self.skipWaiting());
-                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-                    self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
-                `;
-                const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(e => console.warn('SW:', e));
-            }
-        })();
-
-        // --- In-App Browser Detection ---
-        function isInAppBrowser() {
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-            return /FBAN|FBAV|Instagram|Line|Messenger|MicroMessenger|KAKAOTALK/i.test(ua);
-        }
-
-        // --- PWA Installation Prompt ---
-        let deferredPrompt;
-        const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-        const installGuideModal = document.getElementById('installGuideModal');
-        const closeInstallGuideBtn = document.getElementById('closeInstallGuideBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
-
-        pwaInstallBtn.addEventListener('click', async () => {
-            const guideText = document.getElementById('installGuideText');
-            
-            if (isInAppBrowser()) {
-                guideText.innerHTML = `
-                    <strong style="color: #dc2626;">⚠️ Opened in App Browser (LINE / Facebook)</strong><br><br>
-                    In-app browsers do not support Web App installation or background GPS tracking.<br><br>
-                    <strong>How to fix:</strong><br>
-                    1. Tap the <strong>3 dots (⋮)</strong> or <strong>Share</strong> button at the top/bottom.<br>
-                    2. Select <strong>"Open in Chrome"</strong> (Android) or <strong>"Open in Safari"</strong> (iOS).
-                `;
-                installGuideModal.classList.add('active');
-                return;
-            }
-
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    pwaInstallBtn.style.display = 'none';
-                }
-                deferredPrompt = null;
-            } else {
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                if (isIOS) {
-                    guideText.innerHTML = `
-                        <strong>📱 Installation on iOS (Safari):</strong><br><br>
-                        1. Make sure you are using <strong>Safari browser</strong>.<br>
-                        2. Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket" style="color: #2563eb;"></i> at the bottom toolbar.<br>
-                        3. Scroll down and select <strong>"Add to Home Screen"</strong> <i class="fa-regular fa-square-plus" style="color: #2563eb;"></i>.
-                    `;
+            if (!navigator.onLine) {
+                let queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+                if (currentEditRowId) {
+                    payload.oldReceiptUrl = oldReceiptUrl;
+                    queue.push({ action: 'updateExpense', data: payload, rowId: currentEditRowId });
                 } else {
-                    guideText.innerHTML = `
-                        <strong>📱 Installation on Android (Chrome):</strong><br><br>
-                        1. Tap the <strong>Chrome menu (⋮)</strong> at the top right.<br>
-                        2. Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.<br><br>
-                        <em>Note: If already installed, check your phone's app list.</em>
-                    `;
+                    queue.push(payload); 
                 }
-                installGuideModal.classList.add('active');
-            }
-        });
-
-        closeInstallGuideBtn.addEventListener('click', () => {
-            installGuideModal.classList.remove('active');
-        });
-
-        // --- State Management ---
-        let isTracking = false;
-        let watchPositionId = null;
-        let timerInterval = null;
-        let startTime = null;
-        let endTime = null;
-        let elapsedTime = 0;
-
-        let positions = [];
-        let totalDistanceKm = 0;
-        let maxSpeedKmh = 0;
-        let currentSpeedKmh = 0;
-
-        let map = null;
-        let routePolyline = null;
-        let userMarker = null;
-
-        let summaryMap = null;
-        let summaryPolyline = null;
-        let summaryStartMarker = null;
-        let summaryEndMarker = null;
-
-        let wakeLock = null;
-
-        // --- DOM Elements ---
-        const startBtn = document.getElementById('startBtn');
-        const finishBtn = document.getElementById('finishBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const recenterBtn = document.getElementById('recenterBtn');
-
-        const currentSpeedEl = document.getElementById('currentSpeed');
-        const maxSpeedEl = document.getElementById('maxSpeed');
-        const avgSpeedEl = document.getElementById('avgSpeed');
-        const totalDistanceEl = document.getElementById('totalDistance');
-        const durationEl = document.getElementById('duration');
-
-        const gpsCoordsEl = document.getElementById('gpsCoords');
-        const gpsAccuracyEl = document.getElementById('gpsAccuracy');
-        const statusBadge = document.getElementById('statusBadge');
-        const statusText = document.getElementById('statusText');
-
-        const summaryModal = document.getElementById('summaryModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const confirmCloseModalBtn = document.getElementById('confirmCloseModalBtn');
-        const modalHeaderSummary = document.getElementById('modalHeaderSummary');
-        const modalStartTime = document.getElementById('modalStartTime');
-        const modalEndTime = document.getElementById('modalEndTime');
-        const modalStartAddress = document.getElementById('modalStartAddress');
-        const modalEndAddress = document.getElementById('modalEndAddress');
-        const modalMaxSpeed = document.getElementById('modalMaxSpeed');
-        const modalAvgSpeed = document.getElementById('modalAvgSpeed');
-        const exportGpxBtn = document.getElementById('exportGpxBtn');
-        const saveImageBtn = document.getElementById('saveImageBtn');
-
-        // --- Tile Layer Mirrors (Reliable and Free) ---
-        const primaryTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        const fallbackTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initMainMap();
-            setupEventListeners();
-        });
-
-        function initMainMap() {
-            map = L.map('map', {
-                zoomControl: false,
-                attributionControl: true
-            }).setView([13.7563, 100.5018], 15);
-
-            const tileLayer = L.tileLayer(primaryTileUrl, {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            tileLayer.on('tileerror', function() {
-                this.setUrl(fallbackTileUrl);
-            });
-
-            routePolyline = L.polyline([], {
-                color: '#3b82f6',
-                weight: 6,
-                opacity: 0.85,
-                lineJoin: 'round'
-            }).addTo(map);
-
-            const customIcon = L.divIcon({
-                className: 'user-location-marker',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            });
-
-            userMarker = L.marker([13.7563, 100.5018], { icon: customIcon }).addTo(map);
-
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    pos => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        map.setView([lat, lng], 16);
-                        userMarker.setLatLng([lat, lng]);
-                        updateGpsInfo(pos);
-                    },
-                    err => console.warn('Geolocation init:', err),
-                    { enableHighAccuracy: true, timeout: 5000 }
-                );
-            }
-        }
-
-        function setupEventListeners() {
-            startBtn.addEventListener('click', startTrip);
-            finishBtn.addEventListener('click', finishTrip);
-            resetBtn.addEventListener('click', resetTrip);
-            recenterBtn.addEventListener('click', recenterMap);
-
-            closeModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
-            confirmCloseModalBtn.addEventListener('click', () => summaryModal.classList.remove('active'));
-            exportGpxBtn.addEventListener('click', exportGPX);
-            saveImageBtn.addEventListener('click', saveSummaryImage);
-        }
-
-        function startTrip() {
-            if (isTracking) return;
-
-            isTracking = true;
-            startTime = new Date();
-            
-            startBtn.disabled = true;
-            finishBtn.disabled = false;
-            statusBadge.style.display = 'flex';
-            statusBadge.classList.add('recording');
-            statusText.textContent = 'Tracking...';
-            pwaInstallBtn.style.display = 'none';
-
-            requestWakeLock();
-
-            timerInterval = setInterval(() => {
-                elapsedTime++;
-                durationEl.textContent = formatDuration(elapsedTime);
-                updateAverageSpeed();
-            }, 1000);
-
-            if ("geolocation" in navigator) {
-                watchPositionId = navigator.geolocation.watchPosition(
-                    handleGpsPosition,
-                    handleGpsError,
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 1000,
-                        timeout: 10000
-                    }
-                );
-            } else {
-                alert('Geolocation is not supported by your browser.');
-            }
-        }
-
-        function handleGpsPosition(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-            let speed = position.coords.speed;
-
-            updateGpsInfo(position);
-
-            if (speed !== null && !isNaN(speed) && speed >= 0) {
-                currentSpeedKmh = speed * 3.6;
-            } else {
-                currentSpeedKmh = 0;
-            }
-
-            if (accuracy > 50) return;
-
-            const currentPoint = { lat, lng, speed: currentSpeedKmh, timestamp: new Date() };
-
-            if (positions.length > 0) {
-                const prevPoint = positions[positions.length - 1];
-                const dist = calculateDistanceKm(prevPoint.lat, prevPoint.lng, lat, lng);
-
-                if (dist > 0.003) {
-                    totalDistanceKm += dist;
-
-                    if (speed === null || isNaN(speed)) {
-                        const timeDiffSec = (currentPoint.timestamp - prevPoint.timestamp) / 1000;
-                        if (timeDiffSec > 0) {
-                            currentSpeedKmh = (dist / timeDiffSec) * 3600;
-                        }
-                    }
-
-                    positions.push(currentPoint);
-                    routePolyline.addLatLng([lat, lng]);
-                }
-            } else {
-                positions.push(currentPoint);
-                routePolyline.addLatLng([lat, lng]);
-            }
-
-            if (currentSpeedKmh > maxSpeedKmh) {
-                maxSpeedKmh = currentSpeedKmh;
-            }
-
-            currentSpeedEl.textContent = Math.round(currentSpeedKmh);
-            maxSpeedEl.textContent = maxSpeedKmh.toFixed(1);
-            totalDistanceEl.textContent = totalDistanceKm.toFixed(2);
-
-            userMarker.setLatLng([lat, lng]);
-            map.panTo([lat, lng], { animate: true });
-        }
-
-        function handleGpsError(error) {
-            console.warn('GPS Error:', error.message);
-            gpsCoordsEl.textContent = 'GPS Signal Lost';
-        }
-
-        function updateGpsInfo(position) {
-            const lat = position.coords.latitude.toFixed(4);
-            const lng = position.coords.longitude.toFixed(4);
-            const acc = Math.round(position.coords.accuracy);
-
-            gpsCoordsEl.textContent = `GPS: ${lat}, ${lng}`;
-            gpsAccuracyEl.textContent = `Accuracy: ±${acc}m`;
-        }
-
-        function updateAverageSpeed() {
-            if (elapsedTime > 0 && totalDistanceKm > 0) {
-                const avg = (totalDistanceKm / (elapsedTime / 3600));
-                avgSpeedEl.textContent = avg.toFixed(1);
-            } else {
-                avgSpeedEl.textContent = '0.0';
-            }
-        }
-
-        function finishTrip() {
-            if (!isTracking) return;
-
-            isTracking = false;
-            endTime = new Date();
-
-            if (watchPositionId !== null) {
-                navigator.geolocation.clearWatch(watchPositionId);
-                watchPositionId = null;
-            }
-            clearInterval(timerInterval);
-            releaseWakeLock();
-
-            startBtn.disabled = false;
-            finishBtn.disabled = true;
-            statusBadge.classList.remove('recording');
-            statusText.textContent = 'Trip Finished';
-            currentSpeedEl.textContent = '0';
-
-            showSummaryModal();
-        }
-
-        function resetTrip() {
-            if (isTracking) {
-                if (!confirm('A trip is currently being recorded. Are you sure you want to cancel and reset?')) {
-                    return;
-                }
-                finishTrip();
-            }
-
-            positions = [];
-            totalDistanceKm = 0;
-            maxSpeedKmh = 0;
-            currentSpeedKmh = 0;
-            elapsedTime = 0;
-
-            currentSpeedEl.textContent = '0';
-            maxSpeedEl.textContent = '0.0';
-            avgSpeedEl.textContent = '0.0';
-            totalDistanceEl.textContent = '0.00';
-            durationEl.textContent = '00:00:00';
-            statusText.textContent = 'Ready';
-
-            if (routePolyline) routePolyline.setLatLngs([]);
-        }
-
-        function recenterMap() {
-            if (userMarker) {
-                map.setView(userMarker.getLatLng(), 16, { animate: true });
-            }
-        }
-
-        function showSummaryModal() {
-            let hrs = Math.floor(elapsedTime / 3600);
-            let mins = Math.floor((elapsedTime % 3600) / 60);
-            let durationText = '';
-            
-            if (hrs > 0) {
-                durationText += `${hrs} hr `;
-            }
-            durationText += `${mins} min`;
-            
-            if (hrs === 0 && mins === 0) {
-                durationText = "< 1 min";
-            }
-
-            const avgSpeedKmh = elapsedTime > 0 ? (totalDistanceKm / (elapsedTime / 3600)).toFixed(1) : '0.0';
-
-            modalHeaderSummary.innerHTML = `${totalDistanceKm.toFixed(2)} kilometers <span>|</span> ${durationText}`;
-            modalStartTime.textContent = formatTimeStr(startTime || new Date());
-            modalEndTime.textContent = formatTimeStr(endTime || new Date());
-            modalMaxSpeed.textContent = `${maxSpeedKmh.toFixed(1)} km/h`;
-            modalAvgSpeed.textContent = `${avgSpeedKmh} km/h`;
-
-            summaryModal.classList.add('active');
-
-            setTimeout(() => {
-                renderSummaryMap();
-            }, 200);
-
-            fetchAddresses();
-        }
-
-        function renderSummaryMap() {
-            if (!summaryMap) {
-                summaryMap = L.map('summaryMap', {
-                    zoomControl: false,
-                    attributionControl: false
-                }).setView([13.7563, 100.5018], 13);
-
-                L.tileLayer(primaryTileUrl, { maxZoom: 19 }).addTo(summaryMap);
-
-                summaryPolyline = L.polyline([], {
-                    color: '#000000',
-                    weight: 4,
-                    opacity: 0.9
-                }).addTo(summaryMap);
-            }
-
-            if (positions.length > 0) {
-                const latLngs = positions.map(p => [p.lat, p.lng]);
-                summaryPolyline.setLatLngs(latLngs);
-
-                const startPt = positions[0];
-                const endPt = positions[positions.length - 1];
-
-                const squareIcon = L.divIcon({
-                    className: 'timeline-square-marker',
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
-                });
-
-                if (summaryStartMarker) summaryMap.removeLayer(summaryStartMarker);
-                if (summaryEndMarker) summaryMap.removeLayer(summaryEndMarker);
-
-                summaryStartMarker = L.marker([startPt.lat, startPt.lng], { icon: squareIcon }).addTo(summaryMap);
-                summaryEndMarker = L.marker([endPt.lat, endPt.lng], { icon: squareIcon }).addTo(summaryMap);
-
-                const bounds = L.latLngBounds(latLngs);
-                summaryMap.fitBounds(bounds, { padding: [30, 30] });
-            }
-        }
-
-        async function fetchAddresses() {
-            if (positions.length === 0) {
-                modalStartAddress.textContent = "No coordinates available";
-                modalEndAddress.textContent = "No coordinates available";
+                localStorage.setItem('offlineQueue', JSON.stringify(queue));
+                showToast("Saved Offline! Will sync when online.");
+                cancelEdit();
+                updateUI(); 
                 return;
             }
-
-            modalStartAddress.classList.add('loading');
-            modalEndAddress.classList.add('loading');
-            modalStartAddress.textContent = "Fetching location...";
-            modalEndAddress.textContent = "Fetching location...";
-
-            const startPt = positions[0];
-            const endPt = positions[positions.length - 1];
-
-            const startAddr = await reverseGeocode(startPt.lat, startPt.lng);
-            modalStartAddress.textContent = startAddr;
-            modalStartAddress.classList.remove('loading');
-
-            const endAddr = await reverseGeocode(endPt.lat, endPt.lng);
-            modalEndAddress.textContent = endAddr;
-            modalEndAddress.classList.remove('loading');
-        }
-
-        async function reverseGeocode(lat, lng) {
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`);
-                if (response.ok) {
-                    const data = await response.json();
-                    return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            
+            if (currentEditRowId) {
+                payload.oldReceiptUrl = oldReceiptUrl;
+                try {
+                    const res = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'updateExpense', data: payload, rowId: currentEditRowId }) 
+                    }).then(r => r.json());
+                    
+                    if(res.status === "success") { 
+                        showToast("Record updated successfully!"); 
+                        cancelEdit(); 
+                        loadDataFromSheet(); 
+                    } else { 
+                        showToast("Error: " + res.message, true); 
+                        btn.disabled = false; 
+                        btn.innerHTML = 'Update Record'; 
+                    } 
+                } catch(err) { 
+                    showToast("Connection Error.", true); 
+                    btn.disabled = false; 
+                    btn.innerHTML = 'Update Record'; 
                 }
-            } catch (e) {
-                console.warn('Geocoding error:', e);
-            }
-            return `Coords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        }
-
-        function exportGPX() {
-            if (positions.length === 0) {
-                alert('No route data available to download.');
-                return;
-            }
-
-            let gpxContent = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="TripTracker" xmlns="http://www.topografix.com/GPX/1/1">
-  <trk>
-    <name>Trip ${new Date().toLocaleDateString()}</name>
-    <trkseg>
-`;
-
-            positions.forEach(p => {
-                const timeISO = p.timestamp ? p.timestamp.toISOString() : new Date().toISOString();
-                gpxContent += `      <trkpt lat="${p.lat}" lon="${p.lng}">
-        <time>${timeISO}</time>
-        <speed>${(p.speed / 3.6).toFixed(2)}</speed>
-      </trkpt>\n`;
-            });
-
-            gpxContent += `    </trkseg>
-  </trk>
-</gpx>`;
-
-            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `trip-log-${Date.now()}.gpx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        async function saveSummaryImage() {
-            const card = document.querySelector('.summary-card');
-            const actionsBar = document.querySelector('.summary-actions-bar');
-            const closeBtn = document.querySelector('.close-modal-btn');
-            const saveBtnIcon = saveImageBtn.querySelector('i');
-            
-            saveImageBtn.disabled = true;
-            saveBtnIcon.className = 'fa-solid fa-spinner fa-spin';
-            
-            const originalActionsDisplay = actionsBar.style.display;
-            const originalCloseDisplay = closeBtn.style.display;
-            actionsBar.style.display = 'none';
-            closeBtn.style.display = 'none';
-            
-            await new Promise(r => setTimeout(r, 150));
-
-            try {
-                const canvas = await html2canvas(card, {
-                    useCORS: true, 
-                    scale: 2,     
-                    backgroundColor: '#ffffff'
-                });
-                
-                const imgUrl = canvas.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = imgUrl;
-                a.download = `Trip-Summary-${Date.now()}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            } catch (error) {
-                console.error("Error saving image:", error);
-                alert("Could not save the image. Please try again.");
-            } finally {
-                actionsBar.style.display = originalActionsDisplay || 'flex';
-                closeBtn.style.display = originalCloseDisplay || 'flex';
-                
-                saveImageBtn.disabled = false;
-                saveBtnIcon.className = 'fa-solid fa-camera';
-            }
-        }
-
-        function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = toRad(lat2 - lat1);
-            const dLon = toRad(lon2 - lon1);
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
-
-        function toRad(degrees) {
-            return degrees * (Math.PI / 180);
-        }
-
-        function formatDuration(sec) {
-            const hrs = Math.floor(sec / 3600);
-            const mins = Math.floor((sec % 3600) / 60);
-            const secs = sec % 60;
-            return `${padZero(hrs)}:${padZero(mins)}:${padZero(secs)}`;
-        }
-
-        function padZero(num) {
-            return num.toString().padStart(2, '0');
-        }
-
-        function formatTimeStr(date) {
-            return date.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-        }
-
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
+            } else {
+                try {
+                    const res = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'addExpense', data: payload }) 
+                    }).then(r => r.json());
+                    
+                    if(res.status === "success") { 
+                        showToast("Record saved successfully!"); 
+                        e.target.reset(); 
+                        document.getElementById('date').value = new Date().toLocaleDateString('en-CA'); 
+                        document.getElementById('thb-equivalent').classList.add('hidden');
+                        
+                        renderQuickTags();
+                        
+                        const cbShared = document.getElementById('is-shared');
+                        const iconShared = document.getElementById('icon-shared');
+                        cbShared.checked = false;
+                        iconShared.classList.remove('text-[#c75b43]'); 
+                        iconShared.classList.add('text-gray-300'); 
+                        iconShared.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+                        iconShared.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                        
+                        const cbTax = document.getElementById('is-taxfree');
+                        const iconTax = document.getElementById('icon-taxfree');
+                        cbTax.checked = false;
+                        iconTax.classList.remove('text-[#c75b43]'); 
+                        iconTax.classList.add('text-gray-300'); 
+                        iconTax.parentElement.classList.remove('border-[#c75b43]', 'bg-[#fffaf9]');
+                        iconTax.parentElement.classList.add('border-[#e2dcd0]', 'bg-white');
+                        
+                        receiptBase64 = null; 
+                        receiptName = null; 
+                        document.getElementById('receipt-text').innerText = "แนบใบเสร็จ"; 
+                        
+                        loadDataFromSheet(); 
+                    } else { 
+                        showToast("Error: " + res.message, true); 
+                    } 
+                } catch(err) { 
+                    showToast("Connection Error.", true); 
                 }
-            } catch (err) {
-                console.warn('Wake Lock Error:', err.message);
+                
+                btn.disabled = false; 
+                btn.innerHTML = 'บันทึกข้อมูลเข้าสู่ระบบ <i class="fas fa-paper-plane"></i>'; 
             }
+        });
+
+        async function deleteItem(rowId) { 
+            if(confirm('Delete this expense permanently?')) { 
+                showToast("Deleting...");
+                try {
+                    const res = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'deleteExpense', rowId: rowId }) 
+                    }).then(r => r.json());
+                    
+                    if(res.status === "success") { 
+                        showToast("Deleted successfully!"); 
+                        loadDataFromSheet(); 
+                    } else { 
+                        showToast("Error: " + res.message, true); 
+                    }
+                } catch (err) { 
+                    showToast("Connection Error. Please try again.", true); 
+                }
+            } 
         }
 
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
-            }
+        function exportToExcel() { 
+            if (expenses.length === 0) { 
+                showToast("No data to export", true); 
+                return; 
+            } 
+            const ws = XLSX.utils.json_to_sheet(expenses);
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Expenses"); 
+            XLSX.writeFile(wb, `TripWallet_${new Date().toISOString().slice(0,10)}.xlsx`); 
         }
     </script>
 </body>

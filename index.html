@@ -881,21 +881,83 @@
                             }
 
                             canvas.width = width; 
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
 
-                            receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        };
-                        img.src = event.target.result;
-                    } else {
-                        // Not an image (e.g. PDF), just store the base64 string directly
-                        receiptBase64 = event.target.result;
-                    }
+                        receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        
+                        // --- เรียกใช้ AI อ่านยอดเงิน ---
+                        scanReceiptWithAI(receiptBase64);
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             });
         };
+
+        // --- ฟังก์ชัน AI อ่านบิล (Gemini API) ---
+        async function scanReceiptWithAI(base64String) {
+            showToast("✨ AI กำลังอ่านยอดเงิน...");
+            const amountInput = document.getElementById('amount');
+            amountInput.placeholder = "AI is reading...";
+            amountInput.disabled = true;
+
+            const mimeType = base64String.split(';')[0].split(':')[1];
+            const base64Data = base64String.split(',')[1];
+
+            const prompt = "Find the grand total amount in this receipt. Return ONLY the final total number. Do not include commas, currency symbols, or any other text. If you cannot determine the total, return 0.";
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: mimeType, data: base64Data } }
+                    ]
+                }],
+                generationConfig: { temperature: 0.1 }
+            };
+
+            // หากนำไฟล์ HTML นี้ไปใช้บนเว็บส่วนตัวหรือมือถือ ให้ไปขอ API Key ฟรีที่ Google AI Studio มาใส่ในช่องว่างนี้
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                amountInput.disabled = false;
+                amountInput.placeholder = "e.g. 1500+250";
+
+                if (result.candidates && result.candidates.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text.trim();
+                    const amount = parseFloat(text.replace(/[^0-9.]/g, ''));
+                    
+                    if (!isNaN(amount) && amount > 0) {
+                        amountInput.value = amount;
+                        calculateTHB();
+                        showToast("✅ AI ดึงยอดเงินสำเร็จ!");
+                        
+                        amountInput.classList.add('bg-emerald-50');
+                        setTimeout(() => amountInput.classList.remove('bg-emerald-50'), 2000);
+                    } else {
+                        showToast("❌ AI หาราคาไม่เจอ กรุณากรอกเอง", true);
+                    }
+                } else {
+                     showToast("❌ AI ไม่สามารถอ่านได้", true);
+                }
+            } catch (error) {
+                console.error("AI Extraction failed:", error);
+                amountInput.disabled = false;
+                amountInput.placeholder = "e.g. 1500+250";
+                showToast("❌ เชื่อมต่อ AI ไม่สำเร็จ", true);
+            }
+        }
 
         document.addEventListener('click', function(event) {
             const menu = document.getElementById('top-menu');

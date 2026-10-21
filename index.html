@@ -210,6 +210,39 @@
         </div>
     </div>
 
+    <!-- Attachment Modal -->
+    <div id="attachment-modal" class="fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm hidden flex items-end justify-center transition-opacity duration-300 opacity-0 sm:items-center sm:px-6">
+        <div class="bg-white w-full sm:max-w-sm rounded-t-[24px] sm:rounded-[24px] p-6 pb-10 sm:pb-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300" id="attachment-modal-content">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-black text-slate-900 tracking-wide">แนบใบเสร็จ</h3>
+                <button onclick="closeAttachmentModal()" class="text-slate-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-3">
+                <button type="button" onclick="triggerFileInput('camera')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
+                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-camera"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-[13px]">ถ่ายรูป (Camera)</p>
+                        <p class="text-[10px] text-slate-400">ถ่ายรูปใบเสร็จผ่านกล้อง</p>
+                    </div>
+                </button>
+                <button type="button" onclick="triggerFileInput('gallery')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
+                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-image"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-[13px]">รูปภาพ (Gallery)</p>
+                        <p class="text-[10px] text-slate-400">เลือกรูปภาพจากอัลบั้ม</p>
+                    </div>
+                </button>
+                <button type="button" onclick="triggerFileInput('file')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
+                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-file-alt"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-[13px]">ไฟล์ (Document)</p>
+                        <p class="text-[10px] text-slate-400">อัปโหลดไฟล์เอกสาร (PDF, ฯลฯ)</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App Content -->
     <div id="main-app">
         <!-- Navigation Bar -->
@@ -396,11 +429,11 @@
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div class="relative">
-                            <input type="file" id="receipt-file" accept="image/*" capture="environment" class="hidden">
-                            <label for="receipt-file" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] hover:border-[#D9383A] bg-[#FFF9F9] rounded-[14px] cursor-pointer transition-colors">
-                                <i class="fas fa-camera text-[#D9383A] text-sm"></i>
+                            <input type="file" id="receipt-file" class="hidden">
+                            <div id="receipt-label" onclick="openAttachmentModal()" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] hover:border-[#D9383A] bg-[#FFF9F9] rounded-[14px] cursor-pointer transition-colors">
+                                <i class="fas fa-paperclip text-[#D9383A] text-sm"></i>
                                 <span class="text-[11px] text-[#D9383A] font-bold truncate max-w-[80px]" id="receipt-text">แนบใบเสร็จ</span>
-                            </label>
+                            </div>
                         </div>
                         <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
                             <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#1C2536] rounded cursor-pointer">
@@ -691,6 +724,54 @@
             }, 300); 
         }
 
+        // Attachment Modal Controls
+        function openAttachmentModal() {
+            const modal = document.getElementById('attachment-modal');
+            const content = document.getElementById('attachment-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeAttachmentModal() {
+            const modal = document.getElementById('attachment-modal');
+            const content = document.getElementById('attachment-modal-content');
+            modal.classList.add('opacity-0');
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function triggerFileInput(type) {
+            const fileInput = document.getElementById('receipt-file');
+            if (type === 'camera') {
+                fileInput.accept = "image/*";
+                fileInput.setAttribute("capture", "environment");
+            } else if (type === 'gallery') {
+                fileInput.accept = "image/*";
+                fileInput.removeAttribute("capture");
+            } else if (type === 'file') {
+                fileInput.accept = "application/pdf,.doc,.docx,.xls,.xlsx,text/plain";
+                fileInput.removeAttribute("capture");
+            }
+            closeAttachmentModal();
+            // Wait slightly for modal to close before triggering OS file picker
+            setTimeout(() => { fileInput.click(); }, 300);
+        }
+
         function saveBudget() {
             const inputVal = document.getElementById('new-budget-input').value;
             const newBudget = parseFloat(inputVal);
@@ -776,26 +857,32 @@
 
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800;
-                        let width = img.width;
-                        let height = img.height;
+                    // Check if file is an image to apply compression, else just pass base64
+                    if (file.type.startsWith('image/')) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            let width = img.width;
+                            let height = img.height;
 
-                        if (width > MAX_WIDTH) { 
-                            height = Math.round((height * MAX_WIDTH) / width); 
-                            width = MAX_WIDTH; 
-                        }
+                            if (width > MAX_WIDTH) { 
+                                height = Math.round((height * MAX_WIDTH) / width); 
+                                width = MAX_WIDTH; 
+                            }
 
-                        canvas.width = width; 
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                            canvas.width = width; 
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
 
-                        receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    };
-                    img.src = event.target.result;
+                            receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        };
+                        img.src = event.target.result;
+                    } else {
+                        // Not an image (e.g. PDF), just store the base64 string directly
+                        receiptBase64 = event.target.result;
+                    }
                 };
                 reader.readAsDataURL(file);
             });

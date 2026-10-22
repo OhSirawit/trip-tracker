@@ -301,6 +301,12 @@
                         </div>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
+                    <li>
+                        <button onclick="switchPage('taxrefund'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-tag w-4 text-[#D9383A]"></i> Tax-Refund
+                        </button>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
                     <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export Data</button></li>
                 </ul>
             </div>
@@ -556,6 +562,27 @@
                 </div>
                 <div id="daily-category-list" class="mt-7 space-y-1 border-t border-slate-100 pt-4"></div>
             </div>
+        </div>
+
+        <!-- PAGE 5: TAX REFUND -->
+        <div id="page-taxrefund" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Tax Refund</h2>
+                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="modern-card p-6 text-center space-y-2 relative overflow-hidden tax-refund-card">
+                <p class="text-[10px] font-black text-[#D9383A] uppercase tracking-widest">Total Eligible Amount</p>
+                <div class="flex justify-center items-baseline gap-2">
+                    <span id="taxrefund-total" class="text-4xl font-black text-slate-900 leading-none tracking-tight">0</span>
+                    <span class="text-sm font-bold text-slate-500">JPY</span>
+                </div>
+                <p class="text-[11px] font-bold text-slate-500 mt-2"><i class="fas fa-info-circle"></i> กรุณาเตรียมสินค้า ใบเสร็จ และพาสปอร์ตให้พร้อม</p>
+            </div>
+
+            <div id="taxrefund-list" class="space-y-3 mt-2"></div>
         </div>
 
         <!-- Bottom Navigation Bar -->
@@ -943,7 +970,7 @@
         }
 
         function switchPage(pageId) { 
-            ['home', 'history', 'analytics', 'dashboard'].forEach(id => { 
+            ['home', 'history', 'analytics', 'dashboard', 'taxrefund'].forEach(id => { 
                 const pageEl = document.getElementById('page-' + id); 
                 if(pageEl) pageEl.classList.remove('page-active'); 
                 const navEl = document.getElementById('nav-' + id); 
@@ -955,7 +982,7 @@
             if(targetNav) targetNav.classList.add('nav-active'); 
             
             document.getElementById('top-menu').classList.remove('active'); 
-            if (pageId === 'history' || pageId === 'analytics' || pageId === 'dashboard') { 
+            if (pageId === 'history' || pageId === 'analytics' || pageId === 'dashboard' || pageId === 'taxrefund') { 
                 updateUI(); 
             }
             window.scrollTo(0,0); 
@@ -1190,6 +1217,7 @@
             const list = document.getElementById('history-list');
             const stats = document.getElementById('stats-container');
             const pSum = document.getElementById('payment-summary-container');
+            const taxList = document.getElementById('taxrefund-list');
             
             if(!list || !stats) return; 
             
@@ -1197,6 +1225,7 @@
             stats.innerHTML = ''; 
             pSum.innerHTML = ''; 
             if(window.uSum) uSum.innerHTML = '';
+            if(taxList) taxList.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0; 
             const daily = {}; 
@@ -1492,6 +1521,54 @@
                 }); 
             }
             updateDailyCategoryChart();
+
+            if (taxList) {
+                let taxRefundTotal = 0;
+                const taxRefundItems = expenses.filter(item => item.isTaxFree);
+                taxRefundItems.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+                    const amt = parseFloat(item.amount) || 0;
+                    taxRefundTotal += amt;
+                    
+                    const dMatch = item.receipt ? item.receipt.match(/\/d\/(.+?)\//) : null;
+                    const thumbHtml = dMatch ? `
+                        <div class="mt-2.5">
+                            <a href="${item.receipt}" target="_blank" class="inline-block relative rounded-[12px] overflow-hidden border border-[#F2E3C6] shadow-sm hover:shadow-md transition-shadow">
+                                <img src="https://drive.google.com/uc?export=view&id=${dMatch[1]}" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
+                            </a>
+                        </div>
+                    ` : '';
+
+                    const div = document.createElement('div');
+                    div.className = "modern-card p-4 tax-refund-card flex justify-between items-start gap-2";
+                    div.innerHTML = `
+                        <div class="flex gap-4 items-start text-left w-full overflow-hidden">
+                            <div class="w-12 h-12 flex-shrink-0 mt-0.5 bg-white text-[#D9383A] border border-[#F2E3C6] rounded-[16px] flex items-center justify-center">
+                                <i class="fas ${getIcon(item.category)} text-[18px]"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p>
+                                    <span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>
+                                </div>
+                                <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
+                                <p class="text-[10px] text-slate-400 mt-1"><i class="far fa-calendar-alt"></i> ${item.date}</p>
+                                ${thumbHtml}
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col justify-between h-full items-end">
+                            <p class="text-[16px] font-black text-[#D9383A]">${amt.toLocaleString()} JPY</p>
+                        </div>
+                    `;
+                    taxList.appendChild(div);
+                });
+                
+                if(taxRefundItems.length === 0) {
+                    taxList.innerHTML = '<div class="text-center p-8 text-gray-400 font-bold text-xs"><i class="fas fa-box-open text-2xl mb-2 text-gray-300"></i><br>ไม่มีรายการ Tax-Refund</div>';
+                }
+                
+                const taxTotalEl = document.getElementById('taxrefund-total');
+                if(taxTotalEl) taxTotalEl.innerText = taxRefundTotal.toLocaleString();
+            }
         }
 
         async function getCurrentLocation() { 

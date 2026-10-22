@@ -250,13 +250,6 @@
             <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
                 <ul class="flex flex-col space-y-1">
                     <li>
-                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
-                        </button>
-                    </li>
-                    <div class="border-t border-slate-100 my-1"></div>
-
-                    <li>
                         <button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
                         </button>
@@ -283,6 +276,13 @@
                                 </div>
                             </div>
                         </div>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+
+                    <li>
+                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
+                        </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
                     
@@ -638,8 +638,8 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 141)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxV0MGfa3iRiS56N59AcvAR_BEGqCKsaRXL5K6TmsiymEz6EJCLsk_GARLJQBGe5Jgc/exec";
+        // API URL (Version 142)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxkSkOTKFQDBDBpVRsCo33EWpfgpBJZWimbX1McP_Nzpn0H3Oqs_HbLnAcmVh5BRUzc/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 

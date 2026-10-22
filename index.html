@@ -32,8 +32,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- เพิ่มไลบรารี Tesseract.js สำหรับอ่านใบเสร็จฟรี -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
@@ -887,9 +885,6 @@
                             ctx.drawImage(img, 0, 0, width, height);
 
                             receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-                            // ส่งรูปให้ระบบ OCR ฟรี (Tesseract) อ่านข้อมูล
-                            scanReceiptFree(canvas.toDataURL('image/jpeg', 1.0), file.name);
                         };
                         img.src = event.target.result;
                     } else {
@@ -909,92 +904,6 @@
                 }
             }
         });
-
-        // ===== ระบบอ่านใบเสร็จฟรี (Tesseract OCR) =====
-        async function scanReceiptFree(dataUrl, fileName) {
-            const label = document.getElementById('receipt-text');
-            label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI กำลังอ่าน...';
-            showToast("กำลังวิเคราะห์รูปภาพ (อาจใช้เวลาสักครู่)...");
-
-            try {
-                // โหลด AI ภาษาญี่ปุ่นและอังกฤษ
-                const worker = await Tesseract.createWorker('jpn+eng');
-                const ret = await worker.recognize(dataUrl);
-                await worker.terminate();
-
-                const text = ret.data.text;
-                const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-
-                let storeName = "";
-                let amount = 0;
-
-                if (lines.length > 0) {
-                    // 1. หาชื่อร้าน (บรรทัดแรกๆ ที่ไม่ใช่ตัวเลขล้วน)
-                    for(let i=0; i < Math.min(4, lines.length); i++) {
-                        if (lines[i].length > 2 && !/^[0-9\W]+$/.test(lines[i])) {
-                            storeName = lines[i];
-                            break;
-                        }
-                    }
-
-                    // 2. หายอดชำระจริง (หักส่วนลดแล้ว)
-                    const totalWords = ['合', '計', '込', '支払', '請求', 'TOTAL'];
-                    const skipWords = ['釣', '預', '小計', '引', '割引', '対象', 'ポイント', '残', '消費税', '外税', '内税', 'おつり']; 
-                    
-                    let maxFound = 0;
-                    let explicitTotalFound = 0;
-
-                    for (let line of lines) {
-                        // ข้ามบรรทัดที่เป็น เงินทอน, รับเงิน, ยอดก่อนลด, ส่วนลด ฯลฯ
-                        if (skipWords.some(w => line.includes(w))) continue;
-
-                        let numMatch = line.match(/[0-9,]+/g);
-                        if (!numMatch) continue;
-
-                        // ดึงกลุ่มตัวเลขชุดสุดท้ายในบรรทัด
-                        let val = parseInt(numMatch[numMatch.length - 1].replace(/,/g, ''));
-                        if (val <= 0 || val > 500000) continue;
-
-                        // ตรวจสอบว่าบรรทัดนี้ระบุว่าเป็นยอดรวมหรือไม่
-                        let isExplicitTotal = totalWords.some(w => line.includes(w));
-                        if (isExplicitTotal) {
-                            explicitTotalFound = val; // ยึดค่ายอดรวมตัวล่าสุดที่เจอ
-                        }
-
-                        // เก็บค่าที่มากที่สุดเผื่อกรณี AI อ่านคำว่า รวม ไม่เจอ
-                        if (val > maxFound) maxFound = val;
-                    }
-
-                    // ถ้าระบุยอดรวมชัดเจน ให้ใช้ค่านั้น ถ้าไม่เจอเลย ให้ใช้ยอดที่มากที่สุด (ที่รอดจากการกรองคำศัพท์)
-                    amount = explicitTotalFound > 0 ? explicitTotalFound : maxFound;
-                }
-
-                // สั่งกรอกข้อมูลลงฟอร์ม
-                let filled = [];
-                if (amount > 0) {
-                    document.getElementById('amount').value = amount;
-                    if (typeof calculateTHB === 'function') calculateTHB();
-                    filled.push('ยอด ¥' + amount.toLocaleString());
-                }
-                if (storeName) {
-                    const currentNote = document.getElementById('details').value;
-                    document.getElementById('details').value = currentNote ? storeName + " " + currentNote : storeName;
-                    filled.push('ชื่อร้าน');
-                }
-
-                if (filled.length > 0) {
-                    showToast("อ่านสำเร็จ: " + filled.join(' / '));
-                } else {
-                    showToast("AI อ่านไม่ออก กรุณากรอกเอง", true);
-                }
-
-            } catch (e) {
-                console.error("OCR Error:", e);
-                showToast("ระบบอ่านใบเสร็จขัดข้อง กรุณากรอกเอง", true);
-            } finally {
-                label.innerText = fileName; // คืนค่าชื่อไฟล์ที่ปุ่ม
-            }
-        }
 
         function showToast(message, isError = false) { 
             const toast = document.getElementById('toast-notification'); 

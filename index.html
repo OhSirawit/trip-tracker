@@ -32,6 +32,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- เพิ่มไลบรารี Tesseract.js สำหรับอ่านใบเสร็จฟรี -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
@@ -886,6 +888,9 @@
                             ctx.drawImage(img, 0, 0, width, height);
 
                             receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                            // ส่งรูปให้ระบบ OCR ฟรี (Tesseract) อ่าน
+                            scanReceiptFree(canvas.toDataURL('image/jpeg', 1.0), file.name);
                         };
                         img.src = event.target.result;
                     } else {
@@ -941,6 +946,80 @@
         function toggleMenu(e) { 
             if(e) e.stopPropagation(); 
             document.getElementById('top-menu').classList.toggle('active'); 
+        }
+
+        // ===== ระบบอ่านใบเสร็จฟรี (Tesseract OCR) =====
+        async function scanReceiptFree(dataUrl, fileName) {
+            const label = document.getElementById('receipt-text');
+            label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI กำลังอ่าน...';
+            showToast("กำลังวิเคราะห์รูปภาพ (อาจใช้เวลาสักครู่)...");
+
+            try {
+                // เรียกใช้ Tesseract โหลดภาษาญี่ปุ่นและอังกฤษ (ครั้งแรกจะโหลด data ประมาณ 30MB)
+                const worker = await Tesseract.createWorker('jpn+eng');
+                const ret = await worker.recognize(dataUrl);
+                await worker.terminate();
+
+                // แยกข้อความที่อ่านได้เป็นบรรทัด
+                const text = ret.data.text;
+                const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+                let storeName = "";
+                let amount = 0;
+
+                if (lines.length > 0) {
+                    // 1. หาชื่อร้าน (พยายามเอาข้อความยาวๆ บรรทัดแรกๆ ที่ไม่ใช่ตัวเลขล้วน)
+                    for(let i=0; i < Math.min(4, lines.length); i++) {
+                        if (lines[i].length > 2 && !/^[0-9\W]+$/.test(lines[i])) {
+                            storeName = lines[i];
+                            break;
+                        }
+                    }
+
+                    // 2. หายอดรวม (ดักคำว่า 合計, 計, 込, ¥) และหาตัวเลขที่มากที่สุดที่สมเหตุสมผล
+                    let maxFound = 0;
+                    for (let line of lines) {
+                        if (line.includes('合') || line.includes('計') || line.includes('込') || line.includes('¥') || line.includes('￥')) {
+                            let numMatch = line.match(/[0-9,]+/g);
+                            if (numMatch) {
+                                numMatch.forEach(numStr => {
+                                    let val = parseInt(numStr.replace(/,/g, ''));
+                                    // กันค่าเพี้ยน กำหนดเพดานบิลไม่เกิน 500,000 เยน
+                                    if (val > maxFound && val < 500000) { 
+                                        maxFound = val;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    amount = maxFound;
+                }
+
+                // สั่งกรอกข้อมูลลงฟอร์ม
+                let filled = [];
+                if (amount > 0) {
+                    document.getElementById('amount').value = amount;
+                    if (typeof calculateTHB === 'function') calculateTHB();
+                    filled.push('ยอด ¥' + amount.toLocaleString());
+                }
+                if (storeName) {
+                    const currentNote = document.getElementById('details').value;
+                    document.getElementById('details').value = currentNote ? storeName + " " + currentNote : storeName;
+                    filled.push('ชื่อร้าน');
+                }
+
+                if (filled.length > 0) {
+                    showToast("อ่านสำเร็จ: " + filled.join(' / '));
+                } else {
+                    showToast("AI อ่านไม่ออก กรุณากรอกเอง", true);
+                }
+
+            } catch (e) {
+                console.error("OCR Error:", e);
+                showToast("ระบบอ่านใบเสร็จขัดข้อง กรุณากรอกเอง", true);
+            } finally {
+                label.innerText = fileName; // คืนค่าชื่อไฟล์ที่ปุ่ม
+            }
         }
 
         function switchPage(pageId) { 

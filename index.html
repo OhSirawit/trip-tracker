@@ -272,7 +272,14 @@
             <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
                 <ul class="flex flex-col space-y-1">
                     <li>
-                        <button onclick="switchPage('dashboard');" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
+                        </button>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+
+                    <li>
+                        <button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
                         </button>
                     </li>
@@ -300,12 +307,14 @@
                         </div>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
+                    
                     <li>
                         <button onclick="switchPage('taxrefund'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-tag w-4 text-[#D9383A]"></i> Tax-Refund
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
+                    
                     <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export Data</button></li>
                 </ul>
             </div>
@@ -345,7 +354,7 @@
                         <span class="text-slate-300">Spent: <span id="cash-used-text" class="text-white">0</span></span>
                         <span class="text-slate-300 flex items-center gap-1">
                             Budget: 
-                            <span class="text-white cursor-pointer hover:text-[#EAE6DF] transition-colors flex items-center gap-1" onclick="openBudgetModal()">
+                            <span class="text-white cursor-pointer hover:text-[#EAE6DF] transition-colors flex items-center gap-1" onclick="switchPage('settings')">
                                 <span id="budget-text">150,000</span> 
                                 <i class="fas fa-pencil-alt text-[9px] text-slate-400 bg-[#0F172A] p-1.5 rounded-full"></i>
                             </span>
@@ -584,6 +593,29 @@
             <div id="taxrefund-list" class="space-y-3 mt-2"></div>
         </div>
 
+        <!-- PAGE 6: SETTINGS -->
+        <div id="page-settings" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Payment Limits</h2>
+                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="modern-card p-6 bg-white space-y-4">
+                <div class="flex items-center gap-3 mb-2 border-b border-slate-100 pb-4">
+                    <div class="w-8 h-8 rounded-[10px] bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fas fa-wallet"></i></div>
+                    <h3 class="text-[11px] font-black text-slate-700 uppercase tracking-widest">Payment Limits (JPY)</h3>
+                </div>
+                
+                <div class="space-y-3" id="settings-limits-container">
+                    <!-- JS will populate inputs here -->
+                </div>
+                
+                <button onclick="saveSettings()" class="w-full btn-modern bg-[#D9383A] hover:bg-[#BA2E30] text-white py-4 rounded-[14px] font-bold text-sm mt-5 shadow-lg shadow-[#D9383A]/20 transition-all">Save Changes</button>
+            </div>
+        </div>
+
         <!-- Bottom Navigation Bar -->
         <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[360px] bg-white/90 backdrop-blur-xl border border-[#EAE6DF] shadow-[0_10px_40px_rgba(28,37,54,0.08)] rounded-2xl p-1.5 flex justify-between items-center">
             <button onclick="switchPage('home')" id="nav-home" class="nav-btn w-1/3 py-3 rounded-[12px] flex flex-col items-center gap-1 nav-active hover:bg-slate-50 transition-colors">
@@ -614,6 +646,7 @@
         let currentEditRowId = null;
         let oldReceiptUrl = "";
         let currentJpyToThbRate = 0; 
+        const defaultPaymentMethods = ['Cash', 'JCB Thida', 'JCB Oh', 'IC Card', 'QR Payment'];
         
         // Japanese Themed Color Palette for Charts
         const globalColorsMap = { 
@@ -724,31 +757,48 @@
             }
         }
 
-        function getBudget() { 
-            return parseFloat(localStorage.getItem('tripBudget')) || 150000; 
+        const defaultLimits = {
+            'Cash': 150000,
+            'JCB Thida': 0,
+            'JCB Oh': 0,
+            'IC Card': 0,
+            'QR Payment': 0
+        };
+
+        function getPaymentLimits() {
+            const stored = localStorage.getItem('paymentLimits');
+            return stored ? JSON.parse(stored) : defaultLimits;
         }
 
-        function openBudgetModal() {
-            document.getElementById('new-budget-input').value = getBudget();
-            const modal = document.getElementById('budget-modal'); 
-            const content = document.getElementById('budget-modal-content'); 
-            modal.classList.remove('hidden'); 
-            setTimeout(() => { 
-                modal.classList.remove('opacity-0'); 
-                content.classList.remove('scale-95'); 
-                content.classList.add('scale-100'); 
-            }, 10); 
+        function saveSettings() {
+            const limits = getPaymentLimits();
+            Object.keys(limits).forEach(key => {
+                const input = document.getElementById('limit-' + key.replace(/\s+/g, '-'));
+                if (input) {
+                    limits[key] = parseFloat(input.value) || 0;
+                }
+            });
+            localStorage.setItem('paymentLimits', JSON.stringify(limits));
+            showToast("Settings saved successfully!");
+            updateUI();
+            switchPage('home');
         }
 
-        function closeBudgetModal() {
-            const modal = document.getElementById('budget-modal'); 
-            const content = document.getElementById('budget-modal-content'); 
-            modal.classList.add('opacity-0'); 
-            content.classList.remove('scale-100'); 
-            content.classList.add('scale-95'); 
-            setTimeout(() => { 
-                modal.classList.add('hidden'); 
-            }, 300); 
+        function renderSettings() {
+            const limits = getPaymentLimits();
+            const container = document.getElementById('settings-limits-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            Object.keys(limits).forEach(key => {
+                const div = document.createElement('div');
+                div.className = "space-y-1.5 bg-slate-50 p-3.5 rounded-[12px] border border-slate-100/50";
+                div.innerHTML = `
+                    <label class="text-[11px] font-bold text-slate-500">${key}</label>
+                    <input type="number" id="limit-${key.replace(/\s+/g, '-')}" value="${limits[key]}" class="w-full bg-white p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                `;
+                container.appendChild(div);
+            });
         }
 
         // Attachment Modal Controls
@@ -879,6 +929,7 @@
 
             fetchExchangeRate(); 
             renderQuickTags(); 
+            renderSettings();
 
             // Auto bypass login
             let todayStr = new Date().toLocaleDateString('en-CA'); 
@@ -969,7 +1020,7 @@
         }
 
         function switchPage(pageId) { 
-            ['home', 'history', 'analytics', 'dashboard', 'taxrefund'].forEach(id => { 
+            ['home', 'history', 'analytics', 'dashboard', 'taxrefund', 'settings'].forEach(id => { 
                 const pageEl = document.getElementById('page-' + id); 
                 if(pageEl) pageEl.classList.remove('page-active'); 
                 const navEl = document.getElementById('nav-' + id); 
@@ -981,7 +1032,7 @@
             if(targetNav) targetNav.classList.add('nav-active'); 
             
             document.getElementById('top-menu').classList.remove('active'); 
-            if (pageId === 'history' || pageId === 'analytics' || pageId === 'dashboard' || pageId === 'taxrefund') { 
+            if (['history', 'analytics', 'dashboard', 'taxrefund', 'settings'].includes(pageId)) { 
                 updateUI(); 
             }
             window.scrollTo(0,0); 
@@ -1407,17 +1458,21 @@
                 } 
             }
             
-            const currentBudget = getBudget();
+            const limits = getPaymentLimits();
+            const currentBudget = limits['Cash'] || 0;
 
             Object.entries(payStats).forEach(([method, total]) => { 
-                if (total !== 0 || method === 'Cash' || method === 'JCB Thida' || method === 'JCB Oh') { 
+                const limit = limits[method] || 0;
+                if (total !== 0 || method === 'Cash' || limit > 0) { 
                     const payDiv = document.createElement('div'); 
                     payDiv.className = "modern-card p-5 text-left border border-[#EAE6DF] shadow-sm"; 
                     
                     let displayName = method; 
                     let bal = ""; 
-                    if (method === "Cash") {
-                        bal = `<p class="text-[10px] font-bold text-[#D9383A] mt-1.5">Remain: ${(currentBudget - total).toLocaleString()}</p>`; 
+                    if (limit > 0) {
+                        const remain = limit - total;
+                        const textColor = remain < 0 ? 'text-rose-500' : 'text-[#D9383A]';
+                        bal = `<p class="text-[10px] font-bold ${textColor} mt-1.5">Remain: ${remain.toLocaleString()}</p>`; 
                     }
                     
                     payDiv.innerHTML = `
@@ -1551,14 +1606,15 @@
                                 </div>
                                 <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
                                 <p class="text-[10px] text-slate-400 mt-1"><i class="far fa-calendar-alt"></i> ${item.date}</p>
-                                ${thumbHtml}
-                            </div>
+                            ${thumbHtml}
                         </div>
-                        <div class="text-right flex flex-col justify-between h-full items-end">
-                            <p class="text-[16px] font-black text-[#D9383A]">${amt.toLocaleString()} JPY</p>
-                        </div>
-                    `;
-                    taxList.appendChild(div);
+                    </div>
+                    <div class="text-right flex flex-col justify-between h-full items-end">
+                        <p class="text-[16px] font-black text-[#D9383A]">${amt.toLocaleString()} JPY</p>
+                        ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="mt-2 text-slate-400 hover:text-[#D9383A] transition-colors w-8 h-8 bg-white border border-[#F2E3C6] rounded-full flex items-center justify-center shadow-sm"><i class="fas fa-image text-[13px]"></i></a>` : ''}
+                    </div>
+                `;
+                taxList.appendChild(div);
                 });
                 
                 if(taxRefundItems.length === 0) {

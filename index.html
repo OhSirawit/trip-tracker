@@ -11,22 +11,6 @@
     <!-- Washi Paper Color -->
     <meta name="theme-color" content="#F7F6F2">
     
-    <script>
-        const manifestJSON = {
-            "name": "MyTrip",
-            "short_name": "Trip Wallet",
-            "start_url": window.location.href.split('?')[0],
-            "display": "standalone",
-            "background_color": "#F7F6F2",
-            "theme_color": "#F7F6F2",
-            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2060/2060284.png", "sizes": "512x512", "type": "image/png"}]
-        };
-        const stringManifest = JSON.stringify(manifestJSON);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        document.write('<link rel="manifest" href="' + manifestURL + '">');
-    </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -250,6 +234,13 @@
             <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
                 <ul class="flex flex-col space-y-1">
                     <li>
+                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
+                        </button>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+
+                    <li>
                         <button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
                         </button>
@@ -276,13 +267,6 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <div class="border-t border-slate-100 my-1"></div>
-
-                    <li>
-                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
-                        </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
                     
@@ -405,8 +389,9 @@
                                 <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
                                 <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer">
                                     <option value="Cash">💵 Cash</option>
-                                    <option value="JCB Thida">💳 JCB Thida</option>
-                                    <option value="JCB Oh">💳 JCB Oh</option>
+                                    <option value="JCB : Thida">💳 JCB : Thida</option>
+                                    <option value="JCB : Oh">💳 JCB : Oh</option>
+                                    <option value="Travel Card">💳 Travel Card</option>
                                     <option value="IC Card">🚉 IC Card</option>
                                     <option value="QR Payment">📲 QR Payment</option>
                                 </select>
@@ -650,7 +635,9 @@
         let currentEditRowId = null;
         let oldReceiptUrl = "";
         let currentJpyToThbRate = 0; 
-        const defaultPaymentMethods = ['Cash', 'JCB Thida', 'JCB Oh', 'IC Card', 'QR Payment'];
+        
+        // Updated Default Payment Methods array
+        const defaultPaymentMethods = ['Cash', 'JCB : Thida', 'JCB : Oh', 'Travel Card', 'IC Card', 'QR Payment'];
         
         // Japanese Themed Color Palette for Charts
         const globalColorsMap = { 
@@ -761,23 +748,37 @@
             }
         }
 
+        // Updated Default Limits
         const defaultLimits = {
             'Cash': 150000,
-            'JCB Thida': 0,
-            'JCB Oh': 0,
+            'JCB : Thida': 0,
+            'JCB : Oh': 0,
+            'Travel Card': 0,
             'IC Card': 0,
             'QR Payment': 0
         };
 
         function getPaymentLimits() {
             const stored = localStorage.getItem('paymentLimits');
-            return stored ? JSON.parse(stored) : defaultLimits;
+            let parsedLimits = stored ? JSON.parse(stored) : {};
+            
+            // Migrate old keys to new keys if they exist in localStorage
+            if (parsedLimits['JCB Thida'] !== undefined) {
+                parsedLimits['JCB : Thida'] = parsedLimits['JCB Thida'];
+                delete parsedLimits['JCB Thida'];
+            }
+            if (parsedLimits['JCB Oh'] !== undefined) {
+                parsedLimits['JCB : Oh'] = parsedLimits['JCB Oh'];
+                delete parsedLimits['JCB Oh'];
+            }
+            
+            return { ...defaultLimits, ...parsedLimits };
         }
 
         function saveSettings() {
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
-                const input = document.getElementById('limit-' + key.replace(/\s+/g, '-'));
+                const input = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
                 if (input) {
                     limits[key] = parseFloat(input.value) || 0;
                 }
@@ -799,7 +800,7 @@
                 div.className = "space-y-1.5 bg-slate-50 p-3.5 rounded-[12px] border border-slate-100/50";
                 div.innerHTML = `
                     <label class="text-[11px] font-bold text-slate-500">${key}</label>
-                    <input type="number" id="limit-${key.replace(/\s+/g, '-')}" value="${limits[key]}" class="w-full bg-white p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                    <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full bg-white p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
                 `;
                 container.appendChild(div);
             });
@@ -1262,7 +1263,8 @@
             
             let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
             const daily = {}; 
-            const payStats = { 'Cash': 0, 'JCB Thida': 0, 'JCB Oh': 0, 'IC Card': 0, 'QR Payment': 0 }; 
+            // Updated to handle both colon format and default methods
+            const payStats = { 'Cash': 0, 'JCB : Thida': 0, 'JCB : Oh': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Payment': 0 }; 
             const userStats = {};
             
             const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
@@ -1354,9 +1356,10 @@
                 userStats[uKey] += impact;
 
                 let pKey = item.payment; 
+                // Mapping old DB names to new formatted names
                 if (pKey === "QR Code") pKey = "QR Payment"; 
-                if (pKey === "JCB Card-Thida") pKey = "JCB Thida";
-                if (pKey === "JCB Card-OHSirawit") pKey = "JCB Oh";
+                if (pKey === "JCB Card-Thida" || pKey === "JCB Thida" || pKey === "JCB : Thida") pKey = "JCB : Thida";
+                if (pKey === "JCB Card-OHSirawit" || pKey === "JCB Oh" || pKey === "JCB : Oh") pKey = "JCB : Oh";
                 
                 if (!payStats.hasOwnProperty(pKey)) payStats[pKey] = 0; 
                 if (pKey === "Cash") cashUsed += impact; 
@@ -1409,7 +1412,7 @@
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     <p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p>
-                                    <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${item.payment}</span>
+                                    <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${pKey}</span>
                                 </div>
                                 <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
                                 <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>

@@ -664,9 +664,6 @@
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Payment</h3>
             <div id="payment-summary-container" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Member</h3>
-            <div id="user-summary-container" class="grid grid-cols-2 gap-3 mb-4"></div>
-
             <!-- 2. Daily Trend Chart -->
             <div class="modern-card p-6 bg-white mt-4">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-5">Daily Spending Trend</h3>
@@ -1978,13 +1975,11 @@
             const list = document.getElementById('history-list');
             const stats = document.getElementById('stats-container');
             const pSum = document.getElementById('payment-summary-container');
-            const uSum = document.getElementById('user-summary-container');
             const taxList = document.getElementById('taxrefund-list');
             
             if(list) list.innerHTML = ''; 
             if(stats) stats.innerHTML = ''; 
             if(pSum) pSum.innerHTML = ''; 
-            if(uSum) uSum.innerHTML = '';
             if(taxList) taxList.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
@@ -2229,39 +2224,6 @@
                         `; 
                         pSum.appendChild(payDiv); 
                     } 
-                });
-            }
-
-            if(uSum) {
-                const activeUserStats = {};
-                tripMembers.forEach(m => activeUserStats[m.toUpperCase()] = 0);
-                
-                Object.keys(userStats).forEach(u => {
-                    if (activeUserStats[u] !== undefined) {
-                        activeUserStats[u] = userStats[u];
-                    } else {
-                        activeUserStats[u] = userStats[u]; 
-                    }
-                });
-
-                Object.entries(activeUserStats).forEach(([user, total]) => {
-                    if (total !== 0 || tripMembers.map(m=>m.toUpperCase()).includes(user)) {
-                        const userDiv = document.createElement('div');
-                        userDiv.className = "modern-card p-4 flex items-center gap-3 bg-white border border-[#EAE6DF] shadow-sm";
-                        let initial = user ? user.charAt(0).toUpperCase() : 'U';
-                        
-                        let originalName = tripMembers.find(m => m.toUpperCase() === user) || user;
-                        let style = getAvatarStyle(originalName);
-
-                        userDiv.innerHTML = `
-                            <div class="w-10 h-10 rounded-full flex-shrink-0 ${style.bg} ${style.text} flex items-center justify-center font-black text-[15px] shadow-sm">${initial}</div>
-                            <div class="min-w-0">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">${originalName}</p>
-                                <p class="text-[15px] font-black text-slate-800 leading-none mt-0.5">${total.toLocaleString()} <span class="text-[10px]">JPY</span></p>
-                            </div>
-                        `;
-                        uSum.appendChild(userDiv);
-                    }
                 });
             }
             

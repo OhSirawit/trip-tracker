@@ -342,7 +342,14 @@
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
                     
-                    <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export Data</button></li>
+                    <li>
+                        <button onclick="exportToPDF(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-file-pdf w-4 text-rose-500"></i> Export PDF Report
+                        </button>
+                    </li>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    
+                    <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export to Excel</button></li>
                 </ul>
             </div>
         </nav>
@@ -724,6 +731,46 @@
                 <i class="fas fa-chart-pie text-[18px]"></i>
                 <span class="text-[9px] font-bold uppercase tracking-wider">Stats</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Hidden Print Container for PDF Export -->
+    <div id="pdf-export-template" style="display: none; position: absolute; top: 0; left: -9999px; width: 800px; background: white; padding: 40px; z-index: -1;" class="font-sans text-slate-800">
+        <div class="text-center mb-8">
+            <h1 id="pdf-title" class="text-4xl font-black text-[#D9383A] mb-2">MyTrip Report</h1>
+            <p class="text-sm font-bold text-slate-400" id="pdf-date">Generated on ...</p>
+        </div>
+        
+        <div class="bg-slate-50 rounded-2xl p-6 mb-8 flex justify-between items-center border border-slate-100">
+            <div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Net Spending</p>
+                <h2 id="pdf-net" class="text-4xl font-black text-slate-900">0 JPY</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Total Days</p>
+                <h2 id="pdf-days" class="text-2xl font-black text-slate-900">0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div class="text-center">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Category Overview</h3>
+                <img id="pdf-chart-cat" class="mx-auto w-full max-w-[300px]">
+            </div>
+            <div class="text-center">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Daily Trend</h3>
+                <img id="pdf-chart-trend" class="mx-auto w-full max-w-[400px]">
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Settlement Summary</h3>
+            <div id="pdf-settlement-list" class="space-y-3"></div>
+        </div>
+        
+        <div>
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Top 5 Expenses</h3>
+            <div id="pdf-top5-list" class="space-y-2"></div>
         </div>
     </div>
 
@@ -1984,7 +2031,6 @@
             
             let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
             const daily = {}; 
-            const userStats = {};
             
             const limits = getPaymentLimits();
             const payStats = {}; 
@@ -2074,10 +2120,6 @@
                     }
                 }
                 
-                let uKey = item.username ? item.username.toUpperCase() : 'USER'; 
-                if (!userStats[uKey]) userStats[uKey] = 0; 
-                userStats[uKey] += impact;
-
                 let pKey = item.payment; 
                 if (pKey === "QR Code") pKey = "QR Payment"; 
                 if (pKey === "JCB Card-Thida" || pKey === "JCB Thida" || pKey === "JCB : Thida") pKey = "JCB : Thida";
@@ -2114,7 +2156,6 @@
                     badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span> `;
                 }
                 
-                let userInitial = item.username ? item.username.charAt(0).toUpperCase() : 'U';
                 let uStyle = getAvatarStyle(item.username || 'USER');
                 badgeHtml += `<span class="text-[8px] font-bold ${uStyle.bg} ${uStyle.text} px-1.5 py-0.5 rounded shadow-sm tracking-wider whitespace-nowrap flex items-center gap-1"><i class="fas fa-user text-[7px]"></i> ${item.username || 'USER'}</span>`;
 
@@ -2604,6 +2645,64 @@
             const wb = XLSX.utils.book_new(); 
             XLSX.utils.book_append_sheet(wb, ws, "Expenses"); 
             XLSX.writeFile(wb, `TripWallet_${new Date().toISOString().slice(0,10)}.xlsx`); 
+        }
+
+        async function exportToPDF() {
+            showToast("Generating PDF... Please wait.");
+            
+            // Load html2pdf script dynamically to keep initial page load fast
+            if (typeof html2pdf === 'undefined') {
+                const script = document.createElement('script');
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+                document.head.appendChild(script);
+                await new Promise(resolve => script.onload = resolve);
+            }
+
+            // Momentarily remove dark-mode to ensure PDF renders on clean white background
+            const wasDark = document.body.classList.contains('dark-mode');
+            if (wasDark) document.body.classList.remove('dark-mode');
+
+            // Populate Template Data
+            const tripName = document.getElementById('trip-detail-header').value || 'MyTrip Report';
+            document.getElementById('pdf-title').innerText = tripName;
+            
+            const now = new Date();
+            document.getElementById('pdf-date').innerText = 'Generated on: ' + now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB');
+            
+            document.getElementById('pdf-net').innerText = document.getElementById('total-spent').innerText + ' JPY';
+            document.getElementById('pdf-days').innerText = document.getElementById('stat-total-days').innerText;
+
+            // Extract Chart Canvases to Images
+            if (myOverallCategoryChart) document.getElementById('pdf-chart-cat').src = myOverallCategoryChart.toBase64Image();
+            if (myDailyTrendChart) document.getElementById('pdf-chart-trend').src = myDailyTrendChart.toBase64Image();
+
+            // Settlement Data
+            calculateSettlement(); // Refresh settlement calculation
+            const settleList = document.getElementById('settlement-list').innerHTML;
+            document.getElementById('pdf-settlement-list').innerHTML = settleList || '<p class="text-sm text-slate-500 text-center py-4">No shared expenses.</p>';
+
+            // Top 5 Expenses
+            document.getElementById('pdf-top5-list').innerHTML = document.getElementById('top-5-expenses').innerHTML;
+
+            const element = document.getElementById('pdf-export-template');
+            
+            // Temporarily show the template on screen (hidden behind layers) to ensure html2canvas captures it perfectly
+            element.style.display = 'block';
+
+            const opt = {
+                margin:       0.5,
+                filename:     `${tripName.replace(/\s+/g, '_')}_Summary.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore hidden state and dark mode
+                element.style.display = 'none';
+                if (wasDark) document.body.classList.add('dark-mode');
+                showToast("PDF Exported Successfully!");
+            });
         }
     </script>
 </body>

@@ -2100,15 +2100,6 @@
                 }
                 daily[item.date].categories[item.category].amt += amt;
                 
-                const dMatch = item.receipt ? item.receipt.match(/\/d\/(.+?)\//) : null;
-                const thumbHtml = dMatch ? `
-                    <div class="mt-2.5">
-                        <div onclick="window.open('${item.receipt}', '_blank')" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                            <img src="https://drive.google.com/thumbnail?id=${dMatch[1]}&sz=w200" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
-                        </div>
-                    </div>
-                ` : '';
-
                 let appliedRate = item.rate ? parseFloat(item.rate) : currentJpyToThbRate;
                 let thbLine = '';
                 if(appliedRate > 0) { 
@@ -2144,14 +2135,13 @@
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     <p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p>
                                     <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${pKey}</span>
-                                </div>
-                                <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
-                                <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
-                                ${thumbHtml}
                             </div>
+                            <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
+                            <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
                         </div>
-                        <div class="text-right flex flex-col justify-between h-full items-end">
-                            <div class="text-right">
+                    </div>
+                    <div class="text-right flex flex-col justify-between h-full items-end">
+                        <div class="text-right">
                                 <p class="text-[16px] font-black ${isRef ? 'text-emerald-500' : 'text-gray-900'}">${isRef ? '+' : '-'}${amt.toLocaleString()} JPY</p>
                                 ${thbLine}
                             </div>

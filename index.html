@@ -178,6 +178,15 @@
         body.dark-mode #attachment-modal-content button.border-[#EAE6DF]:hover { border-color: #D9383A; background-color: #0F172A; }
         body.dark-mode #attachment-modal-content p.text-slate-800 { color: #e2e8f0; }
         body.dark-mode #attachment-modal-content .bg-slate-50 { background-color: #0F172A; }
+
+        /* Custom Checkbox for Pre-Order */
+        .preorder-checkbox:checked + div {
+            background-color: #D9383A;
+            border-color: #D9383A;
+        }
+        .preorder-checkbox:checked + div svg {
+            display: block;
+        }
     </style>
 </head>
 <body class="pb-32 relative">
@@ -338,6 +347,11 @@
                     <li>
                         <button onclick="switchPage('taxrefund'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-tag w-4 text-[#D9383A]"></i> Tax-Refund
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="switchPage('preorder'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-box-open w-4 text-[#457B9D]"></i> Omiyage & Pre-Orders
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
@@ -602,7 +616,39 @@
             <div id="taxrefund-list" class="space-y-3"></div>
         </div>
 
-        <!-- PAGE 5: DASHBOARD (Detailed Analytics) -->
+        <!-- PAGE 5: PRE-ORDER (Omiyage Tracker) -->
+        <div id="page-preorder" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Omiyage <br/><span class="text-[14px] text-slate-500">& Pre-Orders</span></h2>
+                <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="modern-card p-5 bg-white">
+                <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-3"><i class="fas fa-plus-circle"></i> Add Item</p>
+                <div class="space-y-3">
+                    <div class="flex gap-2">
+                        <div class="w-1/3">
+                            <input type="text" id="preorder-friend" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="ชื่อเพื่อน (Name)">
+                        </div>
+                        <div class="w-2/3">
+                            <input type="text" id="preorder-item" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="ชื่อของที่ฝากซื้อ (Item)">
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="number" id="preorder-price" class="flex-1 bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="ราคา (JPY)">
+                        <button type="button" onclick="addPreOrderItem()" class="bg-[#457B9D] text-white px-5 rounded-[10px] text-[12px] font-bold hover:bg-[#1D3557] transition-colors shadow-sm whitespace-nowrap">เพิ่มรายการ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="preorder-list" class="space-y-4">
+                <!-- Grouped pre-orders will appear here -->
+            </div>
+        </div>
+
+        <!-- PAGE 6: DASHBOARD (Detailed Analytics) -->
         <div id="page-dashboard" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wide">Analytics</h2>
@@ -758,6 +804,14 @@
 
         let currentUser = localStorage.getItem('tripUser');
         
+        // Pre-Order Data State
+        let preOrderList = [];
+        try {
+            preOrderList = JSON.parse(localStorage.getItem('tripPreOrders')) || [];
+        } catch(e) {
+            preOrderList = [];
+        }
+
         const defaultLimits = {
             'Cash': 150000,
             'JCB : Thida': 150000,
@@ -967,6 +1021,8 @@
                 const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
                 const data = await res.json();
                 currentJpyToThbRate = data.rates.THB;
+                // Render preorder list again if rate updates
+                renderPreOrderList();
             } catch (e) {
                 console.log('Cannot fetch exchange rate');
             }
@@ -1462,6 +1518,136 @@
             });
         }
 
+        // PRE-ORDER & OMIYAGE Functions
+        function addPreOrderItem() {
+            const friendName = document.getElementById('preorder-friend').value.trim();
+            const itemName = document.getElementById('preorder-item').value.trim();
+            const priceVal = parseFloat(document.getElementById('preorder-price').value);
+
+            if (!friendName || !itemName || isNaN(priceVal) || priceVal <= 0) {
+                showToast("กรุณากรอกข้อมูลให้ครบและถูกต้อง", true);
+                return;
+            }
+
+            const newItem = {
+                id: Date.now().toString(),
+                friendName: friendName,
+                itemName: itemName,
+                price: priceVal,
+                isBought: false
+            };
+
+            preOrderList.push(newItem);
+            savePreOrders();
+            renderPreOrderList();
+
+            // Clear inputs
+            document.getElementById('preorder-item').value = '';
+            document.getElementById('preorder-price').value = '';
+            document.getElementById('preorder-item').focus();
+        }
+
+        function togglePreOrderStatus(id) {
+            const item = preOrderList.find(i => i.id === id);
+            if (item) {
+                item.isBought = !item.isBought;
+                savePreOrders();
+                renderPreOrderList();
+            }
+        }
+
+        function deletePreOrderItem(id) {
+            showConfirmModal("ลบรายการ", "ต้องการลบของฝากชิ้นนี้ใช่หรือไม่?", () => {
+                preOrderList = preOrderList.filter(i => i.id !== id);
+                savePreOrders();
+                renderPreOrderList();
+            });
+        }
+
+        function savePreOrders() {
+            localStorage.setItem('tripPreOrders', JSON.stringify(preOrderList));
+        }
+
+        function renderPreOrderList() {
+            const container = document.getElementById('preorder-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (preOrderList.length === 0) {
+                container.innerHTML = '<div class="text-center p-8 text-gray-400 font-bold text-xs"><i class="fas fa-box-open text-2xl mb-2 text-gray-300"></i><br>ยังไม่มีรายการฝากซื้อ</div>';
+                return;
+            }
+
+            // Group by Friend Name
+            const grouped = {};
+            preOrderList.forEach(item => {
+                if (!grouped[item.friendName]) {
+                    grouped[item.friendName] = { items: [], totalJpy: 0, boughtJpy: 0 };
+                }
+                grouped[item.friendName].items.push(item);
+                grouped[item.friendName].totalJpy += item.price;
+                if (item.isBought) {
+                    grouped[item.friendName].boughtJpy += item.price;
+                }
+            });
+
+            // Render Groups
+            Object.keys(grouped).forEach(friend => {
+                const groupData = grouped[friend];
+                const friendStyle = getAvatarStyle(friend);
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = "modern-card overflow-hidden bg-white";
+                
+                let thbEquivalent = '';
+                if (currentJpyToThbRate > 0 && groupData.boughtJpy > 0) {
+                    const thb = (groupData.boughtJpy * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    thbEquivalent = `
+                        <div class="mt-2 text-right">
+                            <span class="text-[9px] text-slate-400 font-medium">เก็บเงิน:</span>
+                            <span class="text-[12px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 ml-1">≈ ${thb} THB</span>
+                        </div>
+                    `;
+                }
+
+                let itemsHtml = groupData.items.map(item => `
+                    <div class="flex justify-between items-center py-3 border-t border-slate-50 group">
+                        <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" class="preorder-checkbox hidden" ${item.isBought ? 'checked' : ''} onchange="togglePreOrderStatus('${item.id}')">
+                                <div class="w-5 h-5 border-2 border-slate-300 rounded-[6px] flex items-center justify-center transition-colors">
+                                    <svg class="w-3 h-3 text-white hidden pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-[13px] font-bold ${item.isBought ? 'text-slate-400 line-through' : 'text-slate-700'} truncate transition-all">${item.itemName}</p>
+                                <p class="text-[10px] font-medium ${item.isBought ? 'text-slate-300' : 'text-slate-500'} transition-all">${item.price.toLocaleString()} JPY</p>
+                            </div>
+                        </label>
+                        <button onclick="deletePreOrderItem('${item.id}')" class="text-slate-200 hover:text-rose-500 w-8 h-8 flex items-center justify-center transition-colors ml-2"><i class="fas fa-trash-alt text-[11px]"></i></button>
+                    </div>
+                `).join('');
+
+                groupDiv.innerHTML = `
+                    <div class="p-4 bg-[#F8FAFC] flex justify-between items-center border-b border-[#EAE6DF]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-full ${friendStyle.bg} ${friendStyle.text} flex items-center justify-center font-black text-[10px] shadow-sm">${friend.charAt(0).toUpperCase()}</div>
+                            <h3 class="text-[14px] font-black text-slate-800">${friend}</h3>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-slate-500">ซื้อแล้ว ${groupData.boughtJpy.toLocaleString()} / ${groupData.totalJpy.toLocaleString()} JPY</p>
+                        </div>
+                    </div>
+                    <div class="px-4">
+                        ${itemsHtml}
+                    </div>
+                    ${thbEquivalent ? `<div class="p-3 bg-slate-50 border-t border-[#EAE6DF]">${thbEquivalent}</div>` : ''}
+                `;
+                
+                container.appendChild(groupDiv);
+            });
+        }
+
         // Attachment Modal Controls
         function openAttachmentModal() {
             const modal = document.getElementById('attachment-modal');
@@ -1573,6 +1759,7 @@
             renderSettings();
             renderCategorySettings();
             renderPaymentDropdown();
+            renderPreOrderList();
 
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
@@ -1669,7 +1856,7 @@
         }
 
         function switchPage(pageId) { 
-            ['home', 'history', 'dashboard', 'taxrefund', 'settings'].forEach(id => { 
+            ['home', 'history', 'dashboard', 'taxrefund', 'settings', 'preorder'].forEach(id => { 
                 const pageEl = document.getElementById('page-' + id); 
                 if(pageEl) pageEl.classList.remove('page-active'); 
                 const navEl = document.getElementById('nav-' + id); 
@@ -1681,8 +1868,11 @@
             if(targetNav) targetNav.classList.add('nav-active'); 
             
             document.getElementById('top-menu').classList.remove('active'); 
-            if (['history', 'dashboard', 'taxrefund', 'settings'].includes(pageId)) { 
+            if (['history', 'dashboard', 'taxrefund', 'settings', 'preorder'].includes(pageId)) { 
                 updateUI(); 
+            }
+            if (pageId === 'preorder') {
+                renderPreOrderList();
             }
             window.scrollTo(0,0); 
         }

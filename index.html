@@ -170,6 +170,14 @@
         
         body.dark-mode #settlement-modal-content { background-color: #1E293B; border: 1px solid #334155; }
         body.dark-mode #settlement-list .bg-slate-50 { background-color: #0F172A !important; border-color: #334155 !important;}
+        
+        /* Dark mode for attachment modal */
+        body.dark-mode #attachment-modal-content { background-color: #1E293B; border: 1px solid #334155; }
+        body.dark-mode #attachment-modal-content h3 { color: #f8fafc; }
+        body.dark-mode #attachment-modal-content button.border-[#EAE6DF] { border-color: #334155; }
+        body.dark-mode #attachment-modal-content button.border-[#EAE6DF]:hover { border-color: #D9383A; background-color: #0F172A; }
+        body.dark-mode #attachment-modal-content p.text-slate-800 { color: #e2e8f0; }
+        body.dark-mode #attachment-modal-content .bg-slate-50 { background-color: #0F172A; }
     </style>
 </head>
 <body class="pb-32 relative">
@@ -182,6 +190,24 @@
         </div>
     </div>
 
+    <!-- Image Viewer Modal (Lightbox) -->
+    <div id="image-viewer-modal" class="fixed inset-0 z-[500] bg-black/95 backdrop-blur-sm hidden flex-col items-center justify-center transition-opacity duration-300 opacity-0">
+        <button onclick="closeImageViewer()" class="absolute top-6 right-6 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors z-[510]">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        <div class="relative w-full max-w-3xl max-h-[85vh] flex items-center justify-center p-4">
+            <div class="absolute inset-0 flex items-center justify-center -z-10">
+                <i class="fas fa-circle-notch fa-spin text-white/30 text-4xl"></i>
+            </div>
+            <img id="viewer-image" src="" alt="Receipt" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+        </div>
+        <div class="absolute bottom-8 left-0 right-0 text-center z-[510]">
+            <a id="viewer-download-btn" href="#" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[13px] font-bold transition-colors">
+                <i class="fas fa-external-link-alt"></i> เปิดไฟล์ต้นฉบับ
+            </a>
+        </div>
+    </div>
+
     <!-- Custom Confirm Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-[400] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300 opacity-0 px-4">
         <div class="bg-white w-full max-w-sm rounded-[24px] p-6 transform scale-95 transition-transform duration-300 shadow-2xl" id="confirm-modal-content">
@@ -189,7 +215,7 @@
                 <i class="fas fa-exclamation-triangle text-2xl"></i>
             </div>
             <h3 id="confirm-title" class="text-lg font-black text-slate-900 text-center mb-2">Confirm Action</h3>
-            <p id="confirm-message" class="text-[13px] text-slate-500 text-center mb-6 leading-relaxed">Are you sure?</p>
+            <p id="confirm-message" class="text-[13px] text-slate-500 text-center mb-6 leading-relaxed whitespace-pre-line">Are you sure?</p>
             <div class="flex gap-3">
                 <button onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-[14px] bg-slate-50 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors">ยกเลิก (Cancel)</button>
                 <button id="confirm-btn" class="flex-1 py-3.5 rounded-[14px] bg-[#D9383A] text-white font-bold text-[13px] hover:bg-[#BA2E30] transition-colors shadow-lg shadow-[#D9383A]/30">ยืนยัน (Confirm)</button>
@@ -308,7 +334,7 @@
                 <ul class="flex flex-col space-y-1">
                     <li>
                         <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Settings & Limits
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
@@ -815,6 +841,52 @@
             if(confirmActionCallback) confirmActionCallback();
             closeConfirmModal();
         });
+
+        // Image Viewer Modal (Lightbox)
+        function getDriveDirectUrl(url) {
+            if (!url) return "";
+            const dMatch = url.match(/\/d\/(.+?)\//);
+            if (dMatch && dMatch[1]) {
+                return `https://drive.google.com/uc?export=view&id=${dMatch[1]}`;
+            }
+            return url;
+        }
+
+        function openImageViewer(url) {
+            if(!url) return;
+            const e = window.event;
+            if(e) e.stopPropagation();
+            if(e) e.preventDefault();
+
+            const modal = document.getElementById('image-viewer-modal');
+            const img = document.getElementById('viewer-image');
+            const downloadBtn = document.getElementById('viewer-download-btn');
+            
+            img.src = ""; // Clear old image
+            img.src = getDriveDirectUrl(url);
+            downloadBtn.href = url;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                img.classList.remove('scale-95');
+                img.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeImageViewer() {
+            const modal = document.getElementById('image-viewer-modal');
+            const img = document.getElementById('viewer-image');
+            
+            modal.classList.add('opacity-0');
+            img.classList.remove('scale-100');
+            img.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                img.src = "";
+            }, 300);
+        }
 
         // Dynamic Avatar Color Generator
         function getAvatarStyle(name) {
@@ -1989,7 +2061,7 @@
                             </div>
                             <div class="text-right flex flex-col justify-between items-end gap-2">
                                 <span class="font-black text-[#D9383A] whitespace-nowrap">${amt.toLocaleString()} <span class="text-[10px]">JPY</span></span>
-                                ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="w-7 h-7 bg-slate-50 text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] rounded-full flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><i class="fas fa-image text-[10px]"></i></a>` : ''}
+                                ${item.receipt ? `<button onclick="openImageViewer('${item.receipt}')" class="w-7 h-7 bg-slate-50 text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] rounded-full flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><i class="fas fa-image text-[10px]"></i></button>` : ''}
                             </div>
                         `;
                         taxList.appendChild(tDiv);
@@ -2020,9 +2092,9 @@
                 const dMatch = item.receipt ? item.receipt.match(/\/d\/(.+?)\//) : null;
                 const thumbHtml = dMatch ? `
                     <div class="mt-2.5">
-                        <a href="${item.receipt}" target="_blank" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div onclick="openImageViewer('${item.receipt}')" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                             <img src="https://drive.google.com/uc?export=view&id=${dMatch[1]}" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
-                        </a>
+                        </div>
                     </div>
                 ` : '';
 
@@ -2073,7 +2145,7 @@
                                 ${thbLine}
                             </div>
                             <div class="flex justify-end gap-3 mt-2 items-center">
-                                ${item.receipt ? `<a href="${item.receipt}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></a>` : ''}
+                                ${item.receipt ? `<button onclick="openImageViewer('${item.receipt}')" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></button>` : ''}
                                 ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
                                 <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#D9383A] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
                                 <button onclick="deleteItem(${item.rowId})" class="text-gray-200 hover:text-rose-500 transition-colors ml-1"><i class="fas fa-trash-alt text-[13px]"></i></button>

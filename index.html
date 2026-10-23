@@ -190,24 +190,6 @@
         </div>
     </div>
 
-    <!-- Image Viewer Modal (Lightbox) -->
-    <div id="image-viewer-modal" class="fixed inset-0 z-[500] bg-black/95 backdrop-blur-sm hidden flex-col items-center justify-center transition-opacity duration-300 opacity-0">
-        <button onclick="closeImageViewer()" class="absolute top-6 right-6 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors z-[510]">
-            <i class="fas fa-times text-xl"></i>
-        </button>
-        <div class="relative w-full max-w-3xl max-h-[85vh] flex items-center justify-center p-4">
-            <div class="absolute inset-0 flex items-center justify-center -z-10">
-                <i class="fas fa-circle-notch fa-spin text-white/30 text-4xl"></i>
-            </div>
-            <img id="viewer-image" src="" alt="Receipt" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
-        </div>
-        <div class="absolute bottom-8 left-0 right-0 text-center z-[510]">
-            <a id="viewer-download-btn" href="#" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[13px] font-bold transition-colors">
-                <i class="fas fa-external-link-alt"></i> เปิดไฟล์ต้นฉบับ
-            </a>
-        </div>
-    </div>
-
     <!-- Custom Confirm Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-[400] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300 opacity-0 px-4">
         <div class="bg-white w-full max-w-sm rounded-[24px] p-6 transform scale-95 transition-transform duration-300 shadow-2xl" id="confirm-modal-content">
@@ -841,52 +823,6 @@
             if(confirmActionCallback) confirmActionCallback();
             closeConfirmModal();
         });
-
-        // Image Viewer Modal (Lightbox)
-        function getDriveDirectUrl(url) {
-            if (!url) return "";
-            const dMatch = url.match(/\/d\/(.+?)\//);
-            if (dMatch && dMatch[1]) {
-                return `https://drive.google.com/uc?export=view&id=${dMatch[1]}`;
-            }
-            return url;
-        }
-
-        function openImageViewer(url) {
-            if(!url) return;
-            const e = window.event;
-            if(e) e.stopPropagation();
-            if(e) e.preventDefault();
-
-            const modal = document.getElementById('image-viewer-modal');
-            const img = document.getElementById('viewer-image');
-            const downloadBtn = document.getElementById('viewer-download-btn');
-            
-            img.src = ""; // Clear old image
-            img.src = getDriveDirectUrl(url);
-            downloadBtn.href = url;
-            
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                img.classList.remove('scale-95');
-                img.classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeImageViewer() {
-            const modal = document.getElementById('image-viewer-modal');
-            const img = document.getElementById('viewer-image');
-            
-            modal.classList.add('opacity-0');
-            img.classList.remove('scale-100');
-            img.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                img.src = "";
-            }, 300);
-        }
 
         // Dynamic Avatar Color Generator
         function getAvatarStyle(name) {
@@ -2061,7 +1997,7 @@
                             </div>
                             <div class="text-right flex flex-col justify-between items-end gap-2">
                                 <span class="font-black text-[#D9383A] whitespace-nowrap">${amt.toLocaleString()} <span class="text-[10px]">JPY</span></span>
-                                ${item.receipt ? `<button onclick="openImageViewer('${item.receipt}')" class="w-7 h-7 bg-slate-50 text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] rounded-full flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><i class="fas fa-image text-[10px]"></i></button>` : ''}
+                                ${item.receipt ? `<button onclick="window.open('${item.receipt}', '_blank')" class="w-7 h-7 bg-slate-50 text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] rounded-full flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><i class="fas fa-image text-[10px]"></i></button>` : ''}
                             </div>
                         `;
                         taxList.appendChild(tDiv);
@@ -2092,8 +2028,8 @@
                 const dMatch = item.receipt ? item.receipt.match(/\/d\/(.+?)\//) : null;
                 const thumbHtml = dMatch ? `
                     <div class="mt-2.5">
-                        <div onclick="openImageViewer('${item.receipt}')" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                            <img src="https://drive.google.com/uc?export=view&id=${dMatch[1]}" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
+                        <div onclick="window.open('${item.receipt}', '_blank')" class="inline-block relative rounded-[12px] overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                            <img src="https://drive.google.com/thumbnail?id=${dMatch[1]}&sz=w200" class="w-16 h-16 object-cover bg-slate-100" onerror="this.parentElement.parentElement.style.display='none'" alt="Receipt">
                         </div>
                     </div>
                 ` : '';
@@ -2145,7 +2081,7 @@
                                 ${thbLine}
                             </div>
                             <div class="flex justify-end gap-3 mt-2 items-center">
-                                ${item.receipt ? `<button onclick="openImageViewer('${item.receipt}')" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></button>` : ''}
+                                ${item.receipt ? `<button onclick="window.open('${item.receipt}', '_blank')" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></button>` : ''}
                                 ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
                                 <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#D9383A] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
                                 <button onclick="deleteItem(${item.rowId})" class="text-gray-200 hover:text-rose-500 transition-colors ml-1"><i class="fas fa-trash-alt text-[13px]"></i></button>

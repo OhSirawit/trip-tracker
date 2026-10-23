@@ -167,6 +167,9 @@
         body.dark-mode #confirm-message { color: #94a3b8; }
         body.dark-mode #confirm-modal-content .bg-slate-50 { background-color: #334155; color: #e2e8f0; border: 1px solid #475569;}
         body.dark-mode #confirm-modal-content .bg-slate-50:hover { background-color: #475569; }
+        
+        body.dark-mode #settlement-modal-content { background-color: #1E293B; border: 1px solid #334155; }
+        body.dark-mode #settlement-list .bg-slate-50 { background-color: #0F172A !important; border-color: #334155 !important;}
     </style>
 </head>
 <body class="pb-32 relative">
@@ -190,6 +193,43 @@
             <div class="flex gap-3">
                 <button onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-[14px] bg-slate-50 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors">ยกเลิก (Cancel)</button>
                 <button id="confirm-btn" class="flex-1 py-3.5 rounded-[14px] bg-[#D9383A] text-white font-bold text-[13px] hover:bg-[#BA2E30] transition-colors shadow-lg shadow-[#D9383A]/30">ยืนยัน (Confirm)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settlement Modal -->
+    <div id="settlement-modal" class="fixed inset-0 z-[350] bg-slate-900/40 backdrop-blur-sm hidden flex items-end justify-center transition-opacity duration-300 opacity-0 sm:items-center sm:px-6">
+        <div class="bg-white w-full sm:max-w-md rounded-t-[24px] sm:rounded-[24px] p-6 pb-10 sm:pb-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 shadow-2xl max-h-[90vh] flex flex-col" id="settlement-modal-content">
+            <div class="flex justify-between items-center mb-5 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-[12px] bg-[#1C2536] text-white flex items-center justify-center shadow-md">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900 tracking-wide leading-tight">Settlement</h3>
+                        <p class="text-[10px] text-slate-500">สรุปยอดเคลียร์เงิน (Shared)</p>
+                    </div>
+                </div>
+                <button onclick="closeSettlementModal()" class="text-slate-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                <div class="bg-[#F5F4F0] dark:bg-slate-800 rounded-[16px] p-4 mb-4 border border-[#EAE6DF] dark:border-slate-700 text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Shared Expense</p>
+                    <div class="flex items-baseline justify-center gap-1.5">
+                        <span id="settle-total" class="text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tight">0</span>
+                        <span class="text-xs font-bold text-slate-500">JPY</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-[#EAE6DF] dark:border-slate-700 flex justify-center items-center gap-2 text-xs">
+                        <span class="text-slate-500">หารกันคนละ:</span>
+                        <span id="settle-per-person" class="font-bold text-[#D9383A]">0 JPY</span>
+                    </div>
+                </div>
+
+                <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Who owes who?</h4>
+                <div id="settlement-list" class="space-y-2 mb-2">
+                    <!-- Transactions will be generated here -->
+                </div>
             </div>
         </div>
     </div>
@@ -238,7 +278,6 @@
                 </div>
                 <div>
                     <span class="font-bold text-gray-800 text-[14px] block leading-tight tracking-wide">MyTrip</span>
-                    <!-- Trip details input field -->
                     <input type="text" id="trip-detail-header" class="trip-detail-input block" placeholder="e.g. Japan Trip 2026" onchange="saveTripDetail(this.value)">
                 </div>
             </div>
@@ -285,22 +324,6 @@
                         <a href="https://script.google.com/macros/s/AKfycbzrADnbwPkeXGG6IuXZyP-MVuFd31HCSO098xWnNfevKmDb_qVwJE4M0_8P2cCsjFbX/exec" target="_blank" onclick="toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-file-invoice-dollar w-4 text-[#D4AF37]"></i> Pre-Trip Expenses
                         </a>
-                    </li>
-                    <div class="border-t border-slate-100 my-1"></div>
-
-                    <li>
-                        <button onclick="toggleDropdown('airline-menu')" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-between">
-                            <div class="flex items-center gap-3"><i class="fas fa-ticket-alt w-4 text-[#457B9D]"></i> Flight Tickets</div>
-                            <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-300" id="icon-airline-menu"></i>
-                        </button>
-                        <div id="airline-menu" class="hidden flex-col pl-11 pr-4 py-2 space-y-4 bg-slate-50/50 rounded-xl mt-1 mb-1 border border-slate-100/50">
-                            <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1.5"><i class="fas fa-plane-departure text-slate-300"></i> BKK <i class="fas fa-arrow-right text-[8px]"></i> NRT</p>
-                                <div class="space-y-3">
-                                    <a href="#" class="block text-xs font-bold text-slate-600 hover:text-[#D9383A]">Ticket 1</a>
-                                </div>
-                            </div>
-                        </div>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
                     
@@ -509,6 +532,7 @@
                 </button>
             </div>
             
+            <!-- Team Members Settings -->
             <div class="modern-card p-5 bg-white">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
@@ -522,6 +546,7 @@
                 <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
             </div>
 
+            <!-- Budget & Cards Settings -->
             <div class="modern-card p-5 bg-white">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
@@ -586,8 +611,20 @@
                 </div>
             </div>
 
+            <!-- Settlement Button -->
+            <button onclick="openSettlementModal()" class="w-full mt-1 modern-card bg-[#1C2536] text-white p-4 flex justify-between items-center shadow-lg shadow-[#1C2536]/20 transition-transform active:scale-95">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#D9383A]"><i class="fas fa-handshake"></i></div>
+                    <div class="text-left">
+                        <p class="text-[14px] font-bold">Settlement</p>
+                        <p class="text-[10px] text-slate-300 font-medium mt-0.5">ระบบสรุปยอดเคลียร์เงิน (Shared)</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-400 text-sm"></i>
+            </button>
+
             <!-- 1. KPI Summary -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3 mt-4">
                 <div class="modern-card p-4 bg-white border-l-4 border-l-[#D9383A]">
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Days</p>
                     <p id="stat-total-days" class="text-xl font-black text-slate-800 leading-none">0</p>
@@ -808,6 +845,7 @@
             renderUserMenu();
             updateUserAvatar();
             
+            // Render Members in settings
             if (typeof renderMembersSettings === 'function') {
                 renderMembersSettings();
             }
@@ -1002,6 +1040,7 @@
                 }
             });
             
+            // Save Team Members
             let newMembersString = tripMembers.join(', ');
             if (tripMembers.length === 0) {
                 showToast("กรุณาเพิ่มสมาชิกอย่างน้อย 1 คน", true);
@@ -1010,6 +1049,7 @@
                 return;
             }
 
+            // เตรียมข้อมูลส่งไปที่ Server
             const settingsPayload = {
                 members: newMembersString,
                 ...limits
@@ -1197,6 +1237,162 @@
             }
             tripMembers.splice(index, 1);
             renderMembersSettings();
+        }
+
+        // Settlement Calculation & Modal
+        function openSettlementModal() {
+            calculateSettlement();
+            const modal = document.getElementById('settlement-modal');
+            const content = document.getElementById('settlement-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeSettlementModal() {
+            const modal = document.getElementById('settlement-modal');
+            const content = document.getElementById('settlement-modal-content');
+            modal.classList.add('opacity-0');
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function calculateSettlement() {
+            if (!tripMembers || tripMembers.length === 0) return;
+            
+            let balances = {};
+            // Initialize balances for active members
+            tripMembers.forEach(m => balances[m.toUpperCase()] = 0);
+            
+            let totalShared = 0;
+            
+            // 1. Calculate how much each person actually paid for shared items
+            expenses.forEach(item => {
+                if (item.isShared && !["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(item.category)) {
+                    let amt = parseFloat(item.amount) || 0;
+                    totalShared += amt;
+                    let uKey = item.username ? item.username.toUpperCase() : 'USER';
+                    if (balances[uKey] !== undefined) {
+                        balances[uKey] += amt;
+                    } else {
+                        // In case someone paid but was removed from members list later
+                        balances[uKey] = amt; 
+                    }
+                }
+            });
+            
+            let activeMembersCount = tripMembers.length;
+            let splitAmount = activeMembersCount > 0 ? (totalShared / activeMembersCount) : 0;
+            
+            // Display Total and Per Person
+            document.getElementById('settle-total').innerText = totalShared.toLocaleString();
+            document.getElementById('settle-per-person').innerText = Math.round(splitAmount).toLocaleString() + ' JPY';
+            
+            let debtors = [];
+            let creditors = [];
+            
+            // 2. Calculate Difference (Actual Paid - Should have paid)
+            Object.keys(balances).forEach(user => {
+                let diff = 0;
+                // Only subtract the split amount if they are an active member
+                if (tripMembers.some(m => m.toUpperCase() === user)) {
+                    diff = balances[user] - splitAmount;
+                } else {
+                    // Non-active member who paid for something (rare case)
+                    diff = balances[user];
+                }
+
+                if (diff < -0.01) {
+                    debtors.push({ user: user, amount: Math.abs(diff) }); // Owes money
+                } else if (diff > 0.01) {
+                    creditors.push({ user: user, amount: diff }); // Is owed money
+                }
+            });
+            
+            // Sort by amount descending to minimize transactions
+            debtors.sort((a,b) => b.amount - a.amount);
+            creditors.sort((a,b) => b.amount - a.amount);
+            
+            let transactions = [];
+            let i = 0; // debtors index
+            let j = 0; // creditors index
+            
+            // 3. Resolve Debts
+            while(i < debtors.length && j < creditors.length) {
+                let debtor = debtors[i];
+                let creditor = creditors[j];
+                
+                let amount = Math.min(debtor.amount, creditor.amount);
+                
+                transactions.push({
+                    from: debtor.user,
+                    to: creditor.user,
+                    amount: amount
+                });
+                
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+                
+                if (debtor.amount < 0.01) i++;
+                if (creditor.amount < 0.01) j++;
+            }
+            
+            // 4. Render Transactions
+            const listContainer = document.getElementById('settlement-list');
+            listContainer.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 font-bold text-xs"><i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block"></i>เคลียร์กันลงตัวแล้ว!<br>ไม่ต้องมีใครโอนเงินเพิ่ม</div>';
+                return;
+            }
+            
+            transactions.forEach(t => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-50 dark:bg-slate-800 p-4 rounded-[16px] border border-[#EAE6DF] dark:border-slate-700 flex justify-between items-center shadow-sm";
+                
+                // Keep original casing if possible by finding from tripMembers
+                const fromOriginal = tripMembers.find(m => m.toUpperCase() === t.from) || t.from;
+                const toOriginal = tripMembers.find(m => m.toUpperCase() === t.to) || t.to;
+                
+                const fromStyle = getAvatarStyle(fromOriginal);
+                const toStyle = getAvatarStyle(toOriginal);
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 w-3/5">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full ${fromStyle.bg} ${fromStyle.text} flex items-center justify-center font-black text-xs shadow-sm">${fromOriginal.charAt(0).toUpperCase()}</div>
+                            <span class="text-[9px] font-bold text-slate-500 mt-1 truncate max-w-[40px]">${fromOriginal}</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center">
+                            <i class="fas fa-arrow-right text-[#D9383A] text-xs"></i>
+                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Pay</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-8 rounded-full ${toStyle.bg} ${toStyle.text} flex items-center justify-center font-black text-xs shadow-sm">${toOriginal.charAt(0).toUpperCase()}</div>
+                            <span class="text-[9px] font-bold text-slate-500 mt-1 truncate max-w-[40px]">${toOriginal}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-black text-slate-900 dark:text-white">${Math.round(t.amount).toLocaleString()}</p>
+                        <p class="text-[9px] font-bold text-slate-400">JPY</p>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
         }
 
         // Attachment Modal Controls

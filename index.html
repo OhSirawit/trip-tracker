@@ -1095,24 +1095,64 @@
             );
         }
 
+        function movePaymentMethod(keyToMove, direction) {
+            const currentLimits = getPaymentLimits();
+            const keys = Object.keys(currentLimits);
+            const index = keys.indexOf(keyToMove);
+
+            if (index < 0) return;
+            if (direction === -1 && index === 0) return; 
+            if (direction === 1 && index === keys.length - 1) return;
+
+            // บันทึกค่าเงินในช่อง input ปัจจุบันก่อนทำการสลับที่
+            keys.forEach(k => {
+                const el = document.getElementById('limit-' + k.replace(/\s+|:/g, '-'));
+                if (el) currentLimits[k] = parseFloat(el.value) || 0;
+            });
+
+            // สลับตำแหน่ง Key ใน Array
+            const newIndex = index + direction;
+            const temp = keys[index];
+            keys[index] = keys[newIndex];
+            keys[newIndex] = temp;
+
+            // สร้าง Object ใหม่ตามลำดับที่สลับแล้ว
+            const newLimits = {};
+            keys.forEach(k => {
+                newLimits[k] = currentLimits[k];
+            });
+
+            localStorage.setItem('paymentLimits', JSON.stringify(newLimits));
+            renderSettings();
+            renderPaymentDropdown();
+        }
+
         function renderSettings() {
             const limits = getPaymentLimits();
+            const keys = Object.keys(limits);
             const container = document.getElementById('settings-limits-container');
             if(!container) return;
             container.innerHTML = '';
             
-            Object.keys(limits).forEach(key => {
+            keys.forEach((key, index) => {
                 const div = document.createElement('div');
-                div.className = "space-y-1 bg-slate-50 p-3 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-3";
+                div.className = "space-y-1 bg-slate-50 p-3 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-2";
                 
                 let deleteBtnHtml = key !== 'Cash' 
-                    ? `<button type="button" onclick="removePaymentMethod('${key}')" class="text-slate-300 hover:text-rose-500 transition-colors focus:outline-none ml-1"><i class="fas fa-times text-sm"></i></button>` 
-                    : `<div class="w-5"></div>`;
+                    ? `<button type="button" onclick="removePaymentMethod('${key}')" class="text-slate-300 hover:text-rose-500 transition-colors focus:outline-none ml-1 w-6 h-6 flex items-center justify-center rounded-full hover:bg-rose-50"><i class="fas fa-times text-sm"></i></button>` 
+                    : `<div class="w-6 ml-1"></div>`;
 
                 div.innerHTML = `
-                    <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap flex-1 truncate" title="${key}">${key}</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full max-w-[120px] bg-white p-2.5 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div class="flex flex-col items-center bg-white border border-slate-200 rounded-md shadow-sm w-6 flex-shrink-0 overflow-hidden">
+                            <button type="button" onclick="movePaymentMethod('${key}', -1)" class="w-full text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] transition-colors py-0.5 ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}" ${index === 0 ? 'disabled' : ''}><i class="fas fa-caret-up text-[14px]"></i></button>
+                            <div class="w-full h-[1px] bg-slate-100"></div>
+                            <button type="button" onclick="movePaymentMethod('${key}', 1)" class="w-full text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] transition-colors py-0.5 ${index === keys.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}" ${index === keys.length - 1 ? 'disabled' : ''}><i class="fas fa-caret-down text-[14px]"></i></button>
+                        </div>
+                        <label class="text-[11px] font-bold text-slate-600 whitespace-nowrap truncate flex-1" title="${key}">${key}</label>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-[90px] sm:w-[120px] bg-white p-2 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors shadow-sm" placeholder="0">
                         ${deleteBtnHtml}
                     </div>
                 `;

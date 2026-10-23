@@ -160,6 +160,13 @@
         body.dark-mode .bg-\[\#FFF9F9\] { background-color: #1E293B !important; }
         body.dark-mode .trip-detail-input { color: #cbd5e1; }
         body.dark-mode .trip-detail-input:focus, body.dark-mode .trip-detail-input:hover { border-color: #D9383A; background: rgba(30, 41, 59, 0.5); }
+        
+        /* Dark Mode for Custom Modal */
+        body.dark-mode #confirm-modal-content { background-color: #1E293B; border: 1px solid #334155; }
+        body.dark-mode #confirm-title { color: #f8fafc; }
+        body.dark-mode #confirm-message { color: #94a3b8; }
+        body.dark-mode #confirm-modal-content .bg-slate-50 { background-color: #334155; color: #e2e8f0; border: 1px solid #475569;}
+        body.dark-mode #confirm-modal-content .bg-slate-50:hover { background-color: #475569; }
     </style>
 </head>
 <body class="pb-32 relative">
@@ -169,6 +176,21 @@
         <div id="toast-bg" class="bg-[#1C2536]/95 backdrop-blur-md text-white px-5 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-3">
             <i id="toast-icon" class="fas fa-check-circle text-[#8A9A5B] text-lg"></i>
             <span id="toast-message" class="font-bold text-sm tracking-wide">Success!</span>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-[400] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300 opacity-0 px-4">
+        <div class="bg-white w-full max-w-sm rounded-[24px] p-6 transform scale-95 transition-transform duration-300 shadow-2xl" id="confirm-modal-content">
+            <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4 mx-auto">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <h3 id="confirm-title" class="text-lg font-black text-slate-900 text-center mb-2">Confirm Action</h3>
+            <p id="confirm-message" class="text-[13px] text-slate-500 text-center mb-6 leading-relaxed">Are you sure?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-[14px] bg-slate-50 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors">ยกเลิก (Cancel)</button>
+                <button id="confirm-btn" class="flex-1 py-3.5 rounded-[14px] bg-[#D9383A] text-white font-bold text-[13px] hover:bg-[#BA2E30] transition-colors shadow-lg shadow-[#D9383A]/30">ยืนยัน (Confirm)</button>
+            </div>
         </div>
     </div>
 
@@ -217,7 +239,7 @@
                 <div>
                     <span class="font-bold text-gray-800 text-[14px] block leading-tight tracking-wide">MyTrip</span>
                     <!-- Trip details input field -->
-                    <input type="text" id="trip-detail-header" class="trip-detail-input block" placeholder="e.g. Japan Trip 2024" onchange="saveTripDetail(this.value)">
+                    <input type="text" id="trip-detail-header" class="trip-detail-input block" placeholder="e.g. Japan Trip 2026" onchange="saveTripDetail(this.value)">
                 </div>
             </div>
             
@@ -247,11 +269,11 @@
                 <ul class="flex flex-col space-y-1">
                     <li>
                         <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-cog w-4 text-slate-400"></i> Settings & Limits
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
-
+                    
                     <li>
                         <button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
                             <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
@@ -306,7 +328,7 @@
                 
                 <div class="relative z-10">
                     <div class="flex justify-between items-center mb-1">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-300">Available Balance</p>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-300">Cash Balance</p>
                         <div class="text-right">
                             <span id="last-updated-text" class="text-[10px] font-bold text-slate-400">Last Updated : --:--:--</span>
                         </div>
@@ -489,6 +511,19 @@
             
             <div class="modern-card p-5 bg-white">
                 <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อแล้วกดปุ่ม + เพื่อเพิ่มสมาชิกในทริป</p>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="new-member-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. John" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addMemberSettings(); }">
+                    <button type="button" onclick="addMemberSettings()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="modern-card p-5 bg-white">
+                <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Budget & Cards (JPY)</h3>
                 </div>
@@ -500,20 +535,7 @@
                 <div id="settings-limits-container" class="space-y-3 pt-2 border-t border-slate-100"></div>
             </div>
 
-            <div class="modern-card p-5 bg-white">
-                <div class="flex items-center gap-1.5 mb-3">
-                    <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
-                    <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
-                </div>
-                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อแล้วกดปุ่ม + เพื่อเพิ่มสมาชิกในทริป</p>
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="new-member-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. John" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addMemberSettings(); }">
-                    <button type="button" onclick="addMemberSettings()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
-                </div>
-                <div id="members-chip-container" class="flex flex-wrap gap-2 pt-2 border-t border-slate-100"></div>
-            </div>
-
-            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่าลงระบบ</button>
+            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
         </div>
 
         <!-- PAGE 4: TAX REFUND -->
@@ -655,7 +677,6 @@
 
     <!-- Scripts -->
     <script>
-        // API URL ล่าสุด (เวอร์ชันอัปเกรดซิงค์ Settings)
         const API_URL = "https://script.google.com/macros/s/AKfycbxecOVLpJI6t3z4IdArQTupYfXWu3kBJISoyBHvQ3qgiH0ecjznHTyPvRXAAJ90JJIC/exec";
 
         let expenses = []; 
@@ -667,13 +688,14 @@
         let currentEditRowId = null;
         let oldReceiptUrl = "";
         let currentJpyToThbRate = 0; 
+        let confirmActionCallback = null;
         
         // User Profile State
         let tripMembers = [];
         try {
             tripMembers = JSON.parse(localStorage.getItem('tripMembers'));
             if (!Array.isArray(tripMembers) || tripMembers.length === 0) {
-                tripMembers = ['Thida', 'Oh']; // Default
+                tripMembers = ['Thida', 'Oh']; 
             }
         } catch(e) {
             tripMembers = ['Thida', 'Oh'];
@@ -683,11 +705,11 @@
         
         const defaultLimits = {
             'Cash': 150000,
-            'JCB : Thida': 0,
-            'JCB : Oh': 0,
-            'Travel Card': 0,
-            'IC Card': 0,
-            'QR Payment': 0
+            'JCB : Thida': 150000,
+            'JCB : Oh': 150000,
+            'Travel Card': 50000,
+            'IC Card': 10000,
+            'QR Payment': 50000
         };
 
         const paymentEmojis = {
@@ -715,6 +737,47 @@
         
         let receiptBase64 = null;
         let receiptName = null;
+
+        // Custom Confirm Modal Functions
+        function showConfirmModal(title, message, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            confirmActionCallback = callback;
+            
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-modal-content');
+            modal.classList.add('opacity-0');
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                confirmActionCallback = null;
+            }, 300);
+        }
+
+        document.getElementById('confirm-btn').addEventListener('click', () => {
+            if(confirmActionCallback) confirmActionCallback();
+            closeConfirmModal();
+        });
 
         // Dynamic Avatar Color Generator
         function getAvatarStyle(name) {
@@ -929,9 +992,8 @@
             if(!btn) return;
             
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving to Cloud...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
 
-            // Save Payment Limits inputs before sending to server
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
                 const input = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
@@ -940,16 +1002,16 @@
                 }
             });
             
+            let newMembersString = tripMembers.join(', ');
             if (tripMembers.length === 0) {
                 showToast("กรุณาเพิ่มสมาชิกอย่างน้อย 1 คน", true);
                 btn.disabled = false;
-                btn.innerHTML = 'บันทึกการตั้งค่าลงระบบ';
+                btn.innerHTML = 'บันทึกการตั้งค่า';
                 return;
             }
 
-            // เตรียมข้อมูลส่งไปที่ Server
             const settingsPayload = {
-                members: tripMembers.join(', '),
+                members: newMembersString,
                 ...limits
             };
 
@@ -960,18 +1022,17 @@
                 }).then(r => r.json());
 
                 if(res.status === "success") {
-                    // บันทึกลงเครื่องผู้ใช้ด้วย
                     localStorage.setItem('paymentLimits', JSON.stringify(limits));
                     localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                     
                     if (!tripMembers.includes(currentUser)) {
-                        setCurrentUser(tripMembers[0]);
+                        setCurrentUser(tripMembers[0] || 'USER');
                     } else {
                         renderUserMenu();
                         updateUserAvatar();
                     }
 
-                    showToast("อัปเดตการตั้งค่าสู่ระบบส่วนกลางแล้ว!");
+                    showToast("อัปเดตการตั้งค่าส่วนกลางแล้ว!");
                     updateUI();
                     switchPage('home');
                 } else {
@@ -987,16 +1048,14 @@
             }
             
             btn.disabled = false;
-            btn.innerHTML = 'บันทึกการตั้งค่าลงระบบ';
+            btn.innerHTML = 'บันทึกการตั้งค่า';
         }
 
-        // Add Dynamic Payment Method
         function addPaymentMethod() {
             const input = document.getElementById('new-payment-input');
             if(!input) return;
             const val = input.value.trim();
             if(val) {
-                // Save current values first so we don't lose typed data
                 const currentLimits = getPaymentLimits();
                 Object.keys(currentLimits).forEach(key => {
                     const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
@@ -1004,7 +1063,7 @@
                 });
 
                 if(currentLimits[val] === undefined) {
-                    currentLimits[val] = 0; // Set default limit 0
+                    currentLimits[val] = 0; 
                     localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
                     renderSettings();
                     renderPaymentDropdown();
@@ -1017,20 +1076,23 @@
 
         function removePaymentMethod(keyToRemove) {
             if(keyToRemove === 'Cash') return;
-            if(confirm(`ต้องการลบช่องทางชำระเงิน '${keyToRemove}' ใช่หรือไม่?`)) {
-                const currentLimits = getPaymentLimits();
-                // Save other inputs
-                Object.keys(currentLimits).forEach(key => {
-                    if (key !== keyToRemove) {
-                        const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
-                        if (el) currentLimits[key] = parseFloat(el.value) || 0;
-                    }
-                });
-                delete currentLimits[keyToRemove];
-                localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
-                renderSettings();
-                renderPaymentDropdown();
-            }
+            showConfirmModal(
+                "ลบช่องทางชำระเงิน",
+                `ต้องการลบช่องทาง '${keyToRemove}' ใช่หรือไม่?\n\n* ข้อมูลประวัติการใช้จ่ายจะไม่หายไป แต่ช่องทางนี้จะถูกลบออกจากตัวเลือก`,
+                () => {
+                    const currentLimits = getPaymentLimits();
+                    Object.keys(currentLimits).forEach(key => {
+                        if (key !== keyToRemove) {
+                            const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
+                            if (el) currentLimits[key] = parseFloat(el.value) || 0;
+                        }
+                    });
+                    delete currentLimits[keyToRemove];
+                    localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
+                    renderSettings();
+                    renderPaymentDropdown();
+                }
+            );
         }
 
         function renderSettings() {
@@ -1193,12 +1255,10 @@
         });
 
         window.onload = function() { 
-            // Theme check
             if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('theme-icon').className = "fas fa-sun";
             }
-            // Trip Detail Check
             const savedDetail = localStorage.getItem('tripDetail');
             if(savedDetail) {
                 document.getElementById('trip-detail-header').value = savedDetail;
@@ -1210,7 +1270,6 @@
             renderSettings();
             renderPaymentDropdown();
 
-            // Auto bypass login
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
             loadDataFromSheet(); 
@@ -1333,9 +1392,7 @@
                 if(res.status === 'success') {
                     if(res.data) expenses = res.data; 
                     
-                    // --- ดึงการตั้งค่าจากส่วนกลางมาใช้กับเครื่องนี้ ---
                     if(res.settings) {
-                        // Sync Team Members
                         if(res.settings.members) {
                             tripMembers = res.settings.members.split(',').map(s => s.trim());
                             localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
@@ -1349,11 +1406,9 @@
                             }
                         }
                         
-                        // Sync Payment Methods and Limits
                         const limits = getPaymentLimits();
                         let updatedLimits = false;
                         
-                        // Add or update from server
                         Object.keys(res.settings).forEach(key => {
                             if(key !== 'members') {
                                 limits[key] = parseFloat(res.settings[key]) || 0;
@@ -1361,7 +1416,6 @@
                             }
                         });
                         
-                        // Remove methods not present on server (except Cash)
                         Object.keys(limits).forEach(key => {
                             if(res.settings[key] === undefined && key !== 'Cash') {
                                 delete limits[key];
@@ -1513,7 +1567,6 @@
                 document.getElementById('date').value = item.date; 
             }
 
-            // Fallback for payment method if missing in current lists
             let paymentSelect = document.getElementById('payment');
             let optionExists = Array.from(paymentSelect.options).some(opt => opt.value === item.payment);
             if (!optionExists) {
@@ -1679,7 +1732,6 @@
                     globalDailyCategoryStats[item.date][item.category] += amt; 
                 }
 
-                // Process Tax Refund List
                 if(item.isTaxFree) {
                     taxRefundTotal += amt;
                     if(taxList) {
@@ -1757,7 +1809,6 @@
                     badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span> `;
                 }
                 
-                // User Badge in History (Dynamic Color)
                 let userInitial = item.username ? item.username.charAt(0).toUpperCase() : 'U';
                 let uStyle = getAvatarStyle(item.username || 'USER');
                 badgeHtml += `<span class="text-[8px] font-bold ${uStyle.bg} ${uStyle.text} px-1.5 py-0.5 rounded shadow-sm tracking-wider whitespace-nowrap flex items-center gap-1"><i class="fas fa-user text-[7px]"></i> ${item.username || 'USER'}</span>`;
@@ -1873,11 +1924,9 @@
             }
 
             if(uSum) {
-                // Ensure active members are shown even if 0
                 const activeUserStats = {};
                 tripMembers.forEach(m => activeUserStats[m.toUpperCase()] = 0);
                 
-                // Merge with actual stats
                 Object.keys(userStats).forEach(u => {
                     if (activeUserStats[u] !== undefined) {
                         activeUserStats[u] = userStats[u];
@@ -1892,7 +1941,6 @@
                         userDiv.className = "modern-card p-4 flex items-center gap-3 bg-white border border-[#EAE6DF] shadow-sm";
                         let initial = user ? user.charAt(0).toUpperCase() : 'U';
                         
-                        // Find original casing for color generator if possible
                         let originalName = tripMembers.find(m => m.toUpperCase() === user) || user;
                         let style = getAvatarStyle(originalName);
 
@@ -1999,7 +2047,6 @@
             }
             updateDailyCategoryChart();
 
-            // --- DETAILED ANALYTICS (DASHBOARD) ---
             const sortedDatesAnalytics = Object.keys(daily).sort((a,b) => new Date(a) - new Date(b));
             const totalDays = sortedDatesAnalytics.length;
             let maxDayVal = 0;
@@ -2023,7 +2070,6 @@
                 document.getElementById('stat-max-day').innerHTML = Math.round(maxDayVal).toLocaleString() + ' <span class="text-[10px] font-bold text-slate-400">JPY</span>';
                 document.getElementById('stat-top-cat').innerText = topCat;
 
-                // Daily Trend Line Chart
                 const ctxTrend = document.getElementById('dailyTrendChart');
                 if(ctxTrend) {
                     if(myDailyTrendChart) myDailyTrendChart.destroy();
@@ -2057,7 +2103,6 @@
                     });
                 }
 
-                // Top 5 Expenses
                 const top5Container = document.getElementById('top-5-expenses');
                 if (top5Container) {
                     top5Container.innerHTML = '';
@@ -2221,24 +2266,28 @@
         });
 
         async function deleteItem(rowId) { 
-            if(confirm('Delete this expense permanently?')) { 
-                showToast("Deleting...");
-                try {
-                    const res = await fetch(API_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify({ action: 'deleteExpense', rowId: rowId }) 
-                    }).then(r => r.json());
-                    
-                    if(res.status === "success") { 
-                        showToast("Deleted successfully!"); 
-                        loadDataFromSheet(); 
-                    } else { 
-                        showToast("Error: " + res.message, true); 
+            showConfirmModal(
+                "Delete Expense",
+                "Are you sure you want to delete this expense permanently? This action cannot be undone.",
+                async () => {
+                    showToast("Deleting...");
+                    try {
+                        const res = await fetch(API_URL, { 
+                            method: 'POST', 
+                            body: JSON.stringify({ action: 'deleteExpense', rowId: rowId }) 
+                        }).then(r => r.json());
+                        
+                        if(res.status === "success") { 
+                            showToast("Deleted successfully!"); 
+                            loadDataFromSheet(); 
+                        } else { 
+                            showToast("Error: " + res.message, true); 
+                        }
+                    } catch (err) { 
+                        showToast("Connection Error. Please try again.", true); 
                     }
-                } catch (err) { 
-                    showToast("Connection Error. Please try again.", true); 
                 }
-            } 
+            );
         }
 
         function exportToExcel() { 

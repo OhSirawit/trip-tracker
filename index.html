@@ -510,7 +510,7 @@
                 <input type="text" id="settings-members" class="w-full bg-slate-50 p-3.5 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. Thida, Oh, John">
             </div>
 
-            <button onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
+            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
         </div>
 
         <!-- PAGE 4: TAX REFUND -->
@@ -652,8 +652,8 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 142)
-        const API_URL = "https://script.google.com/macros/s/AKfycbxkSkOTKFQDBDBpVRsCo33EWpfgpBJZWimbX1McP_Nzpn0H3Oqs_HbLnAcmVh5BRUzc/exec";
+        // API URL (Version 143 - Includes Settings Sync & Image in Telegram)
+        const API_URL = "https://script.google.com/macros/s/AKfycbxecOVLpJI6t3z4IdArQTupYfXWu3kBJISoyBHvQ3qgiH0ecjznHTyPvRXAAJ90JJIC/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -885,7 +885,13 @@
             return { ...defaultLimits, ...parsedLimits };
         }
 
-        function saveSettings() {
+        async function saveSettings() {
+            const btn = document.getElementById('save-settings-btn');
+            if(!btn) return;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving to Cloud...';
+
             // Save Payment Limits
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
@@ -894,34 +900,67 @@
                     limits[key] = parseFloat(input.value) || 0;
                 }
             });
-            localStorage.setItem('paymentLimits', JSON.stringify(limits));
             
             // Save Team Members
+            let newMembersString = "Thida, Oh"; // default
             const membersInput = document.getElementById('settings-members');
             if (membersInput) {
                 const rawVal = membersInput.value;
                 const newMembers = rawVal.split(',').map(s => s.trim()).filter(s => s !== '');
                 
                 if (newMembers.length > 0) {
-                    tripMembers = newMembers;
+                    newMembersString = newMembers.join(', ');
+                } else {
+                    showToast("Please enter at least one member.", true);
+                    btn.disabled = false;
+                    btn.innerHTML = 'บันทึกการตั้งค่า';
+                    return;
+                }
+            }
+
+            // เตรียมข้อมูลส่งไปที่ Server
+            const settingsPayload = {
+                members: newMembersString,
+                ...limits
+            };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveSettings', settings: settingsPayload })
+                }).then(r => r.json());
+
+                if(res.status === "success") {
+                    // บันทึกลงเครื่องผู้ใช้ด้วย
+                    localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                    tripMembers = newMembersString.split(',').map(s => s.trim());
                     localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                     
-                    // If current user was removed, default to the first one
                     if (!tripMembers.includes(currentUser)) {
                         setCurrentUser(tripMembers[0]);
                     } else {
                         renderUserMenu();
                         updateUserAvatar();
                     }
-                } else {
-                    showToast("Please enter at least one member.", true);
-                    return;
-                }
-            }
 
-            showToast("Settings saved successfully!");
-            updateUI();
-            switchPage('home');
+                    showToast("อัปเดตการตั้งค่าสู่ระบบส่วนกลางแล้ว!");
+                    updateUI();
+                    switchPage('home');
+                } else {
+                    showToast("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์", true);
+                }
+            } catch(err) {
+                showToast("ออฟไลน์: บันทึกข้อมูลเฉพาะในเครื่อง", true);
+                localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                tripMembers = newMembersString.split(',').map(s => s.trim());
+                localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
+                renderUserMenu();
+                updateUserAvatar();
+                updateUI();
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = 'บันทึกการตั้งค่า';
         }
 
         function renderSettings() {
@@ -1173,8 +1212,38 @@
             
             try {
                 const res = await fetch(API_URL + "?action=getExpenses").then(r => r.json());
-                if(res.status === 'success' && res.data) { 
-                    expenses = res.data; 
+                if(res.status === 'success') {
+                    if(res.data) expenses = res.data; 
+                    
+                    // --- ดึงการตั้งค่าจากส่วนกลางมาใช้กับเครื่องนี้ ---
+                    if(res.settings) {
+                        if(res.settings.members) {
+                            tripMembers = res.settings.members.split(',').map(s => s.trim());
+                            localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
+                            const membersInput = document.getElementById('settings-members');
+                            if (membersInput) membersInput.value = res.settings.members;
+                            
+                            if (!tripMembers.includes(currentUser)) {
+                                setCurrentUser(tripMembers[0] || 'USER');
+                            } else {
+                                renderUserMenu();
+                                updateUserAvatar();
+                            }
+                        }
+                        
+                        const limits = getPaymentLimits();
+                        let updatedLimits = false;
+                        Object.keys(limits).forEach(key => {
+                            if(res.settings[key] !== undefined) {
+                                limits[key] = parseFloat(res.settings[key]) || 0;
+                                updatedLimits = true;
+                            }
+                        });
+                        if(updatedLimits) {
+                            localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                            renderSettings(); 
+                        }
+                    }
                 } 
                 updateUI(); 
 

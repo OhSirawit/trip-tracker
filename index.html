@@ -400,12 +400,7 @@
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
                                 <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
                                 <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer">
-                                    <option value="Cash">💵 Cash</option>
-                                    <option value="JCB : Thida">💳 JCB : Thida</option>
-                                    <option value="JCB : Oh">💳 JCB : Oh</option>
-                                    <option value="Travel Card">💳 Travel Card</option>
-                                    <option value="IC Card">🚉 IC Card</option>
-                                    <option value="QR Payment">📲 QR Payment</option>
+                                    <!-- Options will be populated dynamically via JavaScript -->
                                 </select>
                             </div>
                         </div>
@@ -493,8 +488,16 @@
             </div>
             
             <div class="modern-card p-5 bg-white">
-                <p class="text-[11px] font-bold text-[#D9383A] mb-4 flex items-center gap-1.5"><i class="fas fa-wallet"></i> Budget & Cards (JPY)</p>
-                <div id="settings-limits-container" class="space-y-3"></div>
+                <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">Budget & Cards (JPY)</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อช่องทางจ่ายเงินแล้วกด + เพื่อเพิ่มใหม่</p>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="new-payment-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. Suica, Credit Card" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addPaymentMethod(); }">
+                    <button type="button" onclick="addPaymentMethod()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="settings-limits-container" class="space-y-3 pt-2 border-t border-slate-100"></div>
             </div>
 
             <div class="modern-card p-5 bg-white">
@@ -503,14 +506,14 @@
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
                 </div>
                 <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อแล้วกดปุ่ม + เพื่อเพิ่มสมาชิกในทริป</p>
-                <div class="flex gap-2 mb-3">
+                <div class="flex gap-2 mb-4">
                     <input type="text" id="new-member-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. John" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addMemberSettings(); }">
                     <button type="button" onclick="addMemberSettings()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
                 </div>
-                <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
+                <div id="members-chip-container" class="flex flex-wrap gap-2 pt-2 border-t border-slate-100"></div>
             </div>
 
-            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
+            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่าลงระบบ</button>
         </div>
 
         <!-- PAGE 4: TAX REFUND -->
@@ -652,7 +655,7 @@
 
     <!-- Scripts -->
     <script>
-        // API URL (Version 143 - Includes Settings Sync & Image in Telegram)
+        // API URL ล่าสุด (เวอร์ชันอัปเกรดซิงค์ Settings)
         const API_URL = "https://script.google.com/macros/s/AKfycbxecOVLpJI6t3z4IdArQTupYfXWu3kBJISoyBHvQ3qgiH0ecjznHTyPvRXAAJ90JJIC/exec";
 
         let expenses = []; 
@@ -678,7 +681,23 @@
 
         let currentUser = localStorage.getItem('tripUser');
         
-        const defaultPaymentMethods = ['Cash', 'JCB : Thida', 'JCB : Oh', 'Travel Card', 'IC Card', 'QR Payment'];
+        const defaultLimits = {
+            'Cash': 150000,
+            'JCB : Thida': 0,
+            'JCB : Oh': 0,
+            'Travel Card': 0,
+            'IC Card': 0,
+            'QR Payment': 0
+        };
+
+        const paymentEmojis = {
+            'Cash': '💵',
+            'JCB : Thida': '💳',
+            'JCB : Oh': '💳',
+            'Travel Card': '💳',
+            'IC Card': '🚉',
+            'QR Payment': '📲'
+        };
         
         // Japanese Themed Color Palette for Charts
         const globalColorsMap = { 
@@ -857,20 +876,14 @@
             }
         }
 
-        const defaultLimits = {
-            'Cash': 150000,
-            'JCB : Thida': 0,
-            'JCB : Oh': 0,
-            'Travel Card': 0,
-            'IC Card': 0,
-            'QR Payment': 0
-        };
-
         function getPaymentLimits() {
             const stored = localStorage.getItem('paymentLimits');
-            let parsedLimits = stored ? JSON.parse(stored) : {};
+            if (!stored) {
+                return { ...defaultLimits };
+            }
+            let parsedLimits = JSON.parse(stored);
             
-            // Migrate old keys to new keys
+            // Migrate old keys to new keys (Legacy support)
             if (parsedLimits['JCB Thida'] !== undefined) {
                 parsedLimits['JCB : Thida'] = parsedLimits['JCB Thida'];
                 delete parsedLimits['JCB Thida'];
@@ -879,12 +892,36 @@
                 parsedLimits['JCB : Oh'] = parsedLimits['JCB Oh'];
                 delete parsedLimits['JCB Oh'];
             }
-            // Ensure Travel Card exists
-            if (parsedLimits['Travel Card'] === undefined) {
-                parsedLimits['Travel Card'] = 0;
+            
+            // Force Cash to exist
+            if (parsedLimits['Cash'] === undefined) {
+                parsedLimits['Cash'] = 150000;
             }
             
-            return { ...defaultLimits, ...parsedLimits };
+            return parsedLimits;
+        }
+
+        function renderPaymentDropdown() {
+            const paymentSelect = document.getElementById('payment');
+            if(!paymentSelect) return;
+            
+            const currentVal = paymentSelect.value;
+            paymentSelect.innerHTML = '';
+            
+            const limits = getPaymentLimits();
+            Object.keys(limits).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                const emoji = paymentEmojis[key] || '💳';
+                opt.text = `${emoji} ${key}`;
+                paymentSelect.appendChild(opt);
+            });
+            
+            if (Object.keys(limits).includes(currentVal)) {
+                paymentSelect.value = currentVal;
+            } else {
+                paymentSelect.value = Object.keys(limits)[0];
+            }
         }
 
         async function saveSettings() {
@@ -894,7 +931,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving to Cloud...';
 
-            // Save Payment Limits
+            // Save Payment Limits inputs before sending to server
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
                 const input = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
@@ -903,18 +940,16 @@
                 }
             });
             
-            // Save Team Members
-            let newMembersString = tripMembers.join(', ');
             if (tripMembers.length === 0) {
                 showToast("กรุณาเพิ่มสมาชิกอย่างน้อย 1 คน", true);
                 btn.disabled = false;
-                btn.innerHTML = 'บันทึกการตั้งค่า';
+                btn.innerHTML = 'บันทึกการตั้งค่าลงระบบ';
                 return;
             }
 
             // เตรียมข้อมูลส่งไปที่ Server
             const settingsPayload = {
-                members: newMembersString,
+                members: tripMembers.join(', '),
                 ...limits
             };
 
@@ -927,7 +962,6 @@
                 if(res.status === "success") {
                     // บันทึกลงเครื่องผู้ใช้ด้วย
                     localStorage.setItem('paymentLimits', JSON.stringify(limits));
-                    tripMembers = newMembersString.split(',').map(s => s.trim());
                     localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                     
                     if (!tripMembers.includes(currentUser)) {
@@ -946,7 +980,6 @@
             } catch(err) {
                 showToast("ออฟไลน์: บันทึกข้อมูลเฉพาะในเครื่อง", true);
                 localStorage.setItem('paymentLimits', JSON.stringify(limits));
-                tripMembers = newMembersString.split(',').map(s => s.trim());
                 localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                 renderUserMenu();
                 updateUserAvatar();
@@ -954,7 +987,50 @@
             }
             
             btn.disabled = false;
-            btn.innerHTML = 'บันทึกการตั้งค่า';
+            btn.innerHTML = 'บันทึกการตั้งค่าลงระบบ';
+        }
+
+        // Add Dynamic Payment Method
+        function addPaymentMethod() {
+            const input = document.getElementById('new-payment-input');
+            if(!input) return;
+            const val = input.value.trim();
+            if(val) {
+                // Save current values first so we don't lose typed data
+                const currentLimits = getPaymentLimits();
+                Object.keys(currentLimits).forEach(key => {
+                    const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
+                    if (el) currentLimits[key] = parseFloat(el.value) || 0;
+                });
+
+                if(currentLimits[val] === undefined) {
+                    currentLimits[val] = 0; // Set default limit 0
+                    localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
+                    renderSettings();
+                    renderPaymentDropdown();
+                    input.value = '';
+                } else {
+                    showToast("มีช่องทางนี้อยู่แล้ว", true);
+                }
+            }
+        }
+
+        function removePaymentMethod(keyToRemove) {
+            if(keyToRemove === 'Cash') return;
+            if(confirm(`ต้องการลบช่องทางชำระเงิน '${keyToRemove}' ใช่หรือไม่?`)) {
+                const currentLimits = getPaymentLimits();
+                // Save other inputs
+                Object.keys(currentLimits).forEach(key => {
+                    if (key !== keyToRemove) {
+                        const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
+                        if (el) currentLimits[key] = parseFloat(el.value) || 0;
+                    }
+                });
+                delete currentLimits[keyToRemove];
+                localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
+                renderSettings();
+                renderPaymentDropdown();
+            }
         }
 
         function renderSettings() {
@@ -966,9 +1042,17 @@
             Object.keys(limits).forEach(key => {
                 const div = document.createElement('div');
                 div.className = "space-y-1 bg-slate-50 p-3 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-3";
+                
+                let deleteBtnHtml = key !== 'Cash' 
+                    ? `<button type="button" onclick="removePaymentMethod('${key}')" class="text-slate-300 hover:text-rose-500 transition-colors focus:outline-none ml-1"><i class="fas fa-times text-sm"></i></button>` 
+                    : `<div class="w-5"></div>`;
+
                 div.innerHTML = `
-                    <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap min-w-[80px]">${key}</label>
-                    <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full max-w-[150px] bg-white p-2.5 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                    <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap flex-1 truncate" title="${key}">${key}</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full max-w-[120px] bg-white p-2.5 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                        ${deleteBtnHtml}
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -1124,6 +1208,7 @@
             fetchExchangeRate(); 
             renderQuickTags(); 
             renderSettings();
+            renderPaymentDropdown();
 
             // Auto bypass login
             let todayStr = new Date().toLocaleDateString('en-CA'); 
@@ -1250,6 +1335,7 @@
                     
                     // --- ดึงการตั้งค่าจากส่วนกลางมาใช้กับเครื่องนี้ ---
                     if(res.settings) {
+                        // Sync Team Members
                         if(res.settings.members) {
                             tripMembers = res.settings.members.split(',').map(s => s.trim());
                             localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
@@ -1263,17 +1349,30 @@
                             }
                         }
                         
+                        // Sync Payment Methods and Limits
                         const limits = getPaymentLimits();
                         let updatedLimits = false;
-                        Object.keys(limits).forEach(key => {
-                            if(res.settings[key] !== undefined) {
+                        
+                        // Add or update from server
+                        Object.keys(res.settings).forEach(key => {
+                            if(key !== 'members') {
                                 limits[key] = parseFloat(res.settings[key]) || 0;
                                 updatedLimits = true;
                             }
                         });
+                        
+                        // Remove methods not present on server (except Cash)
+                        Object.keys(limits).forEach(key => {
+                            if(res.settings[key] === undefined && key !== 'Cash') {
+                                delete limits[key];
+                                updatedLimits = true;
+                            }
+                        });
+
                         if(updatedLimits) {
                             localStorage.setItem('paymentLimits', JSON.stringify(limits));
                             renderSettings(); 
+                            renderPaymentDropdown();
                         }
                     }
                 } 
@@ -1414,7 +1513,16 @@
                 document.getElementById('date').value = item.date; 
             }
 
-            document.getElementById('payment').value = item.payment;
+            // Fallback for payment method if missing in current lists
+            let paymentSelect = document.getElementById('payment');
+            let optionExists = Array.from(paymentSelect.options).some(opt => opt.value === item.payment);
+            if (!optionExists) {
+                const opt = document.createElement('option');
+                opt.value = item.payment;
+                opt.text = `💳 ${item.payment}`;
+                paymentSelect.appendChild(opt);
+            }
+            paymentSelect.value = item.payment;
             document.getElementById('category').value = item.category;
             
             renderQuickTags();
@@ -1509,8 +1617,11 @@
             
             let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
             const daily = {}; 
-            const payStats = { 'Cash': 0, 'JCB : Thida': 0, 'JCB : Oh': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Payment': 0 }; 
             const userStats = {};
+            
+            const limits = getPaymentLimits();
+            const payStats = {}; 
+            Object.keys(limits).forEach(k => payStats[k] = 0);
             
             const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
             
@@ -1734,7 +1845,6 @@
                 } 
             }
             
-            const limits = getPaymentLimits();
             const currentBudget = limits['Cash'] || 0;
 
             if(pSum) {
@@ -1753,7 +1863,7 @@
                         }
                         
                         payDiv.innerHTML = `
-                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${displayName}</span>
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate block" title="${displayName}">${displayName}</span>
                             <p class="text-xl font-black text-gray-900 mt-1.5 leading-none">${total.toLocaleString()}</p>
                             ${bal}
                         `; 

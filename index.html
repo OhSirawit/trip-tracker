@@ -568,6 +568,16 @@
                 <div id="settings-limits-container" class="space-y-3 pt-2 border-t border-slate-100"></div>
             </div>
 
+            <!-- Category Budgets Settings -->
+            <div class="modern-card p-5 bg-white mt-4">
+                <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-chart-pie text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">Category Budgets (JPY)</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">ตั้งงบประมาณแยกตามหมวดหมู่ (ปล่อยว่างไว้ถ้าไม่ต้องการจำกัดงบ)</p>
+                <div id="settings-category-container" class="space-y-2 pt-1 border-t border-slate-100"></div>
+            </div>
+
             <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
         </div>
 
@@ -735,6 +745,9 @@
         let currentJpyToThbRate = 0; 
         let confirmActionCallback = null;
         
+        // Expense Categories available for budgeting
+        const expenseCategories = ['Food', 'Transportation', 'Dessert/Beverage', 'Shopping', 'Admission Fee', 'Tops up IC Card', 'Pre-Order', 'Gasoline', 'Toll / ETC', 'Other'];
+
         // User Profile State
         let tripMembers = [];
         try {
@@ -1010,6 +1023,12 @@
             return parsedLimits;
         }
 
+        function getCategoryLimits() {
+            const stored = localStorage.getItem('categoryLimits');
+            if (!stored) return {};
+            return JSON.parse(stored);
+        }
+
         function renderPaymentDropdown() {
             const paymentSelect = document.getElementById('payment');
             if(!paymentSelect) return;
@@ -1047,6 +1066,18 @@
                     limits[key] = parseFloat(input.value) || 0;
                 }
             });
+
+            // Save Category Limits
+            const catLimits = {};
+            expenseCategories.forEach(cat => {
+                const input = document.getElementById('cat-limit-' + cat.replace(/\s+|\//g, '-'));
+                if (input) {
+                    const val = parseFloat(input.value) || 0;
+                    if(val > 0) {
+                        catLimits[cat] = val;
+                    }
+                }
+            });
             
             // Save Team Members
             let newMembersString = tripMembers.join(', ');
@@ -1062,6 +1093,11 @@
                 members: newMembersString,
                 ...limits
             };
+            
+            // เพิ่ม Category Limits เข้าไปใน Payload พร้อม Prefix เพื่อให้แยกออกได้
+            Object.keys(catLimits).forEach(cat => {
+                settingsPayload['CatLimit_' + cat] = catLimits[cat];
+            });
 
             try {
                 const res = await fetch(API_URL, {
@@ -1071,6 +1107,7 @@
 
                 if(res.status === "success") {
                     localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                    localStorage.setItem('categoryLimits', JSON.stringify(catLimits));
                     localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                     
                     if (!tripMembers.includes(currentUser)) {
@@ -1089,6 +1126,7 @@
             } catch(err) {
                 showToast("ออฟไลน์: บันทึกข้อมูลเฉพาะในเครื่อง", true);
                 localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                localStorage.setItem('categoryLimits', JSON.stringify(catLimits));
                 localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                 renderUserMenu();
                 updateUserAvatar();
@@ -1202,6 +1240,30 @@
                     <div class="flex items-center gap-1.5 flex-shrink-0">
                         <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-[90px] sm:w-[120px] bg-white p-2 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors shadow-sm" placeholder="0">
                         ${deleteBtnHtml}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderCategorySettings() {
+            const limits = getCategoryLimits();
+            const container = document.getElementById('settings-category-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            expenseCategories.forEach((cat) => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-50 p-2.5 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-2";
+                const catValue = limits[cat] || 0;
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <span class="w-3.5 h-3.5 rounded-full shadow-sm flex-shrink-0" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span>
+                        <label class="text-[11px] font-bold text-slate-600 whitespace-nowrap truncate flex-1" title="${cat}">${cat}</label>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <input type="number" id="cat-limit-${cat.replace(/\s+|\//g, '-')}" value="${catValue > 0 ? catValue : ''}" class="w-[90px] bg-white p-2 text-[12px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors shadow-sm" placeholder="No Limit">
                     </div>
                 `;
                 container.appendChild(div);
@@ -1512,6 +1574,7 @@
             fetchExchangeRate(); 
             renderQuickTags(); 
             renderSettings();
+            renderCategorySettings();
             renderPaymentDropdown();
 
             let todayStr = new Date().toLocaleDateString('en-CA'); 
@@ -1651,17 +1714,25 @@
                         }
                         
                         const limits = getPaymentLimits();
+                        const loadedCatLimits = {};
                         let updatedLimits = false;
+                        let updatedCatLimits = false;
                         
                         Object.keys(res.settings).forEach(key => {
-                            if(key !== 'members') {
+                            if(key === 'members') return;
+
+                            if (key.startsWith('CatLimit_')) {
+                                const catName = key.replace('CatLimit_', '');
+                                loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0;
+                                updatedCatLimits = true;
+                            } else {
                                 limits[key] = parseFloat(res.settings[key]) || 0;
                                 updatedLimits = true;
                             }
                         });
                         
                         Object.keys(limits).forEach(key => {
-                            if(res.settings[key] === undefined && key !== 'Cash') {
+                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_')) {
                                 delete limits[key];
                                 updatedLimits = true;
                             }
@@ -1671,6 +1742,10 @@
                             localStorage.setItem('paymentLimits', JSON.stringify(limits));
                             renderSettings(); 
                             renderPaymentDropdown();
+                        }
+                        if(updatedCatLimits) {
+                            localStorage.setItem('categoryLimits', JSON.stringify(loadedCatLimits));
+                            renderCategorySettings();
                         }
                     }
                 } 
@@ -2264,6 +2339,7 @@
             
             myOverallCategoryChart = renderDoughnutChart('overallCategoryChart', myOverallCategoryChart, categoryStats);
             
+            const catLimits = getCategoryLimits();
             const overallListContainer = document.getElementById('category-dashboard-list'); 
             if(overallListContainer) { 
                 overallListContainer.innerHTML = ''; 
@@ -2274,17 +2350,50 @@
                     const percent = overallTotal > 0 ? ((item.val / overallTotal) * 100).toFixed(1) : 0;
                     const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
                     
-                    const div = document.createElement('div'); 
-                    div.className = "flex justify-between items-center text-xs px-2 py-3 border-b border-gray-50 last:border-0"; 
-                    div.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
-                            <div class="flex items-baseline gap-1.5">
-                                <span class="font-bold text-gray-700 tracking-wide">${item.label}</span>
-                                <span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span>
+                    const limit = catLimits[item.label] || 0;
+                    let progressHtml = '';
+                    
+                    if (limit > 0) {
+                        let catPercent = (item.val / limit) * 100;
+                        let barColor = globalColorsMap[item.label] || '#94a3b8';
+                        let warningText = '';
+                        
+                        if (catPercent >= 100) {
+                            catPercent = 100;
+                            barColor = '#ef4444'; // Red
+                            warningText = `<span class="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded shadow-sm border border-rose-100">OVER BUDGET</span>`;
+                        } else if (catPercent >= 80) {
+                            barColor = '#F4A261'; // Orange
+                            warningText = `<span class="text-[8px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded shadow-sm border border-amber-100">NEAR LIMIT</span>`;
+                        }
+                        
+                        progressHtml = `
+                            <div class="w-full mt-2.5">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[9px] font-bold text-slate-400">Budget: ${limit.toLocaleString()} JPY</span>
+                                    ${warningText}
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-1000 ease-out" style="width: ${catPercent}%; background-color: ${barColor}"></div>
+                                </div>
                             </div>
+                        `;
+                    }
+                    
+                    const div = document.createElement('div'); 
+                    div.className = "flex flex-col text-xs px-2 py-3 border-b border-gray-50 last:border-0"; 
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center w-full">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="font-bold text-gray-700 tracking-wide">${item.label}</span>
+                                    <span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span>
+                                </div>
+                            </div>
+                            <span class="font-black ${limit > 0 && item.val >= limit ? 'text-rose-500' : 'text-gray-900'}">${item.val.toLocaleString()} JPY</span>
                         </div>
-                        <span class="font-black text-gray-900">${item.val.toLocaleString()} JPY</span>
+                        ${progressHtml}
                     `; 
                     overallListContainer.appendChild(div); 
                 }); 

@@ -231,10 +231,6 @@
                     <div id="user-menu" class="hidden absolute top-12 right-0 w-40 modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)] flex-col space-y-1">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1">Select Profile</p>
                         <div id="user-list-container" class="space-y-1"></div>
-                        <div class="border-t border-slate-100 my-1"></div>
-                        <button onclick="switchPage('settings'); toggleDropdown('user-menu');" class="w-full text-left px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#D9383A] hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-2">
-                            <i class="fas fa-users-cog w-4 text-center"></i> Manage Users
-                        </button>
                     </div>
                 </div>
 
@@ -251,7 +247,7 @@
                 <ul class="flex flex-col space-y-1">
                     <li>
                         <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-cog w-4 text-slate-400"></i> Payment Limits
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Settings & Limits
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
@@ -490,7 +486,7 @@
         <!-- PAGE 3: SETTINGS (Payment Limits & Members) -->
         <div id="page-settings" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
-                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Payment Limits</h2>
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Settings & Limits</h2>
                 <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
                     <i class="fas fa-times text-sm"></i>
                 </button>
@@ -506,8 +502,12 @@
                     <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
                 </div>
-                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อผู้ร่วมทริป คั่นด้วยเครื่องหมายจุลภาค (,)</p>
-                <input type="text" id="settings-members" class="w-full bg-slate-50 p-3.5 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. Thida, Oh, John">
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อแล้วกดปุ่ม + เพื่อเพิ่มสมาชิกในทริป</p>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="new-member-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. John" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addMemberSettings(); }">
+                    <button type="button" onclick="addMemberSettings()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
             </div>
 
             <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
@@ -726,10 +726,8 @@
             renderUserMenu();
             updateUserAvatar();
             
-            // Set input value in settings
-            const membersInput = document.getElementById('settings-members');
-            if (membersInput) {
-                membersInput.value = tripMembers.join(', ');
+            if (typeof renderMembersSettings === 'function') {
+                renderMembersSettings();
             }
         }
 
@@ -881,6 +879,10 @@
                 parsedLimits['JCB : Oh'] = parsedLimits['JCB Oh'];
                 delete parsedLimits['JCB Oh'];
             }
+            // Ensure Travel Card exists
+            if (parsedLimits['Travel Card'] === undefined) {
+                parsedLimits['Travel Card'] = 0;
+            }
             
             return { ...defaultLimits, ...parsedLimits };
         }
@@ -902,20 +904,12 @@
             });
             
             // Save Team Members
-            let newMembersString = "Thida, Oh"; // default
-            const membersInput = document.getElementById('settings-members');
-            if (membersInput) {
-                const rawVal = membersInput.value;
-                const newMembers = rawVal.split(',').map(s => s.trim()).filter(s => s !== '');
-                
-                if (newMembers.length > 0) {
-                    newMembersString = newMembers.join(', ');
-                } else {
-                    showToast("Please enter at least one member.", true);
-                    btn.disabled = false;
-                    btn.innerHTML = 'บันทึกการตั้งค่า';
-                    return;
-                }
+            let newMembersString = tripMembers.join(', ');
+            if (tripMembers.length === 0) {
+                showToast("กรุณาเพิ่มสมาชิกอย่างน้อย 1 คน", true);
+                btn.disabled = false;
+                btn.innerHTML = 'บันทึกการตั้งค่า';
+                return;
             }
 
             // เตรียมข้อมูลส่งไปที่ Server
@@ -978,6 +972,45 @@
                 `;
                 container.appendChild(div);
             });
+        }
+
+        function renderMembersSettings() {
+            const container = document.getElementById('members-chip-container');
+            if(!container) return;
+            container.innerHTML = '';
+            tripMembers.forEach((name, index) => {
+                const chip = document.createElement('div');
+                chip.className = "flex items-center gap-1.5 bg-white border border-[#EAE6DF] px-2.5 py-1.5 rounded-[10px] shadow-sm";
+                const style = getAvatarStyle(name);
+                chip.innerHTML = `
+                    <div class="w-4 h-4 rounded-full ${style.bg} ${style.text} flex items-center justify-center text-[8px] font-black">${name.charAt(0).toUpperCase()}</div>
+                    <span class="text-[11px] font-bold text-slate-700">${name}</span>
+                    <button type="button" onclick="removeMemberSettings(${index})" class="text-slate-300 hover:text-rose-500 ml-0.5 transition-colors focus:outline-none"><i class="fas fa-times text-[10px]"></i></button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        function addMemberSettings() {
+            const input = document.getElementById('new-member-input');
+            if(!input) return;
+            const val = input.value.trim();
+            if(val && !tripMembers.includes(val)) {
+                tripMembers.push(val);
+                input.value = '';
+                renderMembersSettings();
+            } else if (tripMembers.includes(val)) {
+                showToast("มีชื่อนี้อยู่แล้ว", true);
+            }
+        }
+
+        function removeMemberSettings(index) {
+            if(tripMembers.length <= 1) {
+                showToast("ต้องมีสมาชิกอย่างน้อย 1 คน", true);
+                return;
+            }
+            tripMembers.splice(index, 1);
+            renderMembersSettings();
         }
 
         // Attachment Modal Controls
@@ -1220,8 +1253,7 @@
                         if(res.settings.members) {
                             tripMembers = res.settings.members.split(',').map(s => s.trim());
                             localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
-                            const membersInput = document.getElementById('settings-members');
-                            if (membersInput) membersInput.value = res.settings.members;
+                            if (typeof renderMembersSettings === 'function') renderMembersSettings();
                             
                             if (!tripMembers.includes(currentUser)) {
                                 setCurrentUser(tripMembers[0] || 'USER');

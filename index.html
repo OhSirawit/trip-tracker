@@ -222,6 +222,22 @@
             </div>
             
             <div class="flex items-center gap-2.5 relative z-10">
+                <!-- User Profile Selector -->
+                <div class="relative">
+                    <button onclick="toggleDropdown('user-menu')" class="w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#EAE6DF] focus:outline-none transition-colors hover:border-[#D9383A]">
+                        <div id="user-avatar" class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-black text-[12px] flex items-center justify-center shadow-sm">U</div>
+                    </button>
+                    <!-- User Dropdown Menu -->
+                    <div id="user-menu" class="hidden absolute top-12 right-0 w-40 modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)] flex-col space-y-1">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1">Select Profile</p>
+                        <div id="user-list-container" class="space-y-1"></div>
+                        <div class="border-t border-slate-100 my-1"></div>
+                        <button onclick="switchPage('settings'); toggleDropdown('user-menu');" class="w-full text-left px-3 py-2 text-xs font-bold text-slate-500 hover:text-[#D9383A] hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fas fa-users-cog w-4 text-center"></i> Manage Users
+                        </button>
+                    </div>
+                </div>
+
                 <button onclick="toggleDarkMode()" class="text-slate-500 hover:text-[#D9383A] transition-colors w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#EAE6DF] focus:outline-none">
                     <i id="theme-icon" class="fas fa-moon"></i>
                 </button>
@@ -471,7 +487,7 @@
             <div id="history-list" class="space-y-3"></div>
         </div>
         
-        <!-- PAGE 3: SETTINGS (Payment Limits) -->
+        <!-- PAGE 3: SETTINGS (Payment Limits & Members) -->
         <div id="page-settings" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wide">Payment Limits</h2>
@@ -481,10 +497,20 @@
             </div>
             
             <div class="modern-card p-5 bg-white">
-                <p class="text-xs font-medium text-slate-500 mb-5">ตั้งค่างบประมาณและวงเงินสำหรับแต่ละช่องทางการจ่ายเงิน (JPY)</p>
+                <p class="text-[11px] font-bold text-[#D9383A] mb-4 flex items-center gap-1.5"><i class="fas fa-wallet"></i> Budget & Cards (JPY)</p>
                 <div id="settings-limits-container" class="space-y-3"></div>
-                <button onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
             </div>
+
+            <div class="modern-card p-5 bg-white">
+                <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อผู้ร่วมทริป คั่นด้วยเครื่องหมายจุลภาค (,)</p>
+                <input type="text" id="settings-members" class="w-full bg-slate-50 p-3.5 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. Thida, Oh, John">
+            </div>
+
+            <button onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
         </div>
 
         <!-- PAGE 4: TAX REFUND -->
@@ -556,7 +582,10 @@
             </div>
 
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Payment</h3>
-            <div id="payment-summary-container" class="grid grid-cols-2 gap-3"></div>
+            <div id="payment-summary-container" class="grid grid-cols-2 gap-3 mb-4"></div>
+
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Member</h3>
+            <div id="user-summary-container" class="grid grid-cols-2 gap-3 mb-4"></div>
 
             <!-- 2. Daily Trend Chart -->
             <div class="modern-card p-6 bg-white mt-4">
@@ -636,7 +665,19 @@
         let oldReceiptUrl = "";
         let currentJpyToThbRate = 0; 
         
-        // Updated Default Payment Methods array
+        // User Profile State
+        let tripMembers = [];
+        try {
+            tripMembers = JSON.parse(localStorage.getItem('tripMembers'));
+            if (!Array.isArray(tripMembers) || tripMembers.length === 0) {
+                tripMembers = ['Thida', 'Oh']; // Default
+            }
+        } catch(e) {
+            tripMembers = ['Thida', 'Oh'];
+        }
+
+        let currentUser = localStorage.getItem('tripUser');
+        
         const defaultPaymentMethods = ['Cash', 'JCB : Thida', 'JCB : Oh', 'Travel Card', 'IC Card', 'QR Payment'];
         
         // Japanese Themed Color Palette for Charts
@@ -655,6 +696,76 @@
         
         let receiptBase64 = null;
         let receiptName = null;
+
+        // Dynamic Avatar Color Generator
+        function getAvatarStyle(name) {
+            const safeName = name ? name.toString().trim() : 'User';
+            const colors = [
+                {bg: 'bg-indigo-100', text: 'text-indigo-600'},
+                {bg: 'bg-emerald-100', text: 'text-emerald-600'},
+                {bg: 'bg-rose-100', text: 'text-rose-600'},
+                {bg: 'bg-amber-100', text: 'text-amber-600'},
+                {bg: 'bg-cyan-100', text: 'text-cyan-600'},
+                {bg: 'bg-fuchsia-100', text: 'text-fuchsia-600'},
+                {bg: 'bg-blue-100', text: 'text-blue-600'},
+                {bg: 'bg-orange-100', text: 'text-orange-600'}
+            ];
+            let hash = 0;
+            for (let i = 0; i < safeName.length; i++) {
+                hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // User Profile Functions
+        function initUser() {
+            if (!currentUser || !tripMembers.includes(currentUser)) {
+                currentUser = tripMembers[0] || 'User';
+                localStorage.setItem('tripUser', currentUser);
+            }
+            renderUserMenu();
+            updateUserAvatar();
+            
+            // Set input value in settings
+            const membersInput = document.getElementById('settings-members');
+            if (membersInput) {
+                membersInput.value = tripMembers.join(', ');
+            }
+        }
+
+        function setCurrentUser(name) {
+            currentUser = name;
+            localStorage.setItem('tripUser', name);
+            updateUserAvatar();
+            toggleDropdown('user-menu');
+            showToast("Profile switched to " + name);
+        }
+
+        function renderUserMenu() {
+            const container = document.getElementById('user-list-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            tripMembers.forEach(name => {
+                const style = getAvatarStyle(name);
+                const initial = name.charAt(0).toUpperCase();
+                
+                const btn = document.createElement('button');
+                btn.onclick = () => setCurrentUser(name);
+                btn.className = "w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-2";
+                btn.innerHTML = `<div class="w-5 h-5 rounded-full ${style.bg} ${style.text} flex items-center justify-center text-[10px] font-black">${initial}</div> <span class="truncate">${name}</span>`;
+                container.appendChild(btn);
+            });
+        }
+
+        function updateUserAvatar() {
+            const avatar = document.getElementById('user-avatar');
+            if(avatar) {
+                avatar.innerText = currentUser.charAt(0).toUpperCase();
+                const style = getAvatarStyle(currentUser);
+                avatar.className = `w-7 h-7 rounded-full ${style.bg} ${style.text} font-black text-[12px] flex items-center justify-center shadow-sm`;
+            }
+        }
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -748,7 +859,6 @@
             }
         }
 
-        // Updated Default Limits
         const defaultLimits = {
             'Cash': 150000,
             'JCB : Thida': 0,
@@ -762,7 +872,7 @@
             const stored = localStorage.getItem('paymentLimits');
             let parsedLimits = stored ? JSON.parse(stored) : {};
             
-            // Migrate old keys to new keys if they exist in localStorage
+            // Migrate old keys to new keys
             if (parsedLimits['JCB Thida'] !== undefined) {
                 parsedLimits['JCB : Thida'] = parsedLimits['JCB Thida'];
                 delete parsedLimits['JCB Thida'];
@@ -776,6 +886,7 @@
         }
 
         function saveSettings() {
+            // Save Payment Limits
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
                 const input = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
@@ -784,6 +895,30 @@
                 }
             });
             localStorage.setItem('paymentLimits', JSON.stringify(limits));
+            
+            // Save Team Members
+            const membersInput = document.getElementById('settings-members');
+            if (membersInput) {
+                const rawVal = membersInput.value;
+                const newMembers = rawVal.split(',').map(s => s.trim()).filter(s => s !== '');
+                
+                if (newMembers.length > 0) {
+                    tripMembers = newMembers;
+                    localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
+                    
+                    // If current user was removed, default to the first one
+                    if (!tripMembers.includes(currentUser)) {
+                        setCurrentUser(tripMembers[0]);
+                    } else {
+                        renderUserMenu();
+                        updateUserAvatar();
+                    }
+                } else {
+                    showToast("Please enter at least one member.", true);
+                    return;
+                }
+            }
+
             showToast("Settings saved successfully!");
             updateUI();
             switchPage('home');
@@ -797,10 +932,10 @@
             
             Object.keys(limits).forEach(key => {
                 const div = document.createElement('div');
-                div.className = "space-y-1.5 bg-slate-50 p-3.5 rounded-[12px] border border-slate-100/50";
+                div.className = "space-y-1 bg-slate-50 p-3 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-3";
                 div.innerHTML = `
-                    <label class="text-[11px] font-bold text-slate-500">${key}</label>
-                    <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full bg-white p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
+                    <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap min-w-[80px]">${key}</label>
+                    <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-full max-w-[150px] bg-white p-2.5 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors" placeholder="0">
                 `;
                 container.appendChild(div);
             });
@@ -913,6 +1048,7 @@
                 document.getElementById('trip-detail-header').value = savedDetail;
             }
 
+            initUser();
             fetchExchangeRate(); 
             renderQuickTags(); 
             renderSettings();
@@ -966,6 +1102,13 @@
                 if (menu.classList.contains('active') && !menu.contains(event.target) && !menuBtn.contains(event.target)) {
                     menu.classList.remove('active');
                 }
+            }
+
+            const userMenu = document.getElementById('user-menu');
+            const avatarBtn = document.getElementById('user-avatar').parentElement;
+            if (userMenu && !userMenu.classList.contains('hidden') && !userMenu.contains(event.target) && !avatarBtn.contains(event.target)) {
+                userMenu.classList.add('hidden');
+                userMenu.classList.remove('flex');
             }
         });
 
@@ -1254,16 +1397,17 @@
             const list = document.getElementById('history-list');
             const stats = document.getElementById('stats-container');
             const pSum = document.getElementById('payment-summary-container');
+            const uSum = document.getElementById('user-summary-container');
             const taxList = document.getElementById('taxrefund-list');
             
             if(list) list.innerHTML = ''; 
             if(stats) stats.innerHTML = ''; 
             if(pSum) pSum.innerHTML = ''; 
+            if(uSum) uSum.innerHTML = '';
             if(taxList) taxList.innerHTML = '';
             
             let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
             const daily = {}; 
-            // Updated to handle both colon format and default methods
             const payStats = { 'Cash': 0, 'JCB : Thida': 0, 'JCB : Oh': 0, 'Travel Card': 0, 'IC Card': 0, 'QR Payment': 0 }; 
             const userStats = {};
             
@@ -1275,7 +1419,8 @@
                     item.category.toLowerCase().includes(searchTerm) || 
                     item.details.toLowerCase().includes(searchTerm) || 
                     item.payment.toLowerCase().includes(searchTerm) || 
-                    item.amount.toString().includes(searchTerm)
+                    item.amount.toString().includes(searchTerm) ||
+                    item.username.toLowerCase().includes(searchTerm)
                 );
             });
 
@@ -1351,12 +1496,11 @@
                     }
                 }
                 
-                let uKey = item.username.toUpperCase(); 
+                let uKey = item.username ? item.username.toUpperCase() : 'USER'; 
                 if (!userStats[uKey]) userStats[uKey] = 0; 
                 userStats[uKey] += impact;
 
                 let pKey = item.payment; 
-                // Mapping old DB names to new formatted names
                 if (pKey === "QR Code") pKey = "QR Payment"; 
                 if (pKey === "JCB Card-Thida" || pKey === "JCB Thida" || pKey === "JCB : Thida") pKey = "JCB : Thida";
                 if (pKey === "JCB Card-OHSirawit" || pKey === "JCB Oh" || pKey === "JCB : Oh") pKey = "JCB : Oh";
@@ -1398,8 +1542,13 @@
                     badgeHtml += `<span class="text-[8px] font-bold bg-[#1C2536] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `;
                 }
                 if(item.isTaxFree) {
-                    badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>`;
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span> `;
                 }
+                
+                // User Badge in History (Dynamic Color)
+                let userInitial = item.username ? item.username.charAt(0).toUpperCase() : 'U';
+                let uStyle = getAvatarStyle(item.username || 'USER');
+                badgeHtml += `<span class="text-[8px] font-bold ${uStyle.bg} ${uStyle.text} px-1.5 py-0.5 rounded shadow-sm tracking-wider whitespace-nowrap flex items-center gap-1"><i class="fas fa-user text-[7px]"></i> ${item.username || 'USER'}</span>`;
 
                 if(list) {
                     const div = document.createElement('div'); 
@@ -1509,6 +1658,42 @@
                         `; 
                         pSum.appendChild(payDiv); 
                     } 
+                });
+            }
+
+            if(uSum) {
+                // Ensure active members are shown even if 0
+                const activeUserStats = {};
+                tripMembers.forEach(m => activeUserStats[m.toUpperCase()] = 0);
+                
+                // Merge with actual stats
+                Object.keys(userStats).forEach(u => {
+                    if (activeUserStats[u] !== undefined) {
+                        activeUserStats[u] = userStats[u];
+                    } else {
+                        activeUserStats[u] = userStats[u]; 
+                    }
+                });
+
+                Object.entries(activeUserStats).forEach(([user, total]) => {
+                    if (total !== 0 || tripMembers.map(m=>m.toUpperCase()).includes(user)) {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = "modern-card p-4 flex items-center gap-3 bg-white border border-[#EAE6DF] shadow-sm";
+                        let initial = user ? user.charAt(0).toUpperCase() : 'U';
+                        
+                        // Find original casing for color generator if possible
+                        let originalName = tripMembers.find(m => m.toUpperCase() === user) || user;
+                        let style = getAvatarStyle(originalName);
+
+                        userDiv.innerHTML = `
+                            <div class="w-10 h-10 rounded-full flex-shrink-0 ${style.bg} ${style.text} flex items-center justify-center font-black text-[15px] shadow-sm">${initial}</div>
+                            <div class="min-w-0">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">${originalName}</p>
+                                <p class="text-[15px] font-black text-slate-800 leading-none mt-0.5">${total.toLocaleString()} <span class="text-[10px]">JPY</span></p>
+                            </div>
+                        `;
+                        uSum.appendChild(userDiv);
+                    }
                 });
             }
             
@@ -1733,7 +1918,7 @@
                 location: loc, 
                 receiptBase64: receiptBase64, 
                 receiptName: receiptName,
-                username: 'USER', // By-pass login user
+                username: currentUser, 
                 rate: currentJpyToThbRate,
                 isShared: document.getElementById('is-shared').checked,
                 isTaxFree: document.getElementById('is-taxfree').checked

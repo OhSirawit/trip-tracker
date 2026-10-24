@@ -16,6 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
@@ -267,9 +268,9 @@
                 <!-- QR Section -->
                 <div id="qr-section" class="hidden flex-col items-center justify-center bg-[#F8FAFC] p-4 rounded-xl border border-[#EAE6DF]">
                     <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-2"><i class="fas fa-qrcode"></i> Thai QR Payment</p>
-                    <img id="promptpay-qr" src="" alt="PromptPay QR" class="w-48 h-48 rounded-lg shadow-sm bg-white p-2" crossorigin="anonymous">
+                    <div id="promptpay-qr" class="w-48 h-48 rounded-lg shadow-sm bg-white p-2 flex items-center justify-center"></div>
                     <p id="qr-amount-text" class="text-sm font-black text-slate-800 mt-2"></p>
-                    <p class="text-[9px] text-slate-500 mt-1 text-center">สแกน QR Code เพื่อชำระเงิน</p>
+                    <p class="text-[9px] text-slate-500 mt-1 text-center">แคปหน้าจอนี้ส่งให้เพื่อนสแกนจ่ายได้เลย</p>
                 </div>
                 
                 <button id="btn-save-bill-img" onclick="downloadBillImage()" class="w-full bg-[#1C2536] text-white py-3.5 rounded-[14px] text-[13px] font-bold flex justify-center items-center gap-2 shadow-md hover:bg-[#0f172a] transition-colors"><i class="fas fa-download"></i> Save as Image</button>
@@ -1658,6 +1659,42 @@
             if (document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
             if (document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
         }
+
+        // ฟังก์ชันคำนวณรหัส CRC16 สำหรับพร้อมเพย์
+        function crc16(s) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < s.length; i++) {
+                crc ^= (s.charCodeAt(i) << 8);
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+                    else crc = crc << 1;
+                }
+            }
+            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        // ฟังก์ชันสร้างชุดข้อความ PromptPay
+        function generatePromptPayString(id, amount) {
+            let target = id;
+            let targetType = "02"; 
+            if (id.length === 10) { targetType = "01"; target = "0066" + id.substring(1); } 
+            else if (id.length === 13) { targetType = "02"; } 
+            else if (id.length === 15) { targetType = "03"; }
+
+            let aid = "0016A000000677010111";
+            let subTarget = targetType + target.length.toString().padStart(2, '0') + target;
+            let merchantInfo = aid + subTarget;
+            let merchantAccount = "29" + merchantInfo.length.toString().padStart(2, '0') + merchantInfo;
+            
+            let currency = "5303764";
+            let country = "5802TH";
+            
+            let amountStr = parseFloat(amount).toFixed(2);
+            let amountField = amount > 0 ? "54" + amountStr.length.toString().padStart(2, '0') + amountStr : "";
+            
+            let payload = "000201010212" + merchantAccount + currency + amountField + country + "6304";
+            return payload + crc16(payload);
+        }
         
         async function copyLineBill(friendName) {
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
@@ -1703,21 +1740,32 @@
             document.getElementById('bill-friend-name').innerText = friendName;
             document.getElementById('bill-text-area').value = text;
             
-            // สร้าง QR Code พร้อมเพย์
+            // สร้าง QR Code พร้อมเพย์ด้วยระบบ Local
             const ppNumberRaw = document.getElementById('omiyage-promptpay') ? document.getElementById('omiyage-promptpay').value : '';
             const ppNumber = ppNumberRaw.replace(/[^0-9]/g, ''); // ดึงเฉพาะตัวเลข
             
             const qrSection = document.getElementById('qr-section');
-            const qrImg = document.getElementById('promptpay-qr');
+            const qrContainer = document.getElementById('promptpay-qr');
+            qrContainer.innerHTML = ''; // ล้างรูป QR เดิม
             
             if (ppNumber && ppNumber.length >= 10 && amountThbForQR > 0) {
-                // ใช้ promptpay.io API ในการ Gen รูป QR Code (รองรับเบอร์ 10 หลัก หรือ บัตรปชช 13 หลัก)
-                qrImg.src = `https://promptpay.io/${ppNumber}/${amountThbForQR}.png`;
+                // สร้างโค้ด PromptPay Payload
+                const payloadStr = generatePromptPayString(ppNumber, amountThbForQR);
+                
+                // วาด QR Code ลงในหน้าจอทันที (ไม่พึ่งเน็ต)
+                new QRCode(qrContainer, {
+                    text: payloadStr,
+                    width: 176,
+                    height: 176,
+                    colorDark : "#1C2536",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+                
                 document.getElementById('qr-amount-text').innerText = `ยอดโอน: ${parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
                 qrSection.classList.remove('hidden');
                 qrSection.classList.add('flex');
             } else {
-                qrImg.src = '';
                 qrSection.classList.add('hidden');
                 qrSection.classList.remove('flex');
             }

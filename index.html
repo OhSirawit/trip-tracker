@@ -1623,9 +1623,9 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังบันทึก...';
 
             const payload = {};
-            payload['OmiyageBank_' + currentUser] = bank;
-            payload['OmiyagePromptpay_' + currentUser] = promptpay;
-            payload['OmiyageMarkup_' + currentUser] = markup;
+            payload['omiyageBank_' + currentUser] = bank;
+            payload['omiyagePromptpay_' + currentUser] = promptpay;
+            payload['omiyageMarkup_' + currentUser] = markup;
 
             try {
                 const res = await fetch(API_URL, {
@@ -2142,9 +2142,10 @@
                                 const catName = key.replace('CatLimit_', '');
                                 loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0;
                                 updatedCatLimits = true;
-                            } else if (key.startsWith('Omiyage')) {
-                                // Save online omiyage settings to local storage to sync across devices
-                                localStorage.setItem(key, res.settings[key]);
+                            } else if (key.toLowerCase().startsWith('omiyage')) {
+                                // แปลงตัวหน้าเป็นพิมพ์เล็กเสมอ (omiyageBank) เพื่อให้ตรงกับ LocalStorage ตอนอ่านข้อมูล
+                                const localKey = key.charAt(0).toLowerCase() + key.slice(1);
+                                localStorage.setItem(localKey, res.settings[key]);
                             } else {
                                 limits[key] = parseFloat(res.settings[key]) || 0;
                                 updatedLimits = true;

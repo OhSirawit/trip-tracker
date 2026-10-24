@@ -481,10 +481,11 @@
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div class="relative">
-                            <div id="receipt-label" onclick="showToast('ปิดการแนบรูปภาพเพื่อความเสถียร')" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-slate-50 rounded-[14px] cursor-not-allowed opacity-60">
+                            <input type="file" id="receipt" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
+                            <label for="receipt" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors">
                                 <i class="fas fa-image text-slate-400 text-sm"></i>
-                                <span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">แนบรูปไม่ได้</span>
-                            </div>
+                                <span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>
+                            </label>
                         </div>
                         <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
                             <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#1C2536] rounded cursor-pointer">
@@ -863,6 +864,29 @@
         
         let receiptBase64 = null;
         let receiptName = null;
+
+        function handleReceiptUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // ป้องกันไฟล์ขนาดใหญ่เกินไป (จำกัดที่ 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('ไฟล์ภาพใหญ่เกินไป (จำกัด 5MB)', true);
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                receiptBase64 = e.target.result;
+                receiptName = file.name;
+                
+                const label = document.getElementById('receipt-label');
+                label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
+                label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">${receiptName}</span>`;
+            };
+            reader.readAsDataURL(file);
+        }
 
         // Custom Confirm Modal Functions
         function showConfirmModal(title, message, callback) {
@@ -2429,6 +2453,13 @@
             receiptBase64 = null;
             receiptName = null;
             
+            if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+            const receiptLabel = document.getElementById('receipt-label');
+            if(receiptLabel) {
+                receiptLabel.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors';
+                receiptLabel.innerHTML = `<i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>`;
+            }
+            
             renderQuickTags();
         }
 
@@ -3010,6 +3041,13 @@
                         
                         receiptBase64 = null; 
                         receiptName = null; 
+                        
+                        if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+                        const receiptLabel = document.getElementById('receipt-label');
+                        if(receiptLabel) {
+                            receiptLabel.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors';
+                            receiptLabel.innerHTML = `<i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>`;
+                        }
                         
                         loadDataFromSheet(); 
                     } else { 

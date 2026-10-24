@@ -596,8 +596,8 @@
                         <input type="text" id="omiyage-bank" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="เช่น 081-234-5678 (KBank)" oninput="saveOmiyageSettings()">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เรทชาร์จเพิ่ม (บวกเพิ่มจากเรทจริง เช่น 0.1 หรือ 0.05)</label>
-                        <input type="number" step="0.001" id="omiyage-markup" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="0.1" value="0.1" oninput="saveOmiyageSettings(); renderPreOrderList();">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เรทชาร์จเพิ่ม (บวกเพิ่มจากเรทจริง เช่น 0.01 หรือ 0.05)</label>
+                        <input type="number" step="0.001" id="omiyage-markup" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="0.01" value="0.01" oninput="saveOmiyageSettings(); renderPreOrderList();">
                     </div>
                 </div>
             </div>
@@ -1569,7 +1569,7 @@
             });
 
             if(totalJpy > 0) {
-                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.1';
+                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01';
                 let markup = parseFloat(markupStr);
                 if (isNaN(markup)) markup = 0;
                 let appliedRate = currentJpyToThbRate + markup;
@@ -1631,7 +1631,7 @@
                 
                 let thbEquivalent = '';
                 
-                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.1';
+                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01';
                 let markup = parseFloat(markupStr);
                 if (isNaN(markup)) markup = 0;
                 let appliedRate = currentJpyToThbRate + markup;

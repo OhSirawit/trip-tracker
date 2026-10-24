@@ -869,21 +869,41 @@
             const file = event.target.files[0];
             if (!file) return;
             
-            // ป้องกันไฟล์ขนาดใหญ่เกินไป (จำกัดที่ 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('ไฟล์ภาพใหญ่เกินไป (จำกัด 5MB)', true);
-                event.target.value = '';
-                return;
-            }
+            const label = document.getElementById('receipt-label');
+            // เปลี่ยนหน้าตาปุ่มตอนกำลังบีบอัดรูปภาพ
+            label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-wait transition-colors';
+            label.innerHTML = `<i class="fas fa-circle-notch fa-spin text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold">Processing...</span>`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                receiptBase64 = e.target.result;
-                receiptName = file.name;
-                
-                const label = document.getElementById('receipt-label');
-                label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
-                label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">${receiptName}</span>`;
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_DIMENSION = 1200; // บีบอัดให้กว้าง/ยาวไม่เกิน 1200px ให้ภาพยังชัดแต่ไฟล์เล็ก
+
+                    if (width > height && width > MAX_DIMENSION) {
+                        height *= MAX_DIMENSION / width;
+                        width = MAX_DIMENSION;
+                    } else if (height > MAX_DIMENSION) {
+                        width *= MAX_DIMENSION / height;
+                        height = MAX_DIMENSION;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // แปลงเป็น JPG คุณภาพ 70% (จากรูป 5MB จะเหลือแค่หลักสิบ-ร้อย KB โหลดไวมาก)
+                    receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    receiptName = "receipt_" + Date.now() + ".jpg";
+                    
+                    label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
+                    label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>`;
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }

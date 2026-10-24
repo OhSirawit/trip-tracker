@@ -627,7 +627,7 @@
             <!-- Billing Settings -->
             <div class="modern-card p-4 bg-white">
                 <div class="flex justify-between items-center cursor-pointer" onclick="toggleDropdown('omiyage-settings')">
-                    <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest"><i class="fas fa-cog"></i> Billing Settings (ตั้งค่าบิล)</p>
+                    <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest"><i class="fas fa-cog"></i> BILLING SETTINGS (ตั้งค่าบิล)</p>
                     <i class="fas fa-chevron-down text-slate-400 text-[10px] transition-transform" id="icon-omiyage-settings"></i>
                 </div>
                 <div id="omiyage-settings" class="hidden flex-col gap-3 mt-3 pt-3 border-t border-slate-100">
@@ -1590,9 +1590,9 @@
             const promptpay = document.getElementById('omiyage-promptpay').value;
             const markup = document.getElementById('omiyage-markup').value;
             
-            localStorage.setItem('omiyageBank_' + currentUser, bank);
-            localStorage.setItem('omiyagePromptpay_' + currentUser, promptpay);
-            localStorage.setItem('omiyageMarkup_' + currentUser, markup);
+            localStorage.setItem('OmiyageBank_' + currentUser, bank);
+            localStorage.setItem('OmiyagePromptpay_' + currentUser, promptpay);
+            localStorage.setItem('OmiyageMarkup_' + currentUser, markup);
 
             const btn = document.getElementById('btn-save-omiyage');
             const originalText = btn.innerHTML;
@@ -1600,9 +1600,9 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังบันทึก...';
 
             const payload = {};
-            payload['omiyageBank_' + currentUser] = bank;
-            payload['omiyagePromptpay_' + currentUser] = promptpay;
-            payload['omiyageMarkup_' + currentUser] = markup;
+            payload['OmiyageBank_' + currentUser] = bank;
+            payload['OmiyagePromptpay_' + currentUser] = promptpay;
+            payload['OmiyageMarkup_' + currentUser] = markup;
 
             try {
                 const res = await fetch(API_URL, {
@@ -1627,9 +1627,9 @@
 
         function loadOmiyageSettings() {
             if (!currentUser) return;
-            const savedBank = localStorage.getItem('omiyageBank_' + currentUser) || '';
-            const savedPromptpay = localStorage.getItem('omiyagePromptpay_' + currentUser) || '';
-            const savedMarkup = localStorage.getItem('omiyageMarkup_' + currentUser) || '0.01';
+            const savedBank = localStorage.getItem('OmiyageBank_' + currentUser) || '';
+            const savedPromptpay = localStorage.getItem('OmiyagePromptpay_' + currentUser) || '';
+            const savedMarkup = localStorage.getItem('OmiyageMarkup_' + currentUser) || '0.01';
             
             if (document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
             if (document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
@@ -1745,7 +1745,6 @@
             qrContainer.innerHTML = ''; 
             
             if (currentQRPhone && currentQRPhone.length >= 10 && currentQRAmount > 0) {
-                // ถ้าระบุยอด ให้ใส่ยอดเงิน ถ้าไม่ระบุ ให้ยอดเป็น 0 (API จะไม่ใส่ยอดใน QR)
                 const amountToEncode = includeAmount ? parseFloat(currentQRAmount) : 0;
                 const payloadStr = generatePromptPayString(currentQRPhone, amountToEncode);
                 
@@ -1813,19 +1812,17 @@
             const modalContent = document.getElementById('bill-modal-content');
             const scrollContainer = modalContent.querySelector('.overflow-y-auto');
             
-            // --- สร้าง div ปลอมเพื่อแก้ปัญหา html2canvas อ่านบรรทัดใหม่ใน textarea ไม่ออก ---
             const fakeDiv = document.createElement('div');
-            fakeDiv.className = ta.className; // ก็อปปี้ style มาทั้งหมด
-            fakeDiv.style.height = 'auto'; // ขยายตามเนื้อหาอัตโนมัติ
+            fakeDiv.className = ta.className; 
+            fakeDiv.style.height = 'auto'; 
             fakeDiv.style.minHeight = Math.max(ta.scrollHeight, 150) + 'px';
-            fakeDiv.style.whiteSpace = 'pre-wrap'; // บังคับตัดบรรทัด
+            fakeDiv.style.whiteSpace = 'pre-wrap'; 
             fakeDiv.style.wordWrap = 'break-word';
-            fakeDiv.innerHTML = ta.value.replace(/\n/g, '<br>'); // แปลงโค้ด Enter เป็น tag <br>
+            fakeDiv.innerHTML = ta.value.replace(/\n/g, '<br>'); 
             
             ta.parentNode.insertBefore(fakeDiv, ta); 
             const oldTaDisplay = ta.style.display;
-            ta.style.display = 'none'; // ซ่อน textarea ตัวจริงก่อนถ่ายภาพ
-            // ----------------------------------------------------------------------
+            ta.style.display = 'none'; 
             
             const oldMaxHeight = modalContent.style.maxHeight;
             const oldOverflow = scrollContainer ? scrollContainer.style.overflowY : '';
@@ -1856,9 +1853,8 @@
                 showToast("ไม่สามารถสร้างรูปภาพได้", true);
             }
 
-            // --- คืนค่า UI กลับสู่สภาวะปกติ ---
-            ta.parentNode.removeChild(fakeDiv); // ลบ div ปลอมทิ้ง
-            ta.style.display = oldTaDisplay; // แสดง textarea ตัวจริงกลับมา
+            ta.parentNode.removeChild(fakeDiv); 
+            ta.style.display = oldTaDisplay; 
             
             modalContent.style.maxHeight = oldMaxHeight;
             if (scrollContainer) scrollContainer.style.overflowY = oldOverflow;
@@ -2012,8 +2008,6 @@
             }
 
             initUser();
-            loadOmiyageSettings(); 
-            
             fetchExchangeRate(); 
             renderQuickTags(); 
             renderSettings();
@@ -2142,15 +2136,20 @@
                                 const catName = key.replace('CatLimit_', '');
                                 loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0;
                                 updatedCatLimits = true;
-                            } else if (key.toLowerCase().startsWith('omiyage')) {
-                                const localKey = key.charAt(0).toLowerCase() + key.slice(1);
-                                localStorage.setItem(localKey, res.settings[key]);
+                            } else if (key.startsWith('Omiyage')) {
+                                let omiVal = String(res.settings[key]);
+                                // แก้ปัญหา Google Sheets ตัดเลข 0 ข้างหน้าออก (เบอร์โทรเหลือ 9 หลัก, บัตรปชชเหลือ 12 หลัก)
+                                if (key.includes('Promptpay') && (omiVal.length === 9 || omiVal.length === 12)) {
+                                    omiVal = '0' + omiVal;
+                                }
+                                localStorage.setItem(key, omiVal);
                             } else {
                                 limits[key] = parseFloat(res.settings[key]) || 0;
                                 updatedLimits = true;
                             }
                         });
                         
+                        // Reload Omiyage settings for the current user in case they were updated from online
                         loadOmiyageSettings();
                         
                         Object.keys(limits).forEach(key => {

@@ -351,7 +351,7 @@
                     </li>
                     <li>
                         <button onclick="switchPage('preorder'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
-                            <i class="fas fa-box-open w-4 text-[#457B9D]"></i> Omiyage & Pre-Orders
+                            <i class="fas fa-box-open w-4 text-[#457B9D]"></i> Pre-Orders
                         </button>
                     </li>
                     <div class="border-t border-slate-100 my-1"></div>
@@ -618,7 +618,7 @@
         <!-- PAGE 5: PRE-ORDER (Omiyage Tracker) -->
         <div id="page-preorder" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
-                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Omiyage <br/><span class="text-[14px] text-slate-500">& Pre-Orders</span></h2>
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">Pre-Orders</h2>
                 <button onclick="switchPage('home')" class="text-slate-400 hover:text-[#D9383A] transition-colors w-9 h-9 rounded-full bg-white border border-[#EAE6DF] flex items-center justify-center shadow-sm">
                     <i class="fas fa-times text-sm"></i>
                 </button>
@@ -1693,7 +1693,7 @@
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
             if (friendItems.length === 0) return;
 
-            let text = `📦 Omiyage Summary (To: ${friendName})\n\n`;
+            let text = `📦 Pre-Order Summary (To: ${friendName})\n\n`;
             let totalJpy = 0;
             
             friendItems.forEach(item => {

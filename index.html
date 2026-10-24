@@ -1621,7 +1621,6 @@
                     amountThbForQR = (totalJpy * appliedRate).toFixed(2);
                     const thb = parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     text += `💰 คิดเป็นเงินไทย: ${thb} บาท\n`;
-                    if(markup > 0) text += `   (อิงเรท ${appliedRate.toFixed(4)})\n`;
                 }
                 text += `\nโอนเงินที่บัญชี/พร้อมเพย์:\n`;
                 text += `${bankAccount} (${currentUser || 'ชื่อบัญชี'})\n`;

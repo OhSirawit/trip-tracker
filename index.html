@@ -935,6 +935,7 @@
             localStorage.setItem('tripUser', name);
             updateUserAvatar();
             toggleDropdown('user-menu');
+            loadOmiyageSettings(); // โหลดการตั้งค่าของคนใหม่
             showToast("Profile switched to " + name);
         }
 
@@ -1602,12 +1603,25 @@
         }
 
         function saveOmiyageSettings() {
+            if (!currentUser) return;
             const bank = document.getElementById('omiyage-bank').value;
             const promptpay = document.getElementById('omiyage-promptpay').value;
             const markup = document.getElementById('omiyage-markup').value;
-            localStorage.setItem('omiyageBank', bank);
-            localStorage.setItem('omiyagePromptpay', promptpay);
-            localStorage.setItem('omiyageMarkup', markup);
+            localStorage.setItem('omiyageBank_' + currentUser, bank);
+            localStorage.setItem('omiyagePromptpay_' + currentUser, promptpay);
+            localStorage.setItem('omiyageMarkup_' + currentUser, markup);
+        }
+
+        function loadOmiyageSettings() {
+            if (!currentUser) return;
+            // โหลดข้อมูลโดยอิงจากชื่อ User ปัจจุบัน
+            const savedBank = localStorage.getItem('omiyageBank_' + currentUser) || '';
+            const savedPromptpay = localStorage.getItem('omiyagePromptpay_' + currentUser) || '';
+            const savedMarkup = localStorage.getItem('omiyageMarkup_' + currentUser) || '0.01'; // Default rate
+            
+            if (document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
+            if (document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
+            if (document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
         }
         
         async function copyLineBill(friendName) {
@@ -1847,15 +1861,10 @@
             if(savedDetail) {
                 document.getElementById('trip-detail-header').value = savedDetail;
             }
-            
-            const savedBank = localStorage.getItem('omiyageBank');
-            const savedPromptpay = localStorage.getItem('omiyagePromptpay');
-            const savedMarkup = localStorage.getItem('omiyageMarkup');
-            if (savedBank !== null && document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
-            if (savedPromptpay !== null && document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
-            if (savedMarkup !== null && document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
 
             initUser();
+            loadOmiyageSettings(); // โหลดการตั้งค่า Omiyage แยกตามโปรไฟล์เมื่อเปิดแอป
+            
             fetchExchangeRate(); 
             renderQuickTags(); 
             renderSettings();

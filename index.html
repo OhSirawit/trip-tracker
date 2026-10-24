@@ -480,11 +480,21 @@
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
-                        <div class="relative">
-                            <input type="file" id="receipt" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
-                            <label for="receipt" id="receipt-label" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors">
-                                <i class="fas fa-image text-slate-400 text-sm"></i>
-                                <span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>
+                        <div class="relative w-full" id="receipt-container">
+                            <div id="receipt-buttons" class="flex w-full">
+                                <input type="file" id="receipt-cam" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+                                <label for="receipt-cam" class="flex-1 flex items-center justify-center gap-1.5 py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-l-[14px] cursor-pointer transition-colors">
+                                    <i class="fas fa-camera text-slate-400 text-sm"></i><span class="text-[10px] text-slate-400 font-bold">ถ่ายรูป</span>
+                                </label>
+                                
+                                <input type="file" id="receipt" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
+                                <label for="receipt" class="flex-1 flex items-center justify-center gap-1.5 py-3.5 border-2 border-dashed border-[#EAE6DF] border-l-0 bg-white hover:bg-slate-50 rounded-r-[14px] cursor-pointer transition-colors">
+                                    <i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[10px] text-slate-400 font-bold">อัลบั้ม</span>
+                                </label>
+                            </div>
+                            
+                            <label for="receipt" id="receipt-label" class="hidden flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors">
+                                <i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>
                             </label>
                         </div>
                         <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
@@ -869,7 +879,10 @@
             const file = event.target.files[0];
             if (!file) return;
             
+            document.getElementById('receipt-buttons').classList.add('hidden');
             const label = document.getElementById('receipt-label');
+            label.classList.remove('hidden');
+            
             // เปลี่ยนหน้าตาปุ่มตอนกำลังบีบอัดรูปภาพ
             label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-wait transition-colors';
             label.innerHTML = `<i class="fas fa-circle-notch fa-spin text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold">Processing...</span>`;
@@ -2474,11 +2487,12 @@
             receiptName = null;
             
             if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+            if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
+            
+            const receiptButtons = document.getElementById('receipt-buttons');
             const receiptLabel = document.getElementById('receipt-label');
-            if(receiptLabel) {
-                receiptLabel.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors';
-                receiptLabel.innerHTML = `<i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>`;
-            }
+            if(receiptButtons) receiptButtons.classList.remove('hidden');
+            if(receiptLabel) receiptLabel.classList.add('hidden');
             
             renderQuickTags();
         }
@@ -3063,11 +3077,12 @@
                         receiptName = null; 
                         
                         if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+                        if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
+                        
+                        const receiptButtons = document.getElementById('receipt-buttons');
                         const receiptLabel = document.getElementById('receipt-label');
-                        if(receiptLabel) {
-                            receiptLabel.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors';
-                            receiptLabel.innerHTML = `<i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">Add Receipt</span>`;
-                        }
+                        if(receiptButtons) receiptButtons.classList.remove('hidden');
+                        if(receiptLabel) receiptLabel.classList.add('hidden');
                         
                         loadDataFromSheet(); 
                     } else { 

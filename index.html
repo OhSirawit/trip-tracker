@@ -178,6 +178,16 @@
         body.dark-mode #qr-section { background-color: #0F172A; border-color: #334155; }
         body.dark-mode #qr-amount-text { color: #f8fafc; }
 
+        /* Dark Mode for Receipt Modal */
+        body.dark-mode #receipt-modal-content { background-color: #1E293B; border: 1px solid #334155; }
+        body.dark-mode #receipt-modal-content h3 { color: #f8fafc; }
+        body.dark-mode #receipt-modal-content .bg-slate-50 { background-color: #0F172A; border-color: #334155; color: #cbd5e1; }
+        body.dark-mode #receipt-modal-content .bg-slate-50:hover { background-color: #1e293b; }
+        body.dark-mode #receipt-modal-content button.bg-white { background-color: #1E293B; border-color: #334155; color: #cbd5e1; }
+        body.dark-mode #receipt-modal-content button.bg-white:hover { background-color: #334155; }
+        body.dark-mode #btn-add-receipt { background-color: #1E293B; border-color: #334155; }
+        body.dark-mode #btn-add-receipt:hover { background-color: #0F172A; }
+
         /* Custom Checkbox for Pre-Order */
         .preorder-checkbox:checked + div {
             background-color: #D9383A;
@@ -207,9 +217,27 @@
             <h3 id="confirm-title" class="text-lg font-black text-slate-900 text-center mb-2">Confirm Action</h3>
             <p id="confirm-message" class="text-[13px] text-slate-500 text-center mb-6 leading-relaxed whitespace-pre-line">Are you sure?</p>
             <div class="flex gap-3">
-                <button onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-[14px] bg-slate-50 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors">ยกเลิก (Cancel)</button>
-                <button id="confirm-btn" class="flex-1 py-3.5 rounded-[14px] bg-[#D9383A] text-white font-bold text-[13px] hover:bg-[#BA2E30] transition-colors shadow-lg shadow-[#D9383A]/30">ยืนยัน (Confirm)</button>
+                <button onclick="closeConfirmModal()" class="flex-1 py-3.5 rounded-[14px] bg-slate-50 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors">Cancel</button>
+                <button id="confirm-btn" class="flex-1 py-3.5 rounded-[14px] bg-[#D9383A] text-white font-bold text-[13px] hover:bg-[#BA2E30] transition-colors shadow-lg shadow-[#D9383A]/30">Confirm</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Receipt Choice Modal (Bottom Sheet) -->
+    <div id="receipt-modal" class="fixed inset-0 z-[500] bg-slate-900/40 backdrop-blur-sm hidden flex items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 sm:px-6">
+        <div class="bg-white w-full sm:max-w-sm rounded-t-[24px] sm:rounded-[24px] p-5 pb-8 sm:pb-5 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-all duration-300 shadow-2xl" id="receipt-modal-content">
+            <h3 class="text-[13px] font-black text-slate-800 mb-4 text-center">Select Photo Source</h3>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <button type="button" onclick="triggerFileInput('receipt-cam')" class="flex flex-col items-center justify-center gap-2 py-4 bg-slate-50 border border-[#EAE6DF] rounded-[16px] text-slate-600 hover:bg-slate-100 hover:text-[#D9383A] transition-colors">
+                    <i class="fas fa-camera text-2xl"></i>
+                    <span class="text-[11px] font-bold">Camera</span>
+                </button>
+                <button type="button" onclick="triggerFileInput('receipt-file')" class="flex flex-col items-center justify-center gap-2 py-4 bg-slate-50 border border-[#EAE6DF] rounded-[16px] text-slate-600 hover:bg-slate-100 hover:text-[#457B9D] transition-colors">
+                    <i class="fas fa-image text-2xl"></i>
+                    <span class="text-[11px] font-bold">Gallery</span>
+                </button>
+            </div>
+            <button type="button" onclick="closeReceiptModal()" class="w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px] text-slate-500 font-bold text-[12px] hover:bg-slate-50 transition-colors">Cancel</button>
         </div>
     </div>
 
@@ -480,32 +508,31 @@
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
+                        <!-- Single Button for Add Receipt -->
                         <div class="relative w-full" id="receipt-container">
-                            <div id="receipt-buttons" class="flex w-full">
-                                <input type="file" id="receipt-cam" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
-                                <label for="receipt-cam" class="flex-1 flex items-center justify-center gap-1.5 py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-l-[14px] cursor-pointer transition-colors">
-                                    <i class="fas fa-camera text-slate-400 text-sm"></i><span class="text-[10px] text-slate-400 font-bold">ถ่ายรูป</span>
-                                </label>
-                                
-                                <input type="file" id="receipt" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
-                                <label for="receipt" class="flex-1 flex items-center justify-center gap-1.5 py-3.5 border-2 border-dashed border-[#EAE6DF] border-l-0 bg-white hover:bg-slate-50 rounded-r-[14px] cursor-pointer transition-colors">
-                                    <i class="fas fa-image text-slate-400 text-sm"></i><span class="text-[10px] text-slate-400 font-bold">อัลบั้ม</span>
-                                </label>
-                            </div>
+                            <input type="file" id="receipt-cam" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+                            <input type="file" id="receipt-file" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
                             
-                            <label for="receipt" id="receipt-label" class="hidden flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors">
+                            <button type="button" id="btn-add-receipt" onclick="openReceiptModal()" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors text-slate-400 font-bold text-[11px]">
+                                <i class="fas fa-image text-sm"></i> Add Receipt
+                            </button>
+                            
+                            <div id="receipt-label" onclick="openReceiptModal()" class="hidden flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors">
                                 <i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>
-                            </label>
+                            </div>
                         </div>
+                        
                         <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
                             <input type="checkbox" id="save-location" checked class="w-4 h-4 accent-[#1C2536] rounded cursor-pointer">
                             <label for="save-location" class="text-[11px] font-bold text-gray-600 uppercase cursor-pointer">SAVE GPS</label>
                         </div>
+                        
                         <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#EAE6DF] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-shared', 'icon-shared', 'text-[#D9383A]')">
                             <input type="checkbox" id="is-shared" class="hidden">
                             <i id="icon-shared" class="fas fa-users text-gray-300 text-sm transition-colors"></i>
                             <span class="text-[11px] font-bold text-gray-600 uppercase">SHARED</span>
                         </div>
+                        
                         <div class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-[#EAE6DF] rounded-[14px] cursor-pointer transition-colors hover:bg-gray-50" onclick="toggleCheckbox('is-taxfree', 'icon-taxfree', 'text-[#D9383A]')">
                             <input type="checkbox" id="is-taxfree" class="hidden">
                             <i id="icon-taxfree" class="fas fa-tag text-gray-300 text-sm transition-colors"></i>
@@ -875,11 +902,47 @@
         let receiptBase64 = null;
         let receiptName = null;
 
+        // Custom Receipt Modal Functions
+        function openReceiptModal() {
+            const modal = document.getElementById('receipt-modal');
+            const content = document.getElementById('receipt-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }, 10);
+        }
+
+        function closeReceiptModal() {
+            const modal = document.getElementById('receipt-modal');
+            const content = document.getElementById('receipt-modal-content');
+            modal.classList.add('opacity-0');
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function triggerFileInput(id) {
+            closeReceiptModal();
+            document.getElementById(id).click();
+        }
+
         function handleReceiptUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            document.getElementById('receipt-buttons').classList.add('hidden');
+            document.getElementById('btn-add-receipt').classList.add('hidden');
             const label = document.getElementById('receipt-label');
             label.classList.remove('hidden');
             
@@ -965,7 +1028,7 @@
         function getAvatarStyle(name) {
             const safeName = name ? name.toString().trim() : 'User';
             const colors = [
-                {bg: 'bg-indigo-100', text: 'textindigo-600'},
+                {bg: 'bg-indigo-100', text: 'text-indigo-600'},
                 {bg: 'bg-emerald-100', text: 'text-emerald-600'},
                 {bg: 'bg-rose-100', text: 'text-rose-600'},
                 {bg: 'bg-amber-100', text: 'text-amber-600'},
@@ -1576,7 +1639,7 @@
             });
         }
 
-        // PRE-ORDER & OMIYAGE Functions
+        // PRE-ORDER Functions
         async function addPreOrderItem() {
             const friendName = document.getElementById('preorder-friend').value.trim();
             const itemName = document.getElementById('preorder-item').value.trim();
@@ -1757,7 +1820,7 @@
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
             if (friendItems.length === 0) return;
 
-            let text = `📦 Omiyage Summary (To: ${friendName})\n\n`;
+            let text = `📦 Pre-Order Summary (To: ${friendName})\n\n`;
             let totalJpy = 0;
             
             friendItems.forEach(item => {
@@ -1856,9 +1919,9 @@
             const text = document.getElementById('bill-text-area').value;
             try {
                 await navigator.clipboard.writeText(text);
-                showToast(`📋 คัดลอกข้อความทวงเงินแล้ว!`);
+                showToast(`📋 Copied to clipboard!`);
             } catch (err) {
-                showToast('คัดลอกไม่สำเร็จ', true);
+                showToast('Failed to copy text.', true);
             }
         }
 
@@ -1876,7 +1939,7 @@
         async function downloadBillImage() {
             const btn = document.getElementById('btn-save-bill-img');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังสร้างรูปภาพ...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
             btn.disabled = true;
 
             const copyBtn = document.getElementById('btn-copy-bill');
@@ -1927,10 +1990,10 @@
                 link.href = imgData;
                 link.click();
                 
-                showToast("บันทึกรูปลงเครื่องสำเร็จ!");
+                showToast("Saved to device successfully!");
             } catch (error) {
                 console.error(error);
-                showToast("ไม่สามารถสร้างรูปภาพได้", true);
+                showToast("Failed to create image.", true);
             }
 
             ta.parentNode.removeChild(fakeDiv); 
@@ -2486,12 +2549,12 @@
             receiptBase64 = null;
             receiptName = null;
             
-            if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+            if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
             if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
             
-            const receiptButtons = document.getElementById('receipt-buttons');
+            const btnAddReceipt = document.getElementById('btn-add-receipt');
             const receiptLabel = document.getElementById('receipt-label');
-            if(receiptButtons) receiptButtons.classList.remove('hidden');
+            if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
             if(receiptLabel) receiptLabel.classList.add('hidden');
             
             renderQuickTags();
@@ -3076,12 +3139,12 @@
                         receiptBase64 = null; 
                         receiptName = null; 
                         
-                        if(document.getElementById('receipt')) document.getElementById('receipt').value = '';
+                        if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
                         if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
                         
-                        const receiptButtons = document.getElementById('receipt-buttons');
+                        const btnAddReceipt = document.getElementById('btn-add-receipt');
                         const receiptLabel = document.getElementById('receipt-label');
-                        if(receiptButtons) receiptButtons.classList.remove('hidden');
+                        if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
                         if(receiptLabel) receiptLabel.classList.add('hidden');
                         
                         loadDataFromSheet(); 

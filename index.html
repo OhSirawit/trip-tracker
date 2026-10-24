@@ -270,7 +270,13 @@
                     <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-2"><i class="fas fa-qrcode"></i> Thai QR Payment</p>
                     <div id="promptpay-qr" class="w-48 h-48 rounded-lg shadow-sm bg-white p-2 flex items-center justify-center"></div>
                     <p id="qr-amount-text" class="text-sm font-black text-slate-800 mt-2"></p>
-                    <p class="text-[9px] text-slate-500 mt-1 text-center">สแกน QR Code เพื่อชำระเงิน</p>
+                    <p class="text-[9px] text-slate-500 mt-1 text-center mb-2">สแกน QR Code เพื่อชำระเงิน</p>
+                    
+                    <!-- Checkbox เลือกว่าจะระบุยอดเงินหรือไม่ -->
+                    <div id="qr-toggle-container" class="flex items-center gap-2 mt-1 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition-opacity">
+                        <input type="checkbox" id="qr-include-amount" checked class="w-4 h-4 accent-[#457B9D] rounded cursor-pointer" onchange="renderQRInModal()">
+                        <label for="qr-include-amount" class="text-[10px] font-bold text-slate-600 cursor-pointer">ระบุยอดเงิน (เอาออกเพื่อพิมพ์ยอดเอง)</label>
+                    </div>
                 </div>
                 
                 <button id="btn-save-bill-img" onclick="downloadBillImage()" class="w-full bg-[#1C2536] text-white py-3.5 rounded-[14px] text-[13px] font-bold flex justify-center items-center gap-2 shadow-md hover:bg-[#0f172a] transition-colors"><i class="fas fa-download"></i> Save as Image</button>
@@ -1664,6 +1670,9 @@
             return payload + crc16(payload);
         }
         
+        let currentQRPhone = "";
+        let currentQRAmount = 0;
+
         async function copyLineBill(friendName) {
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
             if (friendItems.length === 0) return;
@@ -1698,7 +1707,7 @@
                     text += `💰 คิดเป็นเงินไทย: ${thb} บาท\n`;
                 }
                 text += `\nโอนเงินที่บัญชี/พร้อมเพย์:\n`;
-                text += `${bankAccount}\n`;
+                text += `${bankAccount} (${currentUser || 'ชื่อบัญชี'})\n`;
                 text += `🙏 ขอบคุณจ้าาา`;
             } else {
                 text += `\n(ตอนนี้ยังไม่ได้ซื้อของเลยจ้า 😅)`;
@@ -1708,30 +1717,14 @@
             document.getElementById('bill-text-area').value = text;
             
             const ppNumberRaw = document.getElementById('omiyage-promptpay') ? document.getElementById('omiyage-promptpay').value : '';
-            const ppNumber = ppNumberRaw.replace(/[^0-9]/g, ''); 
+            currentQRPhone = ppNumberRaw.replace(/[^0-9]/g, ''); 
+            currentQRAmount = amountThbForQR;
             
-            const qrSection = document.getElementById('qr-section');
-            const qrContainer = document.getElementById('promptpay-qr');
-            qrContainer.innerHTML = ''; 
-            
-            if (ppNumber && ppNumber.length >= 10 && amountThbForQR > 0) {
-                const payloadStr = generatePromptPayString(ppNumber, amountThbForQR);
-                new QRCode(qrContainer, {
-                    text: payloadStr,
-                    width: 176,
-                    height: 176,
-                    colorDark : "#1C2536",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.L
-                });
-                
-                document.getElementById('qr-amount-text').innerText = `ยอดโอน: ${parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
-                qrSection.classList.remove('hidden');
-                qrSection.classList.add('flex');
-            } else {
-                qrSection.classList.add('hidden');
-                qrSection.classList.remove('flex');
+            if (document.getElementById('qr-include-amount')) {
+                document.getElementById('qr-include-amount').checked = true;
             }
+            
+            renderQRInModal();
 
             const modal = document.getElementById('bill-modal');
             const content = document.getElementById('bill-modal-content');
@@ -1741,6 +1734,42 @@
                 content.classList.remove('scale-95', 'translate-y-8', 'sm:translate-y-0');
                 content.classList.add('scale-100', 'translate-y-0');
             }, 10);
+        }
+
+        function renderQRInModal() {
+            const qrSection = document.getElementById('qr-section');
+            const qrContainer = document.getElementById('promptpay-qr');
+            const amountText = document.getElementById('qr-amount-text');
+            const includeAmount = document.getElementById('qr-include-amount').checked;
+
+            qrContainer.innerHTML = ''; 
+            
+            if (currentQRPhone && currentQRPhone.length >= 10 && currentQRAmount > 0) {
+                // ถ้าระบุยอด ให้ใส่ยอดเงิน ถ้าไม่ระบุ ให้ยอดเป็น 0 (API จะไม่ใส่ยอดใน QR)
+                const amountToEncode = includeAmount ? parseFloat(currentQRAmount) : 0;
+                const payloadStr = generatePromptPayString(currentQRPhone, amountToEncode);
+                
+                new QRCode(qrContainer, {
+                    text: payloadStr,
+                    width: 176,
+                    height: 176,
+                    colorDark : "#1C2536",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+                
+                if (includeAmount) {
+                    amountText.innerText = `ยอดโอน: ${parseFloat(currentQRAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
+                } else {
+                    amountText.innerText = `ให้เพื่อนพิมพ์ยอดโอนเอง`;
+                }
+                
+                qrSection.classList.remove('hidden');
+                qrSection.classList.add('flex');
+            } else {
+                qrSection.classList.add('hidden');
+                qrSection.classList.remove('flex');
+            }
         }
 
         async function copyBillTextOnly() {
@@ -1772,8 +1801,11 @@
 
             const copyBtn = document.getElementById('btn-copy-bill');
             const closeBtn = document.getElementById('btn-close-bill');
+            const qrToggle = document.getElementById('qr-toggle-container');
+            
             if (copyBtn) copyBtn.classList.add('hidden');
             if (closeBtn) closeBtn.classList.add('opacity-0'); 
+            if (qrToggle) qrToggle.classList.add('hidden'); // ซ่อน Checkbox ตอนแคปรูป
             btn.classList.add('hidden');
 
             const ta = document.getElementById('bill-text-area');
@@ -1818,6 +1850,7 @@
             if (scrollContainer) scrollContainer.style.overflowY = oldOverflow;
             if (copyBtn) copyBtn.classList.remove('hidden');
             if (closeBtn) closeBtn.classList.remove('opacity-0');
+            if (qrToggle) qrToggle.classList.remove('hidden'); // เอา Checkbox กลับมา
             btn.classList.remove('hidden');
             
             btn.innerHTML = originalText;

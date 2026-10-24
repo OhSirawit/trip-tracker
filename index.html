@@ -471,7 +471,6 @@
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div class="relative">
-                            <!-- In this version, we removed file upload to simplify, or keep button doing nothing for UI purpose as per previous steps -->
                             <div id="receipt-label" onclick="showToast('ปิดการแนบรูปภาพเพื่อความเสถียร')" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-slate-50 rounded-[14px] cursor-not-allowed opacity-60">
                                 <i class="fas fa-image text-slate-400 text-sm"></i>
                                 <span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">แนบรูปไม่ได้</span>
@@ -650,7 +649,7 @@
                     </div>
                     <div class="flex gap-2">
                         <input type="number" id="preorder-price" class="flex-1 bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="ราคา (JPY)">
-                        <button type="button" onclick="addPreOrderItem()" class="bg-[#457B9D] text-white px-5 rounded-[10px] text-[12px] font-bold hover:bg-[#1D3557] transition-colors shadow-sm whitespace-nowrap">เพิ่มรายการ</button>
+                        <button type="button" onclick="addPreOrderItem()" id="btn-add-preorder" class="bg-[#457B9D] text-white px-5 rounded-[10px] text-[12px] font-bold hover:bg-[#1D3557] transition-colors shadow-sm whitespace-nowrap">เพิ่มรายการ</button>
                     </div>
                 </div>
             </div>
@@ -787,7 +786,8 @@
 
     <!-- Scripts -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxecOVLpJI6t3z4IdArQTupYfXWu3kBJISoyBHvQ3qgiH0ecjznHTyPvRXAAJ90JJIC/exec";
+        // UPDATE THIS WITH YOUR NEW DEPLOYMENT URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbwQKTc6cowUfNXc8J2XRQ95tW-aUdORWsLIKAGSdXRy7QGa4NIUAipApl4ResRmNPU-/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -816,13 +816,8 @@
 
         let currentUser = localStorage.getItem('tripUser');
         
-        // Pre-Order Data State
+        // Pre-Order Data State (Loaded from Google Sheets now)
         let preOrderList = [];
-        try {
-            preOrderList = JSON.parse(localStorage.getItem('tripPreOrders')) || [];
-        } catch(e) {
-            preOrderList = [];
-        }
 
         const defaultLimits = {
             'Cash': 150000,
@@ -1531,7 +1526,7 @@
         }
 
         // PRE-ORDER & OMIYAGE Functions
-        function addPreOrderItem() {
+        async function addPreOrderItem() {
             const friendName = document.getElementById('preorder-friend').value.trim();
             const itemName = document.getElementById('preorder-item').value.trim();
             const priceVal = parseFloat(document.getElementById('preorder-price').value);
@@ -1540,6 +1535,10 @@
                 showToast("กรุณากรอกข้อมูลให้ครบและถูกต้อง", true);
                 return;
             }
+
+            const btn = document.getElementById('btn-add-preorder');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
 
             const newItem = {
                 id: Date.now().toString(),
@@ -1550,34 +1549,56 @@
             };
 
             preOrderList.push(newItem);
-            savePreOrders();
             renderPreOrderList();
 
             // Clear inputs
             document.getElementById('preorder-item').value = '';
             document.getElementById('preorder-price').value = '';
             document.getElementById('preorder-item').focus();
+            
+            // Sync to Google Sheets
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'addPreOrder', data: newItem })
+                });
+            } catch(e) {
+                showToast("ออฟไลน์: บันทึกข้อมูลของฝากไม่ได้", true);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'เพิ่มรายการ';
         }
 
-        function togglePreOrderStatus(id) {
+        async function togglePreOrderStatus(id) {
             const item = preOrderList.find(i => i.id === id);
             if (item) {
                 item.isBought = !item.isBought;
-                savePreOrders();
                 renderPreOrderList();
+                
+                // Sync status to Google Sheets
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'updatePreOrder', data: { id: id, isBought: item.isBought } })
+                    });
+                } catch(e) {}
             }
         }
 
         function deletePreOrderItem(id) {
-            showConfirmModal("ลบรายการ", "ต้องการลบของฝากชิ้นนี้ใช่หรือไม่?", () => {
+            showConfirmModal("ลบรายการ", "ต้องการลบของฝากชิ้นนี้ใช่หรือไม่?", async () => {
                 preOrderList = preOrderList.filter(i => i.id !== id);
-                savePreOrders();
                 renderPreOrderList();
+                
+                // Sync delete to Google Sheets
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deletePreOrder', id: id })
+                    });
+                } catch(e) {}
             });
-        }
-
-        function savePreOrders() {
-            localStorage.setItem('tripPreOrders', JSON.stringify(preOrderList));
         }
 
         function saveOmiyageSettings() {
@@ -1641,7 +1662,7 @@
             const qrImg = document.getElementById('promptpay-qr');
             
             if (ppNumber && ppNumber.length >= 10 && amountThbForQR > 0) {
-                // ใช้ promptpay.io API ในการ Gen รูป QR Code (รองรับเบอร์ 10 หลัก หรือ บัตรปชช 13 หลัก)
+                // ใช้ promptpay.io API ในการ Gen รูป QR Code
                 qrImg.src = `https://promptpay.io/${ppNumber}/${amountThbForQR}.png`;
                 document.getElementById('qr-amount-text').innerText = `ยอดโอน: ${parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
                 qrSection.classList.remove('hidden');
@@ -1840,7 +1861,7 @@
             renderSettings();
             renderCategorySettings();
             renderPaymentDropdown();
-            renderPreOrderList();
+            // renderPreOrderList will be called after fetching data
 
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
@@ -1930,6 +1951,14 @@
                 const res = await fetch(API_URL + "?action=getExpenses").then(r => r.json());
                 if(res.status === 'success') {
                     if(res.data) expenses = res.data; 
+                    
+                    // โหลดข้อมูลของฝากจาก Google Sheets
+                    if(res.preOrders) {
+                        preOrderList = res.preOrders;
+                        if(document.getElementById('page-preorder').classList.contains('page-active')) {
+                            renderPreOrderList();
+                        }
+                    }
                     
                     if(res.settings) {
                         if(res.settings.members) {

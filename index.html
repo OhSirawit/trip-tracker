@@ -584,6 +584,24 @@
                 </button>
             </div>
             
+            <!-- Billing Settings -->
+            <div class="modern-card p-4 bg-white">
+                <div class="flex justify-between items-center cursor-pointer" onclick="toggleDropdown('omiyage-settings')">
+                    <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest"><i class="fas fa-cog"></i> Billing Settings (ตั้งค่าบิล)</p>
+                    <i class="fas fa-chevron-down text-slate-400 text-[10px] transition-transform" id="icon-omiyage-settings"></i>
+                </div>
+                <div id="omiyage-settings" class="hidden flex-col gap-3 mt-3 pt-3 border-t border-slate-100">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เลขบัญชี / พร้อมเพย์</label>
+                        <input type="text" id="omiyage-bank" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="เช่น 081-234-5678 (KBank)" oninput="saveOmiyageSettings()">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เรทชาร์จเพิ่ม (บวกเพิ่มจากเรทจริง เช่น 0.1 หรือ 0.05)</label>
+                        <input type="number" step="0.001" id="omiyage-markup" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="0.1" value="0.1" oninput="saveOmiyageSettings(); renderPreOrderList();">
+                    </div>
+                </div>
+            </div>
+
             <div class="modern-card p-5 bg-white">
                 <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-3"><i class="fas fa-plus-circle"></i> Add Item</p>
                 <div class="space-y-3">
@@ -1526,6 +1544,13 @@
         function savePreOrders() {
             localStorage.setItem('tripPreOrders', JSON.stringify(preOrderList));
         }
+
+        function saveOmiyageSettings() {
+            const bank = document.getElementById('omiyage-bank').value;
+            const markup = document.getElementById('omiyage-markup').value;
+            localStorage.setItem('omiyageBank', bank);
+            localStorage.setItem('omiyageMarkup', markup);
+        }
         
         async function copyLineBill(friendName) {
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
@@ -1544,13 +1569,22 @@
             });
 
             if(totalJpy > 0) {
+                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.1';
+                let markup = parseFloat(markupStr);
+                if (isNaN(markup)) markup = 0;
+                let appliedRate = currentJpyToThbRate + markup;
+                
+                let bankAccount = document.getElementById('omiyage-bank') ? document.getElementById('omiyage-bank').value : '';
+                if (!bankAccount) bankAccount = 'xxx-xxx-xxxx';
+
                 text += `\nยอดรวมของที่ได้: ${totalJpy.toLocaleString()} JPY\n`;
                 if (currentJpyToThbRate > 0) {
-                    const thb = (totalJpy * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const thb = (totalJpy * appliedRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     text += `💰 คิดเป็นเงินไทย: ${thb} บาท\n`;
+                    if(markup > 0) text += `   (อิงเรท ${appliedRate.toFixed(4)})\n`;
                 }
                 text += `\nโอนเงินที่บัญชี/พร้อมเพย์:\n`;
-                text += `xxx-xxx-xxxx (${currentUser || 'ชื่อบัญชี'})\n`;
+                text += `${bankAccount} (${currentUser || 'ชื่อบัญชี'})\n`;
                 text += `🙏 ขอบคุณจ้าาา`;
             } else {
                 text += `\n(ตอนนี้ยังไม่ได้ซื้อของเลยจ้า 😅)`;
@@ -1596,8 +1630,14 @@
                 groupDiv.className = "modern-card overflow-hidden bg-white";
                 
                 let thbEquivalent = '';
+                
+                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.1';
+                let markup = parseFloat(markupStr);
+                if (isNaN(markup)) markup = 0;
+                let appliedRate = currentJpyToThbRate + markup;
+
                 if (currentJpyToThbRate > 0 && groupData.boughtJpy > 0) {
-                    const thb = (groupData.boughtJpy * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const thb = (groupData.boughtJpy * appliedRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     thbEquivalent = `
                         <div class="mt-2 text-right">
                             <span class="text-[9px] text-slate-400 font-medium">เก็บเงิน:</span>
@@ -1700,6 +1740,11 @@
             if(savedDetail) {
                 document.getElementById('trip-detail-header').value = savedDetail;
             }
+            
+            const savedBank = localStorage.getItem('omiyageBank');
+            const savedMarkup = localStorage.getItem('omiyageMarkup');
+            if (savedBank !== null && document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
+            if (savedMarkup !== null && document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
 
             initUser();
             fetchExchangeRate(); 

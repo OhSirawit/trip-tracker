@@ -1761,7 +1761,8 @@
                 if (includeAmount) {
                     amountText.innerText = `ยอดโอน: ${parseFloat(currentQRAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
                 } else {
-                    amountText.innerText = `ให้เพื่อนพิมพ์ยอดโอนเอง`;
+                    const bankAccount = document.getElementById('omiyage-bank') ? document.getElementById('omiyage-bank').value : '';
+                    amountText.innerText = bankAccount ? bankAccount : (currentUser || 'บัญชีรับเงิน');
                 }
                 
                 qrSection.classList.remove('hidden');

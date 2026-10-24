@@ -171,6 +171,11 @@
         body.dark-mode #settlement-modal-content { background-color: #1E293B; border: 1px solid #334155; }
         body.dark-mode #settlement-list .bg-slate-50 { background-color: #0F172A !important; border-color: #334155 !important;}
         
+        body.dark-mode #bill-modal-content { background-color: #1E293B; border: 1px solid #334155; }
+        body.dark-mode #bill-text-area { background-color: #0F172A; color: #cbd5e1; border-color: #334155; }
+        body.dark-mode #qr-section { background-color: #0F172A; border-color: #334155; }
+        body.dark-mode #qr-amount-text { color: #f8fafc; }
+
         /* Custom Checkbox for Pre-Order */
         .preorder-checkbox:checked + div {
             background-color: #D9383A;
@@ -238,6 +243,32 @@
                 <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Who owes who?</h4>
                 <div id="settlement-list" class="space-y-2 mb-2">
                     <!-- Transactions will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill & QR Modal -->
+    <div id="bill-modal" class="fixed inset-0 z-[400] bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300 opacity-0 px-4">
+        <div class="bg-white w-full max-w-sm rounded-[24px] p-6 transform scale-95 translate-y-8 sm:translate-y-0 transition-all duration-300 shadow-2xl flex flex-col max-h-[90vh] border border-[#EAE6DF]" id="bill-modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-black text-slate-900">สรุปบิล <span id="bill-friend-name" class="text-[#457B9D]"></span></h3>
+                <button onclick="closeBillModal()" class="text-slate-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                <!-- Text Section -->
+                <div class="relative">
+                    <textarea id="bill-text-area" class="w-full bg-slate-50 p-3 text-[11px] text-slate-700 font-medium rounded-xl border border-[#EAE6DF] outline-none resize-none h-36" readonly></textarea>
+                    <button onclick="copyBillTextOnly()" class="absolute top-2 right-2 bg-white text-[#457B9D] p-2 rounded-lg shadow-sm border border-slate-200 hover:bg-[#457B9D] hover:text-white transition-colors text-xs font-bold"><i class="far fa-copy"></i> Copy</button>
+                </div>
+
+                <!-- QR Section -->
+                <div id="qr-section" class="hidden flex-col items-center justify-center bg-[#F8FAFC] p-4 rounded-xl border border-[#EAE6DF]">
+                    <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-2"><i class="fas fa-qrcode"></i> Thai QR Payment</p>
+                    <img id="promptpay-qr" src="" alt="PromptPay QR" class="w-48 h-48 rounded-lg shadow-sm bg-white p-2">
+                    <p id="qr-amount-text" class="text-sm font-black text-slate-800 mt-2"></p>
+                    <p class="text-[9px] text-slate-500 mt-1 text-center">แคปหน้าจอนี้ส่งให้เพื่อนสแกนจ่ายได้เลย</p>
                 </div>
             </div>
         </div>
@@ -592,8 +623,12 @@
                 </div>
                 <div id="omiyage-settings" class="hidden flex-col gap-3 mt-3 pt-3 border-t border-slate-100">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เลขบัญชี / พร้อมเพย์</label>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เลขบัญชี / ชื่อนามสกุล (แสดงในข้อความ)</label>
                         <input type="text" id="omiyage-bank" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="เช่น 081-234-5678 (KBank)" oninput="saveOmiyageSettings()">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">เบอร์พร้อมเพย์ (สำหรับสร้าง QR Code)</label>
+                        <input type="text" id="omiyage-promptpay" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="เช่น 0812345678 (ใส่เฉพาะตัวเลข)" oninput="saveOmiyageSettings()">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">เรทชาร์จเพิ่ม (บวกเพิ่มจากเรทจริง เช่น 0.01 หรือ 0.05)</label>
@@ -1547,8 +1582,10 @@
 
         function saveOmiyageSettings() {
             const bank = document.getElementById('omiyage-bank').value;
+            const promptpay = document.getElementById('omiyage-promptpay').value;
             const markup = document.getElementById('omiyage-markup').value;
             localStorage.setItem('omiyageBank', bank);
+            localStorage.setItem('omiyagePromptpay', promptpay);
             localStorage.setItem('omiyageMarkup', markup);
         }
         
@@ -1568,6 +1605,8 @@
                 }
             });
 
+            let amountThbForQR = 0;
+
             if(totalJpy > 0) {
                 let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01';
                 let markup = parseFloat(markupStr);
@@ -1579,7 +1618,8 @@
 
                 text += `\nยอดรวมของที่ได้: ${totalJpy.toLocaleString()} JPY\n`;
                 if (currentJpyToThbRate > 0) {
-                    const thb = (totalJpy * appliedRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    amountThbForQR = (totalJpy * appliedRate).toFixed(2);
+                    const thb = parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     text += `💰 คิดเป็นเงินไทย: ${thb} บาท\n`;
                     if(markup > 0) text += `   (อิงเรท ${appliedRate.toFixed(4)})\n`;
                 }
@@ -1590,12 +1630,59 @@
                 text += `\n(ตอนนี้ยังไม่ได้ซื้อของเลยจ้า 😅)`;
             }
 
+            // แสดงผลใน Modal
+            document.getElementById('bill-friend-name').innerText = friendName;
+            document.getElementById('bill-text-area').value = text;
+            
+            // สร้าง QR Code พร้อมเพย์
+            const ppNumberRaw = document.getElementById('omiyage-promptpay') ? document.getElementById('omiyage-promptpay').value : '';
+            const ppNumber = ppNumberRaw.replace(/[^0-9]/g, ''); // ดึงเฉพาะตัวเลข
+            
+            const qrSection = document.getElementById('qr-section');
+            const qrImg = document.getElementById('promptpay-qr');
+            
+            if (ppNumber && ppNumber.length >= 10 && amountThbForQR > 0) {
+                // ใช้ promptpay.io API ในการ Gen รูป QR Code (รองรับเบอร์ 10 หลัก หรือ บัตรปชช 13 หลัก)
+                qrImg.src = `https://promptpay.io/${ppNumber}/${amountThbForQR}.png`;
+                document.getElementById('qr-amount-text').innerText = `ยอดโอน: ${parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
+                qrSection.classList.remove('hidden');
+                qrSection.classList.add('flex');
+            } else {
+                qrImg.src = '';
+                qrSection.classList.add('hidden');
+                qrSection.classList.remove('flex');
+            }
+
+            // เปิด Modal
+            const modal = document.getElementById('bill-modal');
+            const content = document.getElementById('bill-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'translate-y-8', 'sm:translate-y-0');
+                content.classList.add('scale-100', 'translate-y-0');
+            }, 10);
+        }
+
+        async function copyBillTextOnly() {
+            const text = document.getElementById('bill-text-area').value;
             try {
                 await navigator.clipboard.writeText(text);
-                showToast(`📋 คัดลอกบิลของ ${friendName} แล้ว!`);
+                showToast(`📋 คัดลอกข้อความทวงเงินแล้ว!`);
             } catch (err) {
-                showToast('คัดลอกไม่สำเร็จ (เบราว์เซอร์ไม่รองรับ)', true);
+                showToast('คัดลอกไม่สำเร็จ', true);
             }
+        }
+
+        function closeBillModal() {
+            const modal = document.getElementById('bill-modal');
+            const content = document.getElementById('bill-modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'translate-y-0');
+            content.classList.add('scale-95', 'translate-y-8', 'sm:translate-y-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         function renderPreOrderList() {
@@ -1742,8 +1829,10 @@
             }
             
             const savedBank = localStorage.getItem('omiyageBank');
+            const savedPromptpay = localStorage.getItem('omiyagePromptpay');
             const savedMarkup = localStorage.getItem('omiyageMarkup');
             if (savedBank !== null && document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
+            if (savedPromptpay !== null && document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
             if (savedMarkup !== null && document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
 
             initUser();

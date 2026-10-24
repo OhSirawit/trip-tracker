@@ -171,14 +171,6 @@
         body.dark-mode #settlement-modal-content { background-color: #1E293B; border: 1px solid #334155; }
         body.dark-mode #settlement-list .bg-slate-50 { background-color: #0F172A !important; border-color: #334155 !important;}
         
-        /* Dark mode for attachment modal */
-        body.dark-mode #attachment-modal-content { background-color: #1E293B; border: 1px solid #334155; }
-        body.dark-mode #attachment-modal-content h3 { color: #f8fafc; }
-        body.dark-mode #attachment-modal-content button.border-[#EAE6DF] { border-color: #334155; }
-        body.dark-mode #attachment-modal-content button.border-[#EAE6DF]:hover { border-color: #D9383A; background-color: #0F172A; }
-        body.dark-mode #attachment-modal-content p.text-slate-800 { color: #e2e8f0; }
-        body.dark-mode #attachment-modal-content .bg-slate-50 { background-color: #0F172A; }
-
         /* Custom Checkbox for Pre-Order */
         .preorder-checkbox:checked + div {
             background-color: #D9383A;
@@ -247,39 +239,6 @@
                 <div id="settlement-list" class="space-y-2 mb-2">
                     <!-- Transactions will be generated here -->
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attachment Modal -->
-    <div id="attachment-modal" class="fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm hidden flex items-end justify-center transition-opacity duration-300 opacity-0 sm:items-center sm:px-6">
-        <div class="bg-white w-full sm:max-w-sm rounded-t-[24px] sm:rounded-[24px] p-6 pb-10 sm:pb-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300" id="attachment-modal-content">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="text-lg font-black text-slate-900 tracking-wide">แนบใบเสร็จ</h3>
-                <button onclick="closeAttachmentModal()" class="text-slate-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="space-y-3">
-                <button type="button" onclick="triggerFileInput('camera')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-camera"></i></div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-[13px]">ถ่ายรูป (Camera)</p>
-                        <p class="text-[10px] text-slate-400">ถ่ายรูปใบเสร็จผ่านกล้อง</p>
-                    </div>
-                </button>
-                <button type="button" onclick="triggerFileInput('gallery')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-image"></i></div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-[13px]">รูปภาพ (Gallery)</p>
-                        <p class="text-[10px] text-slate-400">เลือกรูปภาพจากอัลบั้ม</p>
-                    </div>
-                </button>
-                <button type="button" onclick="triggerFileInput('file')" class="w-full flex items-center gap-4 p-4 rounded-[16px] border border-[#EAE6DF] hover:border-[#D9383A] hover:bg-[#FFF9F9] transition-colors text-left group">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 group-hover:bg-[#D9383A] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors shadow-sm"><i class="fas fa-file-alt"></i></div>
-                    <div>
-                        <p class="font-bold text-slate-800 text-[13px]">ไฟล์ (Document)</p>
-                        <p class="text-[10px] text-slate-400">อัปโหลดไฟล์เอกสาร (PDF, ฯลฯ)</p>
-                    </div>
-                </button>
             </div>
         </div>
     </div>
@@ -481,10 +440,10 @@
                     
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div class="relative">
-                            <input type="file" id="receipt-file" class="hidden">
-                            <div id="receipt-label" onclick="openAttachmentModal()" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] hover:border-[#D9383A] bg-[#FFF9F9] rounded-[14px] cursor-pointer transition-colors">
-                                <i class="fas fa-paperclip text-[#D9383A] text-sm"></i>
-                                <span class="text-[11px] text-[#D9383A] font-bold truncate max-w-[80px]" id="receipt-text">แนบใบเสร็จ</span>
+                            <!-- In this version, we removed file upload to simplify, or keep button doing nothing for UI purpose as per previous steps -->
+                            <div id="receipt-label" onclick="showToast('ปิดการแนบรูปภาพเพื่อความเสถียร')" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-slate-50 rounded-[14px] cursor-not-allowed opacity-60">
+                                <i class="fas fa-image text-slate-400 text-sm"></i>
+                                <span class="text-[11px] text-slate-400 font-bold truncate max-w-[80px]" id="receipt-text">แนบรูปไม่ได้</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-center gap-2 w-full py-3.5 bg-white border border-[#EAE6DF] rounded-[14px]">
@@ -1567,6 +1526,43 @@
         function savePreOrders() {
             localStorage.setItem('tripPreOrders', JSON.stringify(preOrderList));
         }
+        
+        async function copyLineBill(friendName) {
+            const friendItems = preOrderList.filter(i => i.friendName === friendName);
+            if (friendItems.length === 0) return;
+
+            let text = `📦 สรุปของฝาก (To: ${friendName})\n\n`;
+            let totalJpy = 0;
+            
+            friendItems.forEach(item => {
+                if(item.isBought) {
+                    text += `✅ ${item.itemName} (${item.price.toLocaleString()} JPY)\n`;
+                    totalJpy += item.price;
+                } else {
+                    text += `⏳ ${item.itemName} (รอซื้อ/ของหมด)\n`;
+                }
+            });
+
+            if(totalJpy > 0) {
+                text += `\nยอดรวมของที่ได้: ${totalJpy.toLocaleString()} JPY\n`;
+                if (currentJpyToThbRate > 0) {
+                    const thb = (totalJpy * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    text += `💰 คิดเป็นเงินไทย: ${thb} บาท\n`;
+                }
+                text += `\nโอนเงินที่บัญชี/พร้อมเพย์:\n`;
+                text += `xxx-xxx-xxxx (${currentUser || 'ชื่อบัญชี'})\n`;
+                text += `🙏 ขอบคุณจ้าาา`;
+            } else {
+                text += `\n(ตอนนี้ยังไม่ได้ซื้อของเลยจ้า 😅)`;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(`📋 คัดลอกบิลของ ${friendName} แล้ว!`);
+            } catch (err) {
+                showToast('คัดลอกไม่สำเร็จ (เบราว์เซอร์ไม่รองรับ)', true);
+            }
+        }
 
         function renderPreOrderList() {
             const container = document.getElementById('preorder-list');
@@ -1634,8 +1630,11 @@
                             <div class="w-7 h-7 rounded-full ${friendStyle.bg} ${friendStyle.text} flex items-center justify-center font-black text-[10px] shadow-sm">${friend.charAt(0).toUpperCase()}</div>
                             <h3 class="text-[14px] font-black text-slate-800">${friend}</h3>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[10px] font-bold text-slate-500">ซื้อแล้ว ${groupData.boughtJpy.toLocaleString()} / ${groupData.totalJpy.toLocaleString()} JPY</p>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-500">ซื้อแล้ว ${groupData.boughtJpy.toLocaleString()} / ${groupData.totalJpy.toLocaleString()} JPY</p>
+                            </div>
+                            <button onclick="copyLineBill('${friend}')" class="w-8 h-8 rounded-full bg-[#00B900]/10 text-[#00B900] flex items-center justify-center hover:bg-[#00B900]/20 transition-colors shadow-sm flex-shrink-0" title="Copy LINE Bill"><i class="fab fa-line text-[16px]"></i></button>
                         </div>
                     </div>
                     <div class="px-4">
@@ -1646,57 +1645,6 @@
                 
                 container.appendChild(groupDiv);
             });
-        }
-
-        // Attachment Modal Controls
-        function openAttachmentModal() {
-            const modal = document.getElementById('attachment-modal');
-            const content = document.getElementById('attachment-modal-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                if(window.innerWidth < 640) {
-                    content.classList.remove('translate-y-full');
-                } else {
-                    content.classList.remove('scale-95');
-                    content.classList.add('scale-100');
-                }
-            }, 10);
-        }
-
-        function closeAttachmentModal() {
-            const modal = document.getElementById('attachment-modal');
-            const content = document.getElementById('attachment-modal-content');
-            modal.classList.add('opacity-0');
-            if(window.innerWidth < 640) {
-                content.classList.add('translate-y-full');
-            } else {
-                content.classList.remove('scale-100');
-                content.classList.add('scale-95');
-            }
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        function triggerFileInput(type) {
-            const fileInput = document.getElementById('receipt-file');
-            
-            fileInput.value = '';
-            fileInput.removeAttribute("capture");
-            fileInput.removeAttribute("accept");
-
-            if (type === 'camera') {
-                fileInput.setAttribute("accept", "image/*");
-                fileInput.setAttribute("capture", "environment"); 
-            } else if (type === 'gallery') {
-                fileInput.setAttribute("accept", "image/jpeg, image/png, image/jpg, image/webp");
-            } else if (type === 'file') {
-                fileInput.setAttribute("accept", "application/pdf,.doc,.docx,.xls,.xlsx,text/plain");
-            }
-            
-            fileInput.click();
-            closeAttachmentModal();
         }
 
         // Save Trip Detail
@@ -1764,42 +1712,6 @@
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
             loadDataFromSheet(); 
-
-            document.getElementById('receipt-file').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                document.getElementById('receipt-text').innerText = file.name;
-                receiptName = file.name;
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    if (file.type.startsWith('image/')) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 800;
-                            let width = img.width;
-                            let height = img.height;
-
-                            if (width > MAX_WIDTH) { 
-                                height = Math.round((height * MAX_WIDTH) / width); 
-                                width = MAX_WIDTH; 
-                            }
-
-                            canvas.width = width; 
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                        };
-                        img.src = event.target.result;
-                    } else {
-                        receiptBase64 = event.target.result;
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
         };
 
         document.addEventListener('click', function(event) {
@@ -2156,7 +2068,6 @@
 
             receiptBase64 = null;
             receiptName = null;
-            document.getElementById('receipt-text').innerText = "แนบใบเสร็จ";
             
             renderQuickTags();
         }
@@ -2739,7 +2650,6 @@
                         
                         receiptBase64 = null; 
                         receiptName = null; 
-                        document.getElementById('receipt-text').innerText = "แนบใบเสร็จ"; 
                         
                         loadDataFromSheet(); 
                     } else { 

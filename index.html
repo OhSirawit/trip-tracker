@@ -1085,6 +1085,13 @@
                 parsedLimits['Cash'] = 150000;
             }
             
+            // เคลียร์ค่าของ Omiyage ที่อาจหลงเข้ามาใน Payment Limit
+            Object.keys(parsedLimits).forEach(key => {
+                if (key.toLowerCase().startsWith('omiyage')) {
+                    delete parsedLimits[key];
+                }
+            });
+            
             return parsedLimits;
         }
 
@@ -1693,7 +1700,7 @@
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
             if (friendItems.length === 0) return;
 
-            let text = `📦 Pre-Order Summary (To: ${friendName})\n\n`;
+            let text = `📦 Omiyage Summary (To: ${friendName})\n\n`;
             let totalJpy = 0;
             
             friendItems.forEach(item => {
@@ -2162,10 +2169,10 @@
                                 const catName = key.replace('CatLimit_', '');
                                 loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0;
                                 updatedCatLimits = true;
-                            } else if (key.startsWith('Omiyage')) {
+                            } else if (key.toLowerCase().startsWith('omiyage')) {
                                 let omiVal = String(res.settings[key]);
                                 // แก้ปัญหา Google Sheets ตัดเลข 0 ข้างหน้าออก (เบอร์โทรเหลือ 9 หลัก, บัตรปชชเหลือ 12 หลัก)
-                                if (key.includes('Promptpay') && (omiVal.length === 9 || omiVal.length === 12)) {
+                                if (key.toLowerCase().includes('promptpay') && (omiVal.length === 9 || omiVal.length === 12)) {
                                     omiVal = '0' + omiVal;
                                 }
                                 localStorage.setItem(key, omiVal);
@@ -2179,7 +2186,12 @@
                         loadOmiyageSettings();
                         
                         Object.keys(limits).forEach(key => {
-                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_') && !key.startsWith('Omiyage')) {
+                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_') && !key.toLowerCase().startsWith('omiyage')) {
+                                delete limits[key];
+                                updatedLimits = true;
+                            }
+                            // ป้องกัน Omiyage โผล่มาเป็น Payment Method
+                            if (key.toLowerCase().startsWith('omiyage')) {
                                 delete limits[key];
                                 updatedLimits = true;
                             }

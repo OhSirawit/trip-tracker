@@ -1806,19 +1806,30 @@
             
             if (copyBtn) copyBtn.classList.add('hidden');
             if (closeBtn) closeBtn.classList.add('opacity-0'); 
-            if (qrToggle) qrToggle.classList.add('hidden'); // ซ่อน Checkbox ตอนแคปรูป
+            if (qrToggle) qrToggle.classList.add('hidden'); 
             btn.classList.add('hidden');
 
             const ta = document.getElementById('bill-text-area');
             const modalContent = document.getElementById('bill-modal-content');
             const scrollContainer = modalContent.querySelector('.overflow-y-auto');
             
-            const oldHeight = ta.style.height;
+            // --- สร้าง div ปลอมเพื่อแก้ปัญหา html2canvas อ่านบรรทัดใหม่ใน textarea ไม่ออก ---
+            const fakeDiv = document.createElement('div');
+            fakeDiv.className = ta.className; // ก็อปปี้ style มาทั้งหมด
+            fakeDiv.style.height = 'auto'; // ขยายตามเนื้อหาอัตโนมัติ
+            fakeDiv.style.minHeight = Math.max(ta.scrollHeight, 150) + 'px';
+            fakeDiv.style.whiteSpace = 'pre-wrap'; // บังคับตัดบรรทัด
+            fakeDiv.style.wordWrap = 'break-word';
+            fakeDiv.innerHTML = ta.value.replace(/\n/g, '<br>'); // แปลงโค้ด Enter เป็น tag <br>
+            
+            ta.parentNode.insertBefore(fakeDiv, ta); 
+            const oldTaDisplay = ta.style.display;
+            ta.style.display = 'none'; // ซ่อน textarea ตัวจริงก่อนถ่ายภาพ
+            // ----------------------------------------------------------------------
+            
             const oldMaxHeight = modalContent.style.maxHeight;
             const oldOverflow = scrollContainer ? scrollContainer.style.overflowY : '';
             
-            ta.style.height = (ta.scrollHeight + 10) + 'px';
-            ta.style.overflow = 'hidden';
             modalContent.style.maxHeight = 'none';
             if (scrollContainer) scrollContainer.style.overflowY = 'visible';
 
@@ -1845,13 +1856,15 @@
                 showToast("ไม่สามารถสร้างรูปภาพได้", true);
             }
 
-            ta.style.height = oldHeight;
-            ta.style.overflow = '';
+            // --- คืนค่า UI กลับสู่สภาวะปกติ ---
+            ta.parentNode.removeChild(fakeDiv); // ลบ div ปลอมทิ้ง
+            ta.style.display = oldTaDisplay; // แสดง textarea ตัวจริงกลับมา
+            
             modalContent.style.maxHeight = oldMaxHeight;
             if (scrollContainer) scrollContainer.style.overflowY = oldOverflow;
             if (copyBtn) copyBtn.classList.remove('hidden');
             if (closeBtn) closeBtn.classList.remove('opacity-0');
-            if (qrToggle) qrToggle.classList.remove('hidden'); // เอา Checkbox กลับมา
+            if (qrToggle) qrToggle.classList.remove('hidden'); 
             btn.classList.remove('hidden');
             
             btn.innerHTML = originalText;

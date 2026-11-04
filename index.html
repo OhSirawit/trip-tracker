@@ -241,7 +241,18 @@
         </div>
     </div>
 
-            <!-- Settlement Modal -->
+    <!-- AI Processing Modal -->
+    <div id="ai-processing-modal" class="fixed inset-0 z-[600] bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center transition-opacity duration-300 opacity-0 px-4">
+        <div class="bg-white w-full max-w-[280px] rounded-[24px] p-6 transform scale-95 transition-transform duration-300 shadow-2xl flex flex-col items-center text-center border border-[#EAE6DF]" id="ai-processing-content">
+            <div class="w-16 h-16 mb-4 flex items-center justify-center">
+                <i class="fas fa-qrcode text-[#D9383A] text-5xl animate-pulse"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mb-1">AI is reading...</h3>
+            <p class="text-[11px] text-slate-500 font-bold">Extracting amount and details<br>from your receipt</p>
+        </div>
+    </div>
+
+    <!-- Settlement Modal -->
     <div id="settlement-modal" class="fixed inset-0 z-[350] bg-slate-900/40 backdrop-blur-sm hidden flex items-end justify-center transition-opacity duration-300 opacity-0 sm:items-center sm:px-6">
         <div class="bg-white w-full sm:max-w-md rounded-t-[24px] sm:rounded-[24px] p-6 pb-10 sm:pb-6 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 shadow-2xl max-h-[90vh] flex flex-col" id="settlement-modal-content">
             <div class="flex justify-between items-center mb-5 shrink-0">
@@ -848,6 +859,8 @@
         let currentJpyToThbRate = 0; 
         let confirmActionCallback = null;
         
+        const GEMINI_API_KEY = ""; // Leave blank for Canvas (ระบบในเว็บนี้จะจัดการ API Key ให้อัตโนมัติ)
+        
         // Expense Categories available for budgeting
         const expenseCategories = ['Food', 'Transportation', 'Dessert/Beverage', 'Shopping', 'Admission Fee', 'Tops up IC Card', 'Pre-Order', 'Gasoline', 'Toll / ETC', 'Other'];
 
@@ -978,10 +991,92 @@
                     
                     label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
                     label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>`;
+                    
+                    // ส่งรูปที่บีบอัดแล้วไปให้ AI อ่าน
+                    const base64DataOnly = receiptBase64.split(',')[1];
+                    processReceiptWithAI(base64DataOnly, 'image/jpeg');
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+
+        async function processReceiptWithAI(base64Data, mimeType) {
+            const modal = document.getElementById('ai-processing-modal');
+            const content = document.getElementById('ai-processing-content');
+            
+            // แสดงหน้าต่างโหลดดิ้ง
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const promptText = `Extract the following information from the receipt image. Return ONLY a JSON object with this exact format:
+            {
+                "totalAmount": number (grand total after discount, return numbers only),
+                "storeName": "string (Translate store name to Thai if it's Japanese)",
+                "category": "string (Must be exactly one of these: Food, Transportation, Shopping, Dessert/Beverage, Tops up IC Card, Pre-Order, Gasoline, Toll / ETC, Other)",
+                "date": "YYYY-MM-DD (convert to this format, if found)"
+            }`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            role: "user",
+                            parts: [
+                                { text: promptText },
+                                { inlineData: { mimeType: mimeType, data: base64Data } }
+                            ]
+                        }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content) {
+                    const jsonStr = result.candidates[0].content.parts[0].text;
+                    const data = JSON.parse(jsonStr);
+
+                    // เติมข้อมูลลงฟอร์มอัตโนมัติ
+                    if (data.totalAmount) {
+                        document.getElementById('amount').value = data.totalAmount;
+                        calculateTHB();
+                    }
+                    if (data.storeName) {
+                        document.getElementById('details').value = data.storeName;
+                    }
+                    if (data.category) {
+                        const catSelect = document.getElementById('category');
+                        const optionExists = Array.from(catSelect.options).some(opt => opt.value === data.category);
+                        if(optionExists) {
+                            catSelect.value = data.category;
+                            renderQuickTags();
+                        }
+                    }
+                    if (data.date && data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        document.getElementById('date').value = data.date;
+                    }
+                    
+                    showToast("Form auto-filled by AI! ✨");
+                }
+            } catch (error) {
+                console.error("AI Error:", error);
+                showToast("AI couldn't read the receipt. Please fill manually.", true);
+            } finally {
+                // ปิดหน้าต่างโหลดดิ้ง
+                modal.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
         }
 
         // Custom Confirm Modal Functions

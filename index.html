@@ -527,6 +527,10 @@
                             <button type="button" id="btn-add-receipt" onclick="openReceiptModal()" class="flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#EAE6DF] bg-white hover:bg-slate-50 rounded-[14px] cursor-pointer transition-colors text-slate-400 font-bold text-[11px]">
                                 <i class="fas fa-image text-sm"></i> Add Receipt
                             </button>
+
+                            <button type="button" id="btn-missing-key" onclick="switchPage('settings')" class="hidden flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-rose-200 bg-rose-50 hover:bg-rose-100 rounded-[14px] cursor-pointer transition-colors text-rose-500 font-bold text-[11px]">
+                                <i class="fas fa-exclamation-circle text-sm"></i> API Key Missing
+                            </button>
                             
                             <div id="receipt-label" onclick="openReceiptModal()" class="hidden flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors">
                                 <i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>
@@ -602,8 +606,18 @@
                 </button>
             </div>
             
-            <!-- Team Members Settings -->
+            <!-- API Key Settings -->
             <div class="modern-card p-5 bg-white">
+                <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-robot text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">AI Scanner (Gemini API Key)</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">Enter your Google Gemini API Key here. It will be stored safely on this device.</p>
+                <input type="password" id="settings-api-key" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. AQ.Ab8RN...">
+            </div>
+
+            <!-- Team Members Settings -->
+            <div class="modern-card p-5 bg-white mt-4">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
@@ -617,7 +631,7 @@
             </div>
 
             <!-- Budget & Cards Settings -->
-            <div class="modern-card p-5 bg-white">
+            <div class="modern-card p-5 bg-white mt-4">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Budget & Cards (JPY)</h3>
@@ -859,8 +873,6 @@
         let currentJpyToThbRate = 0; 
         let confirmActionCallback = null;
         
-        const GEMINI_API_KEY = "AIzaSyBWSE7HuIqxM4TYWqp4RZYbTEeDNMPbnK4"; // ใส่ API Key ของคุณเรียบร้อยแล้ว
-        
         // Expense Categories available for budgeting
         const expenseCategories = ['Food', 'Transportation', 'Dessert/Beverage', 'Shopping', 'Admission Fee', 'Tops up IC Card', 'Pre-Order', 'Gasoline', 'Toll / ETC', 'Other'];
 
@@ -914,6 +926,25 @@
         
         let receiptBase64 = null;
         let receiptName = null;
+
+        // Check API Key to toggle button states
+        function checkApiKey() {
+            const key = localStorage.getItem('geminiApiKey');
+            const btnAdd = document.getElementById('btn-add-receipt');
+            const btnMissing = document.getElementById('btn-missing-key');
+            const label = document.getElementById('receipt-label');
+            
+            if (!key || key.trim() === '') {
+                if(btnAdd) btnAdd.classList.add('hidden');
+                if(btnMissing) btnMissing.classList.remove('hidden');
+                if(label) label.classList.add('hidden');
+            } else {
+                if(btnMissing) btnMissing.classList.add('hidden');
+                if(label && label.classList.contains('hidden') && !receiptBase64) {
+                    if(btnAdd) btnAdd.classList.remove('hidden');
+                }
+            }
+        }
 
         // Custom Receipt Modal Functions
         function openReceiptModal() {
@@ -970,7 +1001,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const MAX_DIMENSION = 1200; // บีบอัดให้กว้าง/ยาวไม่เกิน 1200px ให้ภาพยังชัดแต่ไฟล์เล็ก
+                    const MAX_DIMENSION = 1200;
 
                     if (width > height && width > MAX_DIMENSION) {
                         height *= MAX_DIMENSION / width;
@@ -985,14 +1016,13 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // แปลงเป็น JPG คุณภาพ 70% (จากรูป 5MB จะเหลือแค่หลักสิบ-ร้อย KB โหลดไวมาก)
                     receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     receiptName = "receipt_" + Date.now() + ".jpg";
                     
                     label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
                     label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>`;
                     
-                    // ส่งรูปที่บีบอัดแล้วไปให้ AI อ่าน
+                    // ส่งรูปไปให้ AI อ่าน
                     const base64DataOnly = receiptBase64.split(',')[1];
                     processReceiptWithAI(base64DataOnly, 'image/jpeg');
                 };
@@ -1013,7 +1043,8 @@
                 content.classList.add('scale-100');
             }, 10);
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${GEMINI_API_KEY}`;
+            const API_KEY = localStorage.getItem('geminiApiKey');
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const promptText = `Extract the following information from the receipt image. Return ONLY a JSON object with this exact format:
             {
@@ -1038,6 +1069,15 @@
                         generationConfig: { responseMimeType: "application/json" }
                     })
                 });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    console.error("API Error details:", errData);
+                    if (response.status === 429 || response.status === 400 || response.status === 403) {
+                        throw new Error("API_KEY_DEPLETED");
+                    }
+                    throw new Error("API_ERROR");
+                }
 
                 const result = await response.json();
                 
@@ -1069,7 +1109,11 @@
                 }
             } catch (error) {
                 console.error("AI Error:", error);
-                showToast("AI couldn't read the receipt. Please fill manually.", true);
+                if (error.message === "API_KEY_DEPLETED") {
+                    showToast("API Key Depleted or Invalid. Please check your key.", true);
+                } else {
+                    showToast("AI couldn't read the receipt. Please fill manually.", true);
+                }
             } finally {
                 // ปิดหน้าต่างโหลดดิ้ง
                 modal.classList.add('opacity-0');
@@ -1345,6 +1389,13 @@
             
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+            
+            // Save API Key
+            const apiKeyInput = document.getElementById('settings-api-key');
+            if (apiKeyInput) {
+                localStorage.setItem('geminiApiKey', apiKeyInput.value.trim());
+            }
+            checkApiKey();
 
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
@@ -2255,6 +2306,12 @@
                 document.getElementById('trip-detail-header').value = savedDetail;
             }
 
+            // Load saved API Key into input if exists
+            const savedApiKey = localStorage.getItem('geminiApiKey') || '';
+            if (document.getElementById('settings-api-key')) {
+                document.getElementById('settings-api-key').value = savedApiKey;
+            }
+
             initUser();
             fetchExchangeRate(); 
             renderQuickTags(); 
@@ -2264,6 +2321,8 @@
 
             let todayStr = new Date().toLocaleDateString('en-CA'); 
             document.getElementById('date').value = todayStr; 
+            
+            checkApiKey(); // Check API key state on load
             loadDataFromSheet(); 
         };
 
@@ -2386,7 +2445,7 @@
                                 updatedCatLimits = true;
                             } else if (key.toLowerCase().startsWith('omiyage')) {
                                 let omiVal = String(res.settings[key]);
-                                // แก้ปัญหา Google Sheets ตัดเลข 0 ข้างหน้าออก (เบอร์โทรเหลือ 9 หลัก, บัตรปชชเหลือ 12 หลัก)
+                                // แก้ปัญหา Google Sheets ตัดเลข 0 ข้างหน้าออก
                                 if (key.toLowerCase().includes('promptpay') && (omiVal.length === 9 || omiVal.length === 12)) {
                                     omiVal = '0' + omiVal;
                                 }
@@ -2397,7 +2456,7 @@
                             }
                         });
                         
-                        // Reload Omiyage settings for the current user in case they were updated from online
+                        // Reload Omiyage settings for the current user
                         loadOmiyageSettings();
                         
                         Object.keys(limits).forEach(key => {
@@ -2647,12 +2706,11 @@
             if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
             if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
             
-            const btnAddReceipt = document.getElementById('btn-add-receipt');
             const receiptLabel = document.getElementById('receipt-label');
-            if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
             if(receiptLabel) receiptLabel.classList.add('hidden');
             
             renderQuickTags();
+            checkApiKey();
         }
 
         function updateUI() {
@@ -3237,11 +3295,10 @@
                         if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
                         if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
                         
-                        const btnAddReceipt = document.getElementById('btn-add-receipt');
                         const receiptLabel = document.getElementById('receipt-label');
-                        if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
                         if(receiptLabel) receiptLabel.classList.add('hidden');
                         
+                        checkApiKey();
                         loadDataFromSheet(); 
                     } else { 
                         showToast("Error: " + res.message, true); 

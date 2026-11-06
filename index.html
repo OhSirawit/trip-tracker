@@ -612,8 +612,20 @@
                 <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
             </div>
 
+            <!-- Gemini API Key Settings -->
+            <div class="modern-card p-5 bg-white mt-4">
+                <div class="flex items-center gap-1.5 mb-3">
+                    <i class="fas fa-robot text-[#D9383A] text-[11px]"></i>
+                    <h3 class="text-[11px] font-bold text-[#D9383A]">AI Scanner (Gemini API Key)</h3>
+                </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">ใส่ API Key จาก Google AI Studio เพื่อเปิดใช้ระบบอ่านบิลอัตโนมัติ</p>
+                <div class="flex gap-2 mb-2">
+                    <input type="password" id="gemini-api-key-input" class="w-full bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="AIzaSy...">
+                </div>
+            </div>
+
             <!-- Budget & Cards Settings -->
-            <div class="modern-card p-5 bg-white">
+            <div class="modern-card p-5 bg-white mt-4">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Budget & Cards (JPY)</h3>
@@ -847,8 +859,8 @@
 
     <!-- Scripts -->
     <script>
-        // --- 🌟 อัปเดต API_URL เรียบร้อยแล้ว 🌟 ---
-        const API_URL = "https://script.google.com/macros/s/AKfycby2K5Hv5oFg7GB161bLYcjNeoCXno8Wx0DGOuA-qUC_qkm661c-zBhuGaFfHhIc0lp0/exec";
+        // --- 🌟 อัปเดต API_URL ล่าสุดแล้ว 🌟 ---
+        const API_URL = "https://script.google.com/macros/s/AKfycbwLJuKwDL7ReSCA75g9M60kA7rAVH8qiPgqeeu8BCl5LSAxTj2y88YnMNPuNV8b2v2p/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -991,6 +1003,8 @@
 
                     // === 🌟 AI EXTRACTION PROCESS 🌟 ===
                     if (navigator.onLine) {
+                        const savedKey = document.getElementById('gemini-api-key-input') ? document.getElementById('gemini-api-key-input').value.trim() : '';
+                        
                         label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#8A9A5B] bg-[#f7f9f2] rounded-[14px] cursor-wait transition-colors';
                         label.innerHTML = `<i class="fas fa-magic fa-spin text-[#8A9A5B] text-sm"></i><span class="text-[11px] text-[#8A9A5B] font-bold">AI Reading Receipt...</span>`;
 
@@ -999,7 +1013,10 @@
                                 method: 'POST',
                                 body: JSON.stringify({
                                     action: 'extractReceipt',
-                                    data: { receiptBase64: receiptBase64 }
+                                    data: { 
+                                        receiptBase64: receiptBase64,
+                                        geminiApiKey: savedKey 
+                                    }
                                 })
                             }).then(r => r.json());
 
@@ -1333,8 +1350,11 @@
                 return;
             }
 
+            const geminiKey = document.getElementById('gemini-api-key-input') ? document.getElementById('gemini-api-key-input').value.trim() : '';
+
             const settingsPayload = {
                 members: newMembersString,
+                GeminiAPIKey: geminiKey,
                 ...limits
             };
 
@@ -2342,13 +2362,17 @@
                             }
                         }
 
+                        if(res.settings.GeminiAPIKey && document.getElementById('gemini-api-key-input')) {
+                            document.getElementById('gemini-api-key-input').value = res.settings.GeminiAPIKey;
+                        }
+
                         const limits = getPaymentLimits();
                         const loadedCatLimits = {};
                         let updatedLimits = false;
                         let updatedCatLimits = false;
 
                         Object.keys(res.settings).forEach(key => {
-                            if(key === 'members') return;
+                            if(key === 'members' || key === 'GeminiAPIKey') return;
 
                             if (key.startsWith('CatLimit_')) {
                                 const catName = key.replace('CatLimit_', '');
@@ -2371,12 +2395,12 @@
                         loadOmiyageSettings();
 
                         Object.keys(limits).forEach(key => {
-                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_') && !key.toLowerCase().startsWith('omiyage')) {
+                            if(res.settings[key] === undefined && key !== 'Cash' && key !== 'GeminiAPIKey' && !key.startsWith('CatLimit_') && !key.toLowerCase().startsWith('omiyage')) {
                                 delete limits[key];
                                 updatedLimits = true;
                             }
                             // ป้องกัน Omiyage โผล่มาเป็น Payment Method
-                            if (key.toLowerCase().startsWith('omiyage')) {
+                            if (key.toLowerCase().startsWith('omiyage') || key === 'GeminiAPIKey') {
                                 delete limits[key];
                                 updatedLimits = true;
                             }

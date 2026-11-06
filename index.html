@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <!-- Washi Paper Color -->
     <meta name="theme-color" content="#F7F6F2">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,15 +23,16 @@
 
         body { 
             font-family: 'Plus Jakarta Sans', 'Kanit', sans-serif; 
-            color: #1C2536; 
+            color: #1C2536; /* Sumi Black */
             -webkit-tap-highlight-color: transparent; 
             margin: 0;
             padding: 0;
-            background-color: #F7F6F2; 
+            background-color: #F7F6F2; /* Washi Paper */
             overflow-x: hidden; 
             transition: background-color 0.3s ease;
         }
 
+        /* Modern Zen Cards */
         .modern-card { 
             background: #ffffff; 
             border: 1px solid #EAE6DF; 
@@ -55,7 +57,7 @@
             color: #1C2536;
         }
         .input-style:focus { 
-            border-color: #D9383A; 
+            border-color: #D9383A; /* Torii Red */
             box-shadow: 0 0 0 3px rgba(217, 56, 58, 0.1); 
             outline: none;
         }
@@ -161,6 +163,7 @@
         body.dark-mode .trip-detail-input { color: #cbd5e1; }
         body.dark-mode .trip-detail-input:focus, body.dark-mode .trip-detail-input:hover { border-color: #D9383A; background: rgba(30, 41, 59, 0.5); }
 
+        /* Dark Mode for Custom Modal */
         body.dark-mode #confirm-modal-content { background-color: #1E293B; border: 1px solid #334155; }
         body.dark-mode #confirm-title { color: #f8fafc; }
         body.dark-mode #confirm-message { color: #94a3b8; }
@@ -175,6 +178,7 @@
         body.dark-mode #qr-section { background-color: #0F172A; border-color: #334155; }
         body.dark-mode #qr-amount-text { color: #f8fafc; }
 
+        /* Dark Mode for Receipt Modal */
         body.dark-mode #receipt-modal-content { background-color: #1E293B; border: 1px solid #334155; }
         body.dark-mode #receipt-modal-content h3 { color: #f8fafc; }
         body.dark-mode #receipt-modal-content .bg-slate-50 { background-color: #0F172A; border-color: #334155; color: #cbd5e1; }
@@ -184,6 +188,7 @@
         body.dark-mode #btn-add-receipt { background-color: #1E293B; border-color: #334155; }
         body.dark-mode #btn-add-receipt:hover { background-color: #0F172A; }
 
+        /* Custom Checkbox for Pre-Order */
         .preorder-checkbox:checked + div {
             background-color: #D9383A;
             border-color: #D9383A;
@@ -195,6 +200,7 @@
 </head>
 <body class="pb-32 relative">
 
+    <!-- Toast Notification -->
     <div id="toast-notification" class="fixed top-8 left-1/2 transform -translate-x-1/2 z-[100] -translate-y-32 opacity-0 pointer-events-none w-auto whitespace-nowrap">
         <div id="toast-bg" class="bg-[#1C2536]/95 backdrop-blur-md text-white px-5 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-3">
             <i id="toast-icon" class="fas fa-check-circle text-[#8A9A5B] text-lg"></i>
@@ -245,6 +251,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-black text-slate-900 tracking-wide leading-tight">Settlement</h3>
+                        <p class="text-[10px] text-slate-500">สรุปยอดเคลียร์เงิน (Shared)</p>
                         <p class="text-[10px] text-slate-500">Shared Settlement Summary</p>
                     </div>
                 </div>
@@ -259,13 +266,16 @@
                         <span class="text-xs font-bold text-slate-500">JPY</span>
                     </div>
                     <div class="mt-3 pt-3 border-t border-[#EAE6DF] dark:border-slate-700 flex justify-center items-center gap-2 text-xs">
+                        <span class="text-slate-500">หารกันคนละ:</span>
                         <span class="text-slate-500">Per Person:</span>
                         <span id="settle-per-person" class="font-bold text-[#D9383A]">0 JPY</span>
                     </div>
                 </div>
 
                 <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Who owes who?</h4>
-                <div id="settlement-list" class="space-y-2 mb-2"></div>
+                <div id="settlement-list" class="space-y-2 mb-2">
+                    <!-- Transactions will be generated here -->
+                </div>
             </div>
         </div>
     </div>
@@ -279,16 +289,20 @@
             </div>
 
             <div class="overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                <!-- Text Section -->
                 <div class="relative">
                     <textarea id="bill-text-area" class="w-full bg-slate-50 p-3 text-[11px] text-slate-700 font-medium rounded-xl border border-[#EAE6DF] outline-none resize-none h-36" readonly></textarea>
                     <button id="btn-copy-bill" onclick="copyBillTextOnly()" class="absolute top-2 right-2 bg-white text-[#457B9D] p-2 rounded-lg shadow-sm border border-slate-200 hover:bg-[#457B9D] hover:text-white transition-colors text-xs font-bold"><i class="far fa-copy"></i> Copy</button>
                 </div>
 
+                <!-- QR Section -->
                 <div id="qr-section" class="hidden flex-col items-center justify-center bg-[#F8FAFC] p-4 rounded-xl border border-[#EAE6DF]">
                     <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest mb-2"><i class="fas fa-qrcode"></i> Thai QR Payment</p>
                     <div id="promptpay-qr" class="w-48 h-48 rounded-lg shadow-sm bg-white p-2 flex items-center justify-center"></div>
                     <p id="qr-amount-text" class="text-sm font-black text-slate-800 mt-2"></p>
                     <p class="text-[9px] text-slate-500 mt-1 text-center mb-2">Scan QR Code to pay</p>
+
+                    <!-- Checkbox เลือกว่าจะระบุยอดเงินหรือไม่ -->
                     <div id="qr-toggle-container" class="flex items-center gap-2 mt-1 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition-opacity">
                         <input type="checkbox" id="qr-include-amount" checked class="w-4 h-4 accent-[#457B9D] rounded cursor-pointer" onchange="renderQRInModal()">
                         <label for="qr-include-amount" class="text-[10px] font-bold text-slate-600 cursor-pointer">Include Amount (Uncheck to enter manually)</label>
@@ -305,6 +319,7 @@
         <!-- Navigation Bar -->
         <nav class="sticky top-0 z-50 px-6 py-4 bg-[#F7F6F2]/90 backdrop-blur-xl border-b border-[#EAE6DF] flex justify-between items-center relative">
             <div class="flex items-center gap-3 relative z-10">
+                <!-- Zen Circular Logo Logo -->
                 <div class="w-10 h-10 bg-[#D9383A] rounded-full flex items-center justify-center text-white shadow-md shadow-[#D9383A]/20">
                     <i class="fas fa-plane text-sm"></i>
                 </div>
@@ -315,10 +330,12 @@
             </div>
 
             <div class="flex items-center gap-2.5 relative z-10">
+                <!-- User Profile Selector -->
                 <div class="relative">
                     <button onclick="toggleDropdown('user-menu')" class="w-10 h-10 flex items-center justify-center rounded-[12px] bg-white shadow-sm border border-[#EAE6DF] focus:outline-none transition-colors hover:border-[#D9383A]">
                         <div id="user-avatar" class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-black text-[12px] flex items-center justify-center shadow-sm">U</div>
                     </button>
+                    <!-- User Dropdown Menu -->
                     <div id="user-menu" class="hidden absolute top-12 right-0 w-40 modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)] flex-col space-y-1">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1">Select Profile</p>
                         <div id="user-list-container" class="space-y-1"></div>
@@ -336,15 +353,39 @@
             <!-- Dropdown Menu -->
             <div id="top-menu" class="menu-dropdown absolute top-20 right-6 w-60 max-h-[75vh] overflow-y-auto modern-card p-2 z-50 shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
                 <ul class="flex flex-col space-y-1">
-                    <li><button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-cog w-4 text-slate-400"></i> Settings & Limits</button></li>
+                    <li>
+                        <button onclick="switchPage('settings'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-cog w-4 text-slate-400"></i> Settings & Limits
+                        </button>
+                    </li>
                     <div class="border-t border-slate-100 my-1"></div>
-                    <li><button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics</button></li>
+
+                    <li>
+                        <button onclick="switchPage('dashboard'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-chart-pie w-4 text-[#D9383A]"></i> Analytics
+                        </button>
+                    </li>
                     <div class="border-t border-slate-100 my-1"></div>
-                    <li><a href="#" target="_blank" onclick="toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-invoice-dollar w-4 text-[#D4AF37]"></i> Pre-Trip Expenses</a></li>
+
+                    <li>
+                        <a href="https://script.google.com/macros/s/AKfycbwFRNFMd5vxB-j-uu4Sc7yczLFIBrACl3WSAHAAZViI4UVvipJ5WDkeONw2YBYeiJSi/exec" target="_blank" onclick="toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-file-invoice-dollar w-4 text-[#D4AF37]"></i> Pre-Trip Expenses
+                        </a>
+                    </li>
                     <div class="border-t border-slate-100 my-1"></div>
-                    <li><button onclick="switchPage('taxrefund'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-tag w-4 text-[#D9383A]"></i> Tax-Refund</button></li>
-                    <li><button onclick="switchPage('preorder'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-box-open w-4 text-[#457B9D]"></i> Pre-Orders</button></li>
+
+                    <li>
+                        <button onclick="switchPage('taxrefund'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-tag w-4 text-[#D9383A]"></i> Tax-Refund
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="switchPage('preorder'); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3">
+                            <i class="fas fa-box-open w-4 text-[#457B9D]"></i> Pre-Orders
+                        </button>
+                    </li>
                     <div class="border-t border-slate-100 my-1"></div>
+
                     <li><button onclick="exportToExcel(); toggleMenu();" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-3"><i class="fas fa-file-export w-4 text-[#8A9A5B]"></i> Export to Excel</button></li>
                 </ul>
             </div>
@@ -352,9 +393,12 @@
 
         <!-- PAGE 1: HOME (Add Expense) -->
         <div id="page-home" class="page-content page-active max-w-xl mx-auto px-4 py-5 space-y-5">
-            <!-- Dashboard Widget -->
+
+            <!-- Dashboard Widget - Modern Japan Style -->
             <div class="modern-card p-6 bg-[#1C2536] text-white border-none shadow-[0_10px_40px_rgba(28,37,54,0.25)] relative overflow-hidden rounded-[20px]">
+                <!-- Solid Torii Red Sun -->
                 <div class="absolute -top-10 -right-8 w-32 h-32 bg-[#D9383A] rounded-full pointer-events-none shadow-lg"></div>
+                <!-- Zen Enso Circle (Subtle lines) -->
                 <div class="absolute -bottom-16 -left-8 w-40 h-40 border-[16px] border-white/5 rounded-full pointer-events-none"></div>
 
                 <div class="relative z-10">
@@ -370,6 +414,7 @@
                         <span class="text-sm font-bold text-slate-300">JPY</span>
                     </div>
 
+                    <!-- Progress Bar -->
                     <div class="w-full bg-[#0F172A] rounded-full h-2 mb-3 overflow-hidden border border-white/10">
                         <div id="budget-progress-bar" class="h-full rounded-full transition-all duration-1000 ease-out bg-[#D9383A] relative" style="width: 100%">
                             <div class="absolute top-0 left-0 w-full h-full bg-white/20 transform -skew-x-12 animate-[placeholderShimmer_2s_infinite]"></div>
@@ -398,6 +443,7 @@
                         </div>
                         <div>
                             <h3 id="form-title" class="text-[15px] font-bold text-gray-800 tracking-wide">Add New Expense</h3>
+                            <p class="text-[10px] text-gray-500">กรุณากรอกข้อมูลให้ครบถ้วน</p>
                             <p class="text-[10px] text-gray-500">Please fill in all details</p>
                         </div>
                     </div>
@@ -451,7 +497,9 @@
                             </div>
                             <div class="space-y-1.5 col-span-2 sm:col-span-1">
                                 <label class="text-[11px] font-bold text-gray-700">Payment Method</label>
-                                <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer"></select>
+                                <select id="payment" class="w-full input-style p-3.5 text-[13px] font-bold outline-none cursor-pointer">
+                                    <!-- Options will be populated dynamically via JavaScript -->
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -496,7 +544,10 @@
                     </div>
 
                     <div class="flex gap-3 mt-5 pt-2">
+                        <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden w-1/3 btn-cancel py-4 text-sm font-bold flex justify-center items-center">ยกเลิก</button>
                         <button type="button" id="cancel-edit-btn" onclick="cancelEdit()" class="hidden w-1/3 btn-cancel py-4 text-sm font-bold flex justify-center items-center">Cancel</button>
+                        <!-- Torii Red Primary Button -->
+                        <button type="submit" id="submit-btn" class="flex-1 btn-modern bg-[#D9383A] hover:bg-[#BA2E30] py-4 text-sm font-bold flex justify-center items-center gap-2 shadow-lg shadow-[#D9383A]/30">บันทึกข้อมูล <i class="fas fa-paper-plane"></i></button>
                         <button type="submit" id="submit-btn" class="flex-1 btn-modern bg-[#D9383A] hover:bg-[#BA2E30] py-4 text-sm font-bold flex justify-center items-center gap-2 shadow-lg shadow-[#D9383A]/30">Save Expense <i class="fas fa-paper-plane"></i></button>
                     </div>
                 </form>
@@ -516,23 +567,28 @@
                         <option value="price-high">💰 Price (High)</option>
                         <option value="price-low">💰 Price (Low)</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"><i class="fas fa-chevron-down text-[8px]"></i></div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                        <i class="fas fa-chevron-down text-[8px]"></i>
+                    </div>
                 </div>
             </div>
 
             <div class="relative mb-4">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400 text-sm"></i></div>
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-slate-400 text-sm"></i>
+                </div>
                 <input type="text" id="search-input" onkeyup="updateUI()" placeholder="Search expenses..." class="w-full input-style py-3.5 pl-10 pr-4 text-sm font-medium outline-none">
             </div>
 
             <div id="offline-warning" class="hidden modern-card p-3 bg-rose-50 border-rose-200 text-center text-xs font-bold text-rose-600 shadow-sm mb-3">
+                <i class="fas fa-wifi"></i> มีรายการรอ Sync เมื่อต่อเน็ต (<span id="offline-count">0</span>)
                 <i class="fas fa-wifi"></i> Pending items to sync when online (<span id="offline-count">0</span>)
             </div>
 
             <div id="history-list" class="space-y-3"></div>
         </div>
 
-        <!-- PAGE 3: SETTINGS -->
+        <!-- PAGE 3: SETTINGS (Payment Limits & Members) -->
         <div id="page-settings" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wide">Settings & Limits</h2>
@@ -541,11 +597,13 @@
                 </button>
             </div>
 
+            <!-- Team Members Settings -->
             <div class="modern-card p-5 bg-white">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-users text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Team Members</h3>
                 </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อแล้วกดปุ่ม + เพื่อเพิ่มสมาชิกในทริป</p>
                 <p class="text-[10px] font-medium text-slate-500 mb-3">Type name and press + to add a member</p>
                 <div class="flex gap-2 mb-3">
                     <input type="text" id="new-member-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. John" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addMemberSettings(); }">
@@ -554,11 +612,14 @@
                 <div id="members-chip-container" class="flex flex-wrap gap-2"></div>
             </div>
 
+            <!-- Budget & Cards Settings -->
             <div class="modern-card p-5 bg-white">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-wallet text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Budget & Cards (JPY)</h3>
                 </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">พิมพ์ชื่อช่องทางจ่ายเงินแล้วกด + เพื่อเพิ่มใหม่</p>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">Type payment method and press + to add</p>
                 <div class="flex gap-2 mb-4">
                     <input type="text" id="new-payment-input" class="flex-1 bg-slate-50 p-3 text-[13px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[12px] focus:border-[#D9383A] transition-colors" placeholder="e.g. Suica, Credit Card" onkeypress="if(event.key === 'Enter') { event.preventDefault(); addPaymentMethod(); }">
                     <button type="button" onclick="addPaymentMethod()" class="bg-[#D9383A] text-white px-4 rounded-[12px] text-xs font-bold hover:bg-[#BA2E30] transition-colors shadow-sm"><i class="fas fa-plus"></i></button>
@@ -566,14 +627,18 @@
                 <div id="settings-limits-container" class="space-y-3 pt-2 border-t border-slate-100"></div>
             </div>
 
+            <!-- Category Budgets Settings -->
             <div class="modern-card p-5 bg-white mt-4">
                 <div class="flex items-center gap-1.5 mb-3">
                     <i class="fas fa-chart-pie text-[#D9383A] text-[11px]"></i>
                     <h3 class="text-[11px] font-bold text-[#D9383A]">Category Budgets (JPY)</h3>
                 </div>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">ตั้งงบประมาณแยกตามหมวดหมู่ (ปล่อยว่างไว้ถ้าไม่ต้องการจำกัดงบ)</p>
+                <p class="text-[10px] font-medium text-slate-500 mb-3">Set budget by category (Leave blank for no limit)</p>
                 <div id="settings-category-container" class="space-y-2 pt-1 border-t border-slate-100"></div>
             </div>
 
+            <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">บันทึกการตั้งค่า</button>
             <button id="save-settings-btn" onclick="saveSettings()" class="w-full mt-6 btn-modern bg-[#1C2536] hover:bg-[#0f172a] py-4 text-sm font-bold flex justify-center items-center shadow-lg">Save Settings</button>
         </div>
 
@@ -585,17 +650,21 @@
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
+
             <div class="modern-card p-6 text-center space-y-2 relative overflow-hidden bg-[#FDF8EB] border-[#F2E3C6]">
                 <p class="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Total Eligible Amount</p>
                 <div class="flex items-baseline justify-center gap-2">
                     <span id="taxrefund-total" class="text-4xl font-black text-slate-900 leading-none tracking-tight">0</span>
                     <span class="text-sm font-bold text-slate-500">JPY</span>
                 </div>
+                <p class="text-[9px] font-bold text-slate-500 mt-2"><i class="fas fa-info-circle"></i> กรุณาเตรียมสินค้า ใบเสร็จ และพาสปอร์ตให้พร้อม</p>
+                <p class="text-[9px] font-bold text-slate-500 mt-2"><i class="fas fa-info-circle"></i> Please prepare your items, receipts, and passport</p>
             </div>
+
             <div id="taxrefund-list" class="space-y-3"></div>
         </div>
 
-        <!-- PAGE 5: PRE-ORDER -->
+        <!-- PAGE 5: PRE-ORDER (Omiyage Tracker) -->
         <div id="page-preorder" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wide">Pre-Orders</h2>
@@ -604,6 +673,7 @@
                 </button>
             </div>
 
+            <!-- Billing Settings -->
             <div class="modern-card p-4 bg-white">
                 <div class="flex justify-between items-center cursor-pointer" onclick="toggleDropdown('omiyage-settings')">
                     <p class="text-[10px] font-black text-[#457B9D] uppercase tracking-widest"><i class="fas fa-cog"></i> BILLING SETTINGS</p>
@@ -612,15 +682,15 @@
                 <div id="omiyage-settings" class="hidden flex-col gap-3 mt-3 pt-3 border-t border-slate-100">
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">Bank Account / Name (Shown in bill)</label>
-                        <input type="text" id="omiyage-bank" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]">
+                        <input type="text" id="omiyage-bank" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="e.g. 081-234-5678 (KBank)">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 mb-1 block">PromptPay Number (For QR Code)</label>
-                        <input type="text" id="omiyage-promptpay" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]">
+                        <input type="text" id="omiyage-promptpay" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="e.g. 0812345678 (Numbers only)">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Markup Rate (Added to actual rate)</label>
-                        <input type="number" step="0.001" id="omiyage-markup" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" value="0.01">
+                        <label class="text-[10px] font-bold text-slate-500 mb-1 block">Markup Rate (Added to actual rate, e.g. 0.01)</label>
+                        <input type="number" step="0.001" id="omiyage-markup" class="w-full bg-slate-50 p-2.5 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="0.01" value="0.01">
                     </div>
                     <button onclick="saveOmiyageSettingsOnline()" id="btn-save-omiyage" class="bg-[#457B9D] text-white py-3 rounded-[10px] text-xs font-bold hover:bg-[#1D3557] transition-colors mt-1 shadow-sm w-full"><i class="fas fa-cloud-upload-alt mr-1"></i> Save Online</button>
                 </div>
@@ -631,22 +701,25 @@
                 <div class="space-y-3">
                     <div class="flex gap-2">
                         <div class="w-1/3">
-                            <input type="text" id="preorder-friend" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="Friend's Name">
+                            <input type="text" id="preorder-friend" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="Friend's Name">
                         </div>
                         <div class="w-2/3">
-                            <input type="text" id="preorder-item" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="Item Name">
+                            <input type="text" id="preorder-item" class="w-full bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="Item Name">
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <input type="number" id="preorder-price" class="flex-1 bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D]" placeholder="Price (JPY)">
+                        <input type="number" id="preorder-price" class="flex-1 bg-slate-50 p-3 text-[12px] font-bold text-slate-800 outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#457B9D] transition-colors" placeholder="Price (JPY)">
                         <button type="button" onclick="addPreOrderItem()" id="btn-add-preorder" class="bg-[#457B9D] text-white px-5 rounded-[10px] text-[12px] font-bold hover:bg-[#1D3557] transition-colors shadow-sm whitespace-nowrap">Add Item</button>
                     </div>
                 </div>
             </div>
-            <div id="preorder-list" class="space-y-4"></div>
+
+            <div id="preorder-list" class="space-y-4">
+                <!-- Grouped pre-orders will appear here -->
+            </div>
         </div>
 
-        <!-- PAGE 6: DASHBOARD -->
+        <!-- PAGE 6: DASHBOARD (Detailed Analytics) -->
         <div id="page-dashboard" class="page-content max-w-xl mx-auto px-5 py-4 space-y-5">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wide">Analytics</h2>
@@ -655,6 +728,7 @@
                 </button>
             </div>
 
+            <!-- Summary Overall -->
             <div class="modern-card p-6 text-center space-y-4 relative overflow-hidden bg-white">
                 <div class="flex justify-between text-xs font-bold text-slate-500">
                     <span>Total Spent</span>
@@ -672,17 +746,20 @@
                 </div>
             </div>
 
+            <!-- Settlement Button -->
             <button onclick="openSettlementModal()" class="w-full mt-1 modern-card bg-[#1C2536] text-white p-4 flex justify-between items-center shadow-lg shadow-[#1C2536]/20 transition-transform active:scale-95">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[#D9383A]"><i class="fas fa-handshake"></i></div>
                     <div class="text-left">
                         <p class="text-[14px] font-bold">Settlement</p>
+                        <p class="text-[10px] text-slate-300 font-medium mt-0.5">ระบบสรุปยอดเคลียร์เงิน (Shared)</p>
                         <p class="text-[10px] text-slate-300 font-medium mt-0.5">Shared Expense Settlement</p>
                     </div>
                 </div>
                 <i class="fas fa-chevron-right text-slate-400 text-sm"></i>
             </button>
 
+            <!-- 1. KPI Summary -->
             <div class="grid grid-cols-2 gap-3 mt-4">
                 <div class="modern-card p-4 bg-white border-l-4 border-l-[#D9383A]">
                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Days</p>
@@ -705,17 +782,24 @@
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">By Payment</h3>
             <div id="payment-summary-container" class="grid grid-cols-2 gap-3 mb-4"></div>
 
+            <!-- 2. Daily Trend Chart -->
             <div class="modern-card p-6 bg-white mt-4">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-5">Daily Spending Trend</h3>
-                <div class="relative w-full h-40"><canvas id="dailyTrendChart"></canvas></div>
+                <div class="relative w-full h-40">
+                    <canvas id="dailyTrendChart"></canvas>
+                </div>
             </div>
 
+            <!-- 3. Category Overview -->
             <div class="modern-card p-6 bg-white mt-4">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-5">Category Overview</h3>
-                <div class="relative w-full max-w-[200px] mx-auto"><canvas id="overallCategoryChart"></canvas></div>
+                <div class="relative w-full max-w-[200px] mx-auto">
+                    <canvas id="overallCategoryChart"></canvas>
+                </div>
                 <div id="category-dashboard-list" class="mt-7 space-y-1 border-t border-slate-100 pt-4"></div>
             </div>
 
+            <!-- 4. Daily Focus -->
             <div class="modern-card p-6 bg-white mt-4">
                 <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
                     <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daily Focus</h3>
@@ -728,10 +812,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="relative w-full max-w-[200px] mx-auto pt-2"><canvas id="dailyCategoryChart"></canvas></div>
+                <div class="relative w-full max-w-[200px] mx-auto pt-2">
+                    <canvas id="dailyCategoryChart"></canvas>
+                </div>
                 <div id="daily-category-list" class="mt-7 space-y-1 border-t border-slate-100 pt-4"></div>
             </div>
 
+            <!-- 5. Top 5 Most Expensive Items -->
             <div class="modern-card p-6 bg-white mt-4">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-5">Top 5 Highest Expenses</h3>
                 <div id="top-5-expenses" class="space-y-1"></div>
@@ -760,6 +847,7 @@
 
     <!-- Scripts -->
     <script>
+        // --- 🌟 อัปเดต API_URL เรียบร้อยแล้ว 🌟 ---
         const API_URL = "https://script.google.com/macros/s/AKfycby2K5Hv5oFg7GB161bLYcjNeoCXno8Wx0DGOuA-qUC_qkm661c-zBhuGaFfHhIc0lp0/exec";
 
         let expenses = []; 
@@ -773,8 +861,10 @@
         let currentJpyToThbRate = 0; 
         let confirmActionCallback = null;
 
+        // Expense Categories available for budgeting
         const expenseCategories = ['Food', 'Transportation', 'Dessert/Beverage', 'Shopping', 'Admission Fee', 'Tops up IC Card', 'Pre-Order', 'Gasoline', 'Toll / ETC', 'Other'];
 
+        // User Profile State
         let tripMembers = [];
         try {
             tripMembers = JSON.parse(localStorage.getItem('tripMembers'));
@@ -786,6 +876,8 @@
         }
 
         let currentUser = localStorage.getItem('tripUser');
+
+        // Pre-Order Data State
         let preOrderList = [];
 
         const defaultLimits = {
@@ -806,23 +898,36 @@
             'QR Payment': '📲'
         };
 
+        // Japanese Themed Color Palette
         const globalColorsMap = { 
-            'Food': '#D9383A', 'Transportation': '#1C2536', 'Gasoline': '#F4A261', 'Toll / ETC': '#8D99AE',      
-            'Dessert/Beverage': '#FFB7C5', 'Shopping': '#D4AF37', 'Admission Fee': '#8A9A5B',   
-            'Tops up IC Card': '#2A9D8F', 'Pre-Order': '#457B9D', 'Other': '#A8DADC'            
+            'Food': '#D9383A',            
+            'Transportation': '#1C2536',  
+            'Gasoline': '#F4A261',        
+            'Toll / ETC': '#8D99AE',      
+            'Dessert/Beverage': '#FFB7C5',
+            'Shopping': '#D4AF37',        
+            'Admission Fee': '#8A9A5B',   
+            'Tops up IC Card': '#2A9D8F', 
+            'Pre-Order': '#457B9D',       
+            'Other': '#A8DADC'            
         };
 
         let receiptBase64 = null;
         let receiptName = null;
 
+        // Custom Receipt Modal Functions
         function openReceiptModal() {
             const modal = document.getElementById('receipt-modal');
             const content = document.getElementById('receipt-modal-content');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                if(window.innerWidth < 640) { content.classList.remove('translate-y-full'); } 
-                else { content.classList.remove('scale-95'); content.classList.add('scale-100'); }
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
             }, 10);
         }
 
@@ -830,9 +935,15 @@
             const modal = document.getElementById('receipt-modal');
             const content = document.getElementById('receipt-modal-content');
             modal.classList.add('opacity-0');
-            if(window.innerWidth < 640) { content.classList.add('translate-y-full'); } 
-            else { content.classList.remove('scale-100'); content.classList.add('scale-95'); }
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         function triggerFileInput(id) {
@@ -848,8 +959,9 @@
             const label = document.getElementById('receipt-label');
             label.classList.remove('hidden');
 
+            // เปลี่ยนหน้าตาปุ่มตอนกำลังบีบอัดรูปภาพ
             label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-wait transition-colors';
-            label.innerHTML = `<i class="fas fa-circle-notch fa-spin text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold">Compressing Image...</span>`;
+            label.innerHTML = `<i class="fas fa-circle-notch fa-spin text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold">Processing...</span>`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -858,7 +970,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const MAX_DIMENSION = 1200;
+                    const MAX_DIMENSION = 1200; // บีบอัดให้กว้าง/ยาวไม่เกิน 1200px ให้ภาพยังชัดแต่ไฟล์เล็ก
 
                     if (width > height && width > MAX_DIMENSION) {
                         height *= MAX_DIMENSION / width;
@@ -873,10 +985,11 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
+                    // แปลงเป็น JPG คุณภาพ 70% (จากรูป 5MB จะเหลือแค่หลักสิบ-ร้อย KB โหลดไวมาก)
                     receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     receiptName = "receipt_" + Date.now() + ".jpg";
 
-                    // === AI EXTRACTION PROCESS ===
+                    // === 🌟 AI EXTRACTION PROCESS 🌟 ===
                     if (navigator.onLine) {
                         label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-dashed border-[#8A9A5B] bg-[#f7f9f2] rounded-[14px] cursor-wait transition-colors';
                         label.innerHTML = `<i class="fas fa-magic fa-spin text-[#8A9A5B] text-sm"></i><span class="text-[11px] text-[#8A9A5B] font-bold">AI Reading Receipt...</span>`;
@@ -924,6 +1037,7 @@
             reader.readAsDataURL(file);
         }
 
+        // Custom Confirm Modal Functions
         function showConfirmModal(title, message, callback) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-message').innerText = message;
@@ -934,8 +1048,12 @@
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                if(window.innerWidth < 640) { content.classList.remove('translate-y-full'); } 
-                else { content.classList.remove('scale-95'); content.classList.add('scale-100'); }
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
             }, 10);
         }
 
@@ -943,9 +1061,16 @@
             const modal = document.getElementById('confirm-modal');
             const content = document.getElementById('confirm-modal-content');
             modal.classList.add('opacity-0');
-            if(window.innerWidth < 640) { content.classList.add('translate-y-full'); } 
-            else { content.classList.remove('scale-100'); content.classList.add('scale-95'); }
-            setTimeout(() => { modal.classList.add('hidden'); confirmActionCallback = null; }, 300);
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                confirmActionCallback = null;
+            }, 300);
         }
 
         document.getElementById('confirm-btn').addEventListener('click', () => {
@@ -956,13 +1081,19 @@
         function getAvatarStyle(name) {
             const safeName = name ? name.toString().trim() : 'User';
             const colors = [
-                {bg: 'bg-indigo-100', text: 'text-indigo-600'}, {bg: 'bg-emerald-100', text: 'text-emerald-600'},
-                {bg: 'bg-rose-100', text: 'text-rose-600'}, {bg: 'bg-amber-100', text: 'text-amber-600'},
-                {bg: 'bg-cyan-100', text: 'text-cyan-600'}, {bg: 'bg-fuchsia-100', text: 'text-fuchsia-600'},
-                {bg: 'bg-blue-100', text: 'text-blue-600'}, {bg: 'bg-orange-100', text: 'text-orange-600'}
+                {bg: 'bg-indigo-100', text: 'text-indigo-600'},
+                {bg: 'bg-emerald-100', text: 'text-emerald-600'},
+                {bg: 'bg-rose-100', text: 'text-rose-600'},
+                {bg: 'bg-amber-100', text: 'text-amber-600'},
+                {bg: 'bg-cyan-100', text: 'text-cyan-600'},
+                {bg: 'bg-fuchsia-100', text: 'text-fuchsia-600'},
+                {bg: 'bg-blue-100', text: 'text-blue-600'},
+                {bg: 'bg-orange-100', text: 'text-orange-600'}
             ];
             let hash = 0;
-            for (let i = 0; i < safeName.length; i++) { hash = safeName.charCodeAt(i) + ((hash << 5) - hash); }
+            for (let i = 0; i < safeName.length; i++) {
+                hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
+            }
             return colors[Math.abs(hash) % colors.length];
         }
 
@@ -973,7 +1104,10 @@
             }
             renderUserMenu();
             updateUserAvatar();
-            if (typeof renderMembersSettings === 'function') { renderMembersSettings(); }
+
+            if (typeof renderMembersSettings === 'function') {
+                renderMembersSettings();
+            }
         }
 
         function setCurrentUser(name) {
@@ -989,12 +1123,15 @@
             const container = document.getElementById('user-list-container');
             if(!container) return;
             container.innerHTML = '';
+
             tripMembers.forEach(name => {
                 const style = getAvatarStyle(name);
+                const initial = name.charAt(0).toUpperCase();
+
                 const btn = document.createElement('button');
                 btn.onclick = () => setCurrentUser(name);
                 btn.className = "w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-2";
-                btn.innerHTML = `<div class="w-5 h-5 rounded-full ${style.bg} ${style.text} flex items-center justify-center text-[10px] font-black">${name.charAt(0).toUpperCase()}</div> <span class="truncate">${name}</span>`;
+                btn.innerHTML = `<div class="w-5 h-5 rounded-full ${style.bg} ${style.text} flex items-center justify-center text-[10px] font-black">${initial}</div> <span class="truncate">${name}</span>`;
                 container.appendChild(btn);
             });
         }
@@ -1028,6 +1165,7 @@
             const category = document.getElementById('category').value;
             const container = document.getElementById('quick-tags-container');
             container.innerHTML = '';
+
             const tags = quickTagsMap[category];
             if (tags && tags.length > 0) {
                 tags.forEach(tag => {
@@ -1037,7 +1175,11 @@
                     btn.innerText = tag;
                     btn.onclick = () => {
                         const noteInput = document.getElementById('details');
-                        noteInput.value = noteInput.value.trim() === '' ? tag : noteInput.value.trim() + ' ' + tag;
+                        if (noteInput.value.trim() === '') {
+                            noteInput.value = tag;
+                        } else {
+                            noteInput.value = noteInput.value.trim() + ' ' + tag;
+                        }
                     };
                     container.appendChild(btn);
                 });
@@ -1048,6 +1190,7 @@
             const cb = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
             cb.checked = !cb.checked;
+
             if (cb.checked) {
                 icon.classList.remove('text-gray-300');
                 icon.classList.add(activeColor.replace('text-', 'text-'));
@@ -1067,33 +1210,61 @@
                 const data = await res.json();
                 currentJpyToThbRate = data.rates.THB;
                 renderPreOrderList();
-            } catch (e) { console.log('Cannot fetch exchange rate'); }
+            } catch (e) {
+                console.log('Cannot fetch exchange rate');
+            }
         }
 
         function getSafeAmount(val) {
-            try { let expr = val.replace(/[^0-9+\-*/.]/g, ''); return expr ? Math.abs(Function("return " + expr)()) : 0; } catch (e) { return 0; }
+            try {
+                let expr = val.replace(/[^0-9+\-*/.]/g, ''); 
+                return expr ? Math.abs(Function("return " + expr)()) : 0;
+            } catch (e) { return 0; }
         }
 
         function calculateTHB() {
             const amountInput = document.getElementById('amount');
             const thbEl = document.getElementById('thb-equivalent');
             amountInput.setCustomValidity(''); 
+
             const amountVal = getSafeAmount(amountInput.value);
+
             if (amountVal && amountVal > 0 && currentJpyToThbRate > 0) {
                 const thb = (amountVal * currentJpyToThbRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 thbEl.innerHTML = `≈ ${thb} THB <span class="text-[7px] text-indigo-100 font-normal ml-0.5">(Rate: ${currentJpyToThbRate.toFixed(4)})</span>`;
                 thbEl.classList.remove('hidden');
-            } else { thbEl.classList.add('hidden'); }
+            } else {
+                thbEl.classList.add('hidden');
+            }
         }
 
         function getPaymentLimits() {
             const stored = localStorage.getItem('paymentLimits');
-            if (!stored) return { ...defaultLimits };
+            if (!stored) {
+                return { ...defaultLimits };
+            }
             let parsedLimits = JSON.parse(stored);
-            if (parsedLimits['JCB Thida'] !== undefined) { parsedLimits['JCB : Thida'] = parsedLimits['JCB Thida']; delete parsedLimits['JCB Thida']; }
-            if (parsedLimits['JCB Oh'] !== undefined) { parsedLimits['JCB : Oh'] = parsedLimits['JCB Oh']; delete parsedLimits['JCB Oh']; }
-            if (parsedLimits['Cash'] === undefined) { parsedLimits['Cash'] = 150000; }
-            Object.keys(parsedLimits).forEach(key => { if (key.toLowerCase().startsWith('omiyage')) delete parsedLimits[key]; });
+
+            if (parsedLimits['JCB Thida'] !== undefined) {
+                parsedLimits['JCB : Thida'] = parsedLimits['JCB Thida'];
+                delete parsedLimits['JCB Thida'];
+            }
+            if (parsedLimits['JCB Oh'] !== undefined) {
+                parsedLimits['JCB : Oh'] = parsedLimits['JCB Oh'];
+                delete parsedLimits['JCB Oh'];
+            }
+
+            if (parsedLimits['Cash'] === undefined) {
+                parsedLimits['Cash'] = 150000;
+            }
+
+            // เคลียร์ค่าของ Omiyage ที่อาจหลงเข้ามาใน Payment Limit
+            Object.keys(parsedLimits).forEach(key => {
+                if (key.toLowerCase().startsWith('omiyage')) {
+                    delete parsedLimits[key];
+                }
+            });
+
             return parsedLimits;
         }
 
@@ -1106,64 +1277,111 @@
         function renderPaymentDropdown() {
             const paymentSelect = document.getElementById('payment');
             if(!paymentSelect) return;
+
             const currentVal = paymentSelect.value;
             paymentSelect.innerHTML = '';
+
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
                 const opt = document.createElement('option');
                 opt.value = key;
-                opt.text = `${paymentEmojis[key] || '💳'} ${key}`;
+                const emoji = paymentEmojis[key] || '💳';
+                opt.text = `${emoji} ${key}`;
                 paymentSelect.appendChild(opt);
             });
-            paymentSelect.value = Object.keys(limits).includes(currentVal) ? currentVal : Object.keys(limits)[0];
+
+            if (Object.keys(limits).includes(currentVal)) {
+                paymentSelect.value = currentVal;
+            } else {
+                paymentSelect.value = Object.keys(limits)[0];
+            }
         }
 
         async function saveSettings() {
             const btn = document.getElementById('save-settings-btn');
             if(!btn) return;
+
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
 
             const limits = getPaymentLimits();
             Object.keys(limits).forEach(key => {
                 const input = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
-                if (input) limits[key] = parseFloat(input.value) || 0;
+                if (input) {
+                    limits[key] = parseFloat(input.value) || 0;
+                }
             });
 
             const catLimits = {};
             expenseCategories.forEach(cat => {
                 const input = document.getElementById('cat-limit-' + cat.replace(/\s+|\//g, '-'));
-                if (input) { const val = parseFloat(input.value) || 0; if(val > 0) catLimits[cat] = val; }
+                if (input) {
+                    const val = parseFloat(input.value) || 0;
+                    if(val > 0) {
+                        catLimits[cat] = val;
+                    }
+                }
             });
 
             let newMembersString = tripMembers.join(', ');
             if (tripMembers.length === 0) {
+                showToast("กรุณาเพิ่มสมาชิกอย่างน้อย 1 คน", true);
                 showToast("Please add at least 1 member", true);
-                btn.disabled = false; btn.innerHTML = 'Save Settings'; return;
+                btn.disabled = false;
+                btn.innerHTML = 'บันทึกการตั้งค่า';
+                btn.innerHTML = 'Save Settings';
+                return;
             }
 
-            const settingsPayload = { members: newMembersString, ...limits };
-            Object.keys(catLimits).forEach(cat => { settingsPayload['CatLimit_' + cat] = catLimits[cat]; });
+            const settingsPayload = {
+                members: newMembersString,
+                ...limits
+            };
+
+            Object.keys(catLimits).forEach(cat => {
+                settingsPayload['CatLimit_' + cat] = catLimits[cat];
+            });
 
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSettings', settings: settingsPayload }) }).then(r => r.json());
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveSettings', settings: settingsPayload })
+                }).then(r => r.json());
+
                 if(res.status === "success") {
                     localStorage.setItem('paymentLimits', JSON.stringify(limits));
                     localStorage.setItem('categoryLimits', JSON.stringify(catLimits));
                     localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
-                    if (!tripMembers.includes(currentUser)) setCurrentUser(tripMembers[0] || 'USER');
-                    else { renderUserMenu(); updateUserAvatar(); }
+
+                    if (!tripMembers.includes(currentUser)) {
+                        setCurrentUser(tripMembers[0] || 'USER');
+                    } else {
+                        renderUserMenu();
+                        updateUserAvatar();
+                    }
+
+                    showToast("อัปเดตการตั้งค่าส่วนกลางแล้ว!");
                     showToast("Global settings updated!");
-                    updateUI(); switchPage('home');
-                } else { showToast("Server error occurred", true); }
+                    updateUI();
+                    switchPage('home');
+                } else {
+                    showToast("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์", true);
+                    showToast("Server error occurred", true);
+                }
             } catch(err) {
+                showToast("ออฟไลน์: บันทึกข้อมูลเฉพาะในเครื่อง", true);
                 showToast("Offline: Data saved locally", true);
                 localStorage.setItem('paymentLimits', JSON.stringify(limits));
                 localStorage.setItem('categoryLimits', JSON.stringify(catLimits));
                 localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
-                renderUserMenu(); updateUserAvatar(); updateUI();
+                renderUserMenu();
+                updateUserAvatar();
+                updateUI();
             }
-            btn.disabled = false; btn.innerHTML = 'Save Settings';
+
+            btn.disabled = false;
+            btn.innerHTML = 'บันทึกการตั้งค่า';
+            btn.innerHTML = 'Save Settings';
         }
 
         function addPaymentMethod() {
@@ -1172,38 +1390,74 @@
             const val = input.value.trim();
             if(val) {
                 const currentLimits = getPaymentLimits();
-                Object.keys(currentLimits).forEach(key => { const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-')); if (el) currentLimits[key] = parseFloat(el.value) || 0; });
+                Object.keys(currentLimits).forEach(key => {
+                    const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
+                    if (el) currentLimits[key] = parseFloat(el.value) || 0;
+                });
+
                 if(currentLimits[val] === undefined) {
-                    currentLimits[val] = 0; localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
-                    renderSettings(); renderPaymentDropdown(); input.value = '';
-                } else { showToast("This method already exists", true); }
+                    currentLimits[val] = 0; 
+                    localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
+                    renderSettings();
+                    renderPaymentDropdown();
+                    input.value = '';
+                } else {
+                    showToast("มีช่องทางนี้อยู่แล้ว", true);
+                    showToast("This method already exists", true);
+                }
             }
         }
 
         function removePaymentMethod(keyToRemove) {
             if(keyToRemove === 'Cash') return;
-            showConfirmModal("Delete Payment Method", `Are you sure you want to delete '${keyToRemove}'?\n\n* Expense history will remain, but the option will be removed.`, () => {
-                const currentLimits = getPaymentLimits();
-                Object.keys(currentLimits).forEach(key => {
-                    if (key !== keyToRemove) { const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-')); if (el) currentLimits[key] = parseFloat(el.value) || 0; }
-                });
-                delete currentLimits[keyToRemove];
-                localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
-                renderSettings(); renderPaymentDropdown();
-            });
+            showConfirmModal(
+                "ลบช่องทางชำระเงิน",
+                `ต้องการลบช่องทาง '${keyToRemove}' ใช่หรือไม่?\n\n* ข้อมูลประวัติการใช้จ่ายจะไม่หายไป แต่ช่องทางนี้จะถูกลบออกจากตัวเลือก`,
+                "Delete Payment Method",
+                `Are you sure you want to delete '${keyToRemove}'?\n\n* Expense history will remain, but the option will be removed.`,
+                () => {
+                    const currentLimits = getPaymentLimits();
+                    Object.keys(currentLimits).forEach(key => {
+                        if (key !== keyToRemove) {
+                            const el = document.getElementById('limit-' + key.replace(/\s+|:/g, '-'));
+                            if (el) currentLimits[key] = parseFloat(el.value) || 0;
+                        }
+                    });
+                    delete currentLimits[keyToRemove];
+                    localStorage.setItem('paymentLimits', JSON.stringify(currentLimits));
+                    renderSettings();
+                    renderPaymentDropdown();
+                }
+            );
         }
 
         function movePaymentMethod(keyToMove, direction) {
             const currentLimits = getPaymentLimits();
             const keys = Object.keys(currentLimits);
             const index = keys.indexOf(keyToMove);
-            if (index < 0 || (direction === -1 && index === 0) || (direction === 1 && index === keys.length - 1)) return;
-            keys.forEach(k => { const el = document.getElementById('limit-' + k.replace(/\s+|:/g, '-')); if (el) currentLimits[k] = parseFloat(el.value) || 0; });
+
+            if (index < 0) return;
+            if (direction === -1 && index === 0) return; 
+            if (direction === 1 && index === keys.length - 1) return;
+
+            keys.forEach(k => {
+                const el = document.getElementById('limit-' + k.replace(/\s+|:/g, '-'));
+                if (el) currentLimits[k] = parseFloat(el.value) || 0;
+            });
+
             const newIndex = index + direction;
-            const temp = keys[index]; keys[index] = keys[newIndex]; keys[newIndex] = temp;
-            const newLimits = {}; keys.forEach(k => { newLimits[k] = currentLimits[k]; });
+            const temp = keys[index];
+            keys[index] = keys[newIndex];
+            keys[newIndex] = temp;
+
+            const newLimits = {};
+            keys.forEach(k => {
+                newLimits[k] = currentLimits[k];
+            });
+
             localStorage.setItem('paymentLimits', JSON.stringify(newLimits));
-            renderSettings(); renderPaymentDropdown();
+            renderSettings();
+            renderPaymentDropdown();
         }
 
         function renderSettings() {
@@ -1212,10 +1466,15 @@
             const container = document.getElementById('settings-limits-container');
             if(!container) return;
             container.innerHTML = '';
+
             keys.forEach((key, index) => {
                 const div = document.createElement('div');
                 div.className = "space-y-1 bg-slate-50 p-3 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-2";
-                let deleteBtnHtml = key !== 'Cash' ? `<button type="button" onclick="removePaymentMethod('${key}')" class="text-slate-300 hover:text-rose-500 transition-colors focus:outline-none ml-1 w-6 h-6 flex items-center justify-center rounded-full hover:bg-rose-50"><i class="fas fa-times text-sm"></i></button>` : `<div class="w-6 ml-1"></div>`;
+
+                let deleteBtnHtml = key !== 'Cash' 
+                    ? `<button type="button" onclick="removePaymentMethod('${key}')" class="text-slate-300 hover:text-rose-500 transition-colors focus:outline-none ml-1 w-6 h-6 flex items-center justify-center rounded-full hover:bg-rose-50"><i class="fas fa-times text-sm"></i></button>` 
+                    : `<div class="w-6 ml-1"></div>`;
+
                 div.innerHTML = `
                     <div class="flex items-center gap-2.5 flex-1 min-w-0">
                         <div class="flex flex-col items-center bg-white border border-slate-200 rounded-md shadow-sm w-6 flex-shrink-0 overflow-hidden">
@@ -1228,7 +1487,8 @@
                     <div class="flex items-center gap-1.5 flex-shrink-0">
                         <input type="number" id="limit-${key.replace(/\s+|:/g, '-')}" value="${limits[key]}" class="w-[90px] sm:w-[120px] bg-white p-2 text-[13px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors shadow-sm" placeholder="0">
                         ${deleteBtnHtml}
-                    </div>`;
+                    </div>
+                `;
                 container.appendChild(div);
             });
         }
@@ -1238,10 +1498,12 @@
             const container = document.getElementById('settings-category-container');
             if(!container) return;
             container.innerHTML = '';
+
             expenseCategories.forEach((cat) => {
                 const div = document.createElement('div');
                 div.className = "bg-slate-50 p-2.5 rounded-[12px] border border-slate-100/50 flex justify-between items-center gap-2";
                 const catValue = limits[cat] || 0;
+
                 div.innerHTML = `
                     <div class="flex items-center gap-2.5 flex-1 min-w-0">
                         <span class="w-3.5 h-3.5 rounded-full shadow-sm flex-shrink-0" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span>
@@ -1249,7 +1511,8 @@
                     </div>
                     <div class="flex items-center gap-1.5 flex-shrink-0">
                         <input type="number" id="cat-limit-${cat.replace(/\s+|\//g, '-')}" value="${catValue > 0 ? catValue : ''}" class="w-[90px] bg-white p-2 text-[12px] font-bold text-slate-800 text-right outline-none border border-[#EAE6DF] rounded-[10px] focus:border-[#D9383A] transition-colors shadow-sm" placeholder="No Limit">
-                    </div>`;
+                    </div>
+                `;
                 container.appendChild(div);
             });
         }
@@ -1275,15 +1538,27 @@
             const input = document.getElementById('new-member-input');
             if(!input) return;
             const val = input.value.trim();
-            if(val && !tripMembers.includes(val)) { tripMembers.push(val); input.value = ''; renderMembersSettings(); } 
-            else if (tripMembers.includes(val)) { showToast("This name already exists", true); }
+            if(val && !tripMembers.includes(val)) {
+                tripMembers.push(val);
+                input.value = '';
+                renderMembersSettings();
+            } else if (tripMembers.includes(val)) {
+                showToast("มีชื่อนี้อยู่แล้ว", true);
+                showToast("This name already exists", true);
+            }
         }
 
         function removeMemberSettings(index) {
-            if(tripMembers.length <= 1) { showToast("At least 1 member is required", true); return; }
-            tripMembers.splice(index, 1); renderMembersSettings();
+            if(tripMembers.length <= 1) {
+                showToast("ต้องมีสมาชิกอย่างน้อย 1 คน", true);
+                showToast("At least 1 member is required", true);
+                return;
+            }
+            tripMembers.splice(index, 1);
+            renderMembersSettings();
         }
 
+        // Settlement Calculation & Modal
         function openSettlementModal() {
             calculateSettlement();
             const modal = document.getElementById('settlement-modal');
@@ -1291,8 +1566,12 @@
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                if(window.innerWidth < 640) { content.classList.remove('translate-y-full'); } 
-                else { content.classList.remove('scale-95'); content.classList.add('scale-100'); }
+                if(window.innerWidth < 640) {
+                    content.classList.remove('translate-y-full');
+                } else {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
             }, 10);
         }
 
@@ -1300,58 +1579,107 @@
             const modal = document.getElementById('settlement-modal');
             const content = document.getElementById('settlement-modal-content');
             modal.classList.add('opacity-0');
-            if(window.innerWidth < 640) { content.classList.add('translate-y-full'); } 
-            else { content.classList.remove('scale-100'); content.classList.add('scale-95'); }
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            if(window.innerWidth < 640) {
+                content.classList.add('translate-y-full');
+            } else {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         function calculateSettlement() {
             if (!tripMembers || tripMembers.length === 0) return;
+
             let balances = {};
             tripMembers.forEach(m => balances[m.toUpperCase()] = 0);
+
             let totalShared = 0;
+
             expenses.forEach(item => {
                 if (item.isShared && !["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(item.category)) {
                     let amt = parseFloat(item.amount) || 0;
                     totalShared += amt;
                     let uKey = item.username ? item.username.toUpperCase() : 'USER';
-                    if (balances[uKey] !== undefined) { balances[uKey] += amt; } else { balances[uKey] = amt; }
+                    if (balances[uKey] !== undefined) {
+                        balances[uKey] += amt;
+                    } else {
+                        balances[uKey] = amt; 
+                    }
                 }
             });
-            let splitAmount = tripMembers.length > 0 ? (totalShared / tripMembers.length) : 0;
+
+            let activeMembersCount = tripMembers.length;
+            let splitAmount = activeMembersCount > 0 ? (totalShared / activeMembersCount) : 0;
+
             document.getElementById('settle-total').innerText = totalShared.toLocaleString();
             document.getElementById('settle-per-person').innerText = Math.round(splitAmount).toLocaleString() + ' JPY';
 
-            let debtors = []; let creditors = [];
-            Object.keys(balances).forEach(user => {
-                let diff = balances[user] - (tripMembers.some(m => m.toUpperCase() === user) ? splitAmount : 0);
-                if (diff < -0.01) { debtors.push({ user: user, amount: Math.abs(diff) }); } 
-                else if (diff > 0.01) { creditors.push({ user: user, amount: diff }); }
-            });
-            debtors.sort((a,b) => b.amount - a.amount); creditors.sort((a,b) => b.amount - a.amount);
+            let debtors = [];
+            let creditors = [];
 
-            let transactions = []; let i = 0; let j = 0;
+            Object.keys(balances).forEach(user => {
+                let diff = 0;
+                if (tripMembers.some(m => m.toUpperCase() === user)) {
+                    diff = balances[user] - splitAmount;
+                } else {
+                    diff = balances[user];
+                }
+
+                if (diff < -0.01) {
+                    debtors.push({ user: user, amount: Math.abs(diff) }); 
+                } else if (diff > 0.01) {
+                    creditors.push({ user: user, amount: diff }); 
+                }
+            });
+
+            debtors.sort((a,b) => b.amount - a.amount);
+            creditors.sort((a,b) => b.amount - a.amount);
+
+            let transactions = [];
+            let i = 0; 
+            let j = 0; 
+
             while(i < debtors.length && j < creditors.length) {
-                let debtor = debtors[i]; let creditor = creditors[j];
+                let debtor = debtors[i];
+                let creditor = creditors[j];
+
                 let amount = Math.min(debtor.amount, creditor.amount);
-                transactions.push({ from: debtor.user, to: creditor.user, amount: amount });
-                debtor.amount -= amount; creditor.amount -= amount;
+
+                transactions.push({
+                    from: debtor.user,
+                    to: creditor.user,
+                    amount: amount
+                });
+
+                debtor.amount -= amount;
+                creditor.amount -= amount;
+
                 if (debtor.amount < 0.01) i++;
                 if (creditor.amount < 0.01) j++;
             }
 
             const listContainer = document.getElementById('settlement-list');
             listContainer.innerHTML = '';
+
             if (transactions.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 font-bold text-xs"><i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block"></i>เคลียร์กันลงตัวแล้ว!<br>ไม่ต้องมีใครโอนเงินเพิ่ม</div>';
                 listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 font-bold text-xs"><i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block"></i>All settled!<br>No transfers needed.</div>';
                 return;
             }
+
             transactions.forEach(t => {
                 const div = document.createElement('div');
                 div.className = "bg-slate-50 dark:bg-slate-800 p-4 rounded-[16px] border border-[#EAE6DF] dark:border-slate-700 flex justify-between items-center shadow-sm";
+
                 const fromOriginal = tripMembers.find(m => m.toUpperCase() === t.from) || t.from;
                 const toOriginal = tripMembers.find(m => m.toUpperCase() === t.to) || t.to;
-                const fromStyle = getAvatarStyle(fromOriginal); const toStyle = getAvatarStyle(toOriginal);
+
+                const fromStyle = getAvatarStyle(fromOriginal);
+                const toStyle = getAvatarStyle(toOriginal);
+
                 div.innerHTML = `
                     <div class="flex items-center gap-3 w-3/5">
                         <div class="flex flex-col items-center">
@@ -1370,70 +1698,147 @@
                     <div class="text-right">
                         <p class="text-sm font-black text-slate-900 dark:text-white">${Math.round(t.amount).toLocaleString()}</p>
                         <p class="text-[9px] font-bold text-slate-400">JPY</p>
-                    </div>`;
+                    </div>
+                `;
                 listContainer.appendChild(div);
             });
         }
 
+        // PRE-ORDER Functions
         async function addPreOrderItem() {
             const friendName = document.getElementById('preorder-friend').value.trim();
             const itemName = document.getElementById('preorder-item').value.trim();
             const priceVal = parseFloat(document.getElementById('preorder-price').value);
-            if (!friendName || !itemName || isNaN(priceVal) || priceVal <= 0) { showToast("Please fill in all fields correctly.", true); return; }
+
+            if (!friendName || !itemName || isNaN(priceVal) || priceVal <= 0) {
+                showToast("Please fill in all fields correctly.", true);
+                return;
+            }
+
             const btn = document.getElementById('btn-add-preorder');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
 
-            const newItem = { id: Date.now().toString(), friendName: friendName, itemName: itemName, price: priceVal, isBought: false, isPaid: false };
-            preOrderList.push(newItem); renderPreOrderList();
-            document.getElementById('preorder-item').value = ''; document.getElementById('preorder-price').value = ''; document.getElementById('preorder-item').focus();
+            const newItem = {
+                id: Date.now().toString(),
+                friendName: friendName,
+                itemName: itemName,
+                price: priceVal,
+                isBought: false,
+                isPaid: false
+            };
 
-            try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPreOrder', data: newItem }) }); } 
-            catch(e) { showToast("Offline: Cannot save pre-order online.", true); }
-            btn.disabled = false; btn.innerHTML = 'Add Item';
+            preOrderList.push(newItem);
+            renderPreOrderList();
+
+            document.getElementById('preorder-item').value = '';
+            document.getElementById('preorder-price').value = '';
+            document.getElementById('preorder-item').focus();
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'addPreOrder', data: newItem })
+                });
+            } catch(e) {
+                showToast("Offline: Cannot save pre-order online.", true);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Add Item';
         }
 
         async function togglePreOrderStatus(id) {
             const item = preOrderList.find(i => i.id === id);
             if (item) {
-                item.isBought = !item.isBought; renderPreOrderList();
-                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePreOrder', data: { id: id, isBought: item.isBought } }) }); } catch(e) {}
+                item.isBought = !item.isBought;
+                renderPreOrderList();
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'updatePreOrder', data: { id: id, isBought: item.isBought } })
+                    });
+                } catch(e) {}
             }
         }
 
         async function togglePreOrderPaid(id) {
             const item = preOrderList.find(i => i.id === id);
             if (item) {
-                item.isPaid = !item.isPaid; renderPreOrderList();
-                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePreOrder', data: { id: id, isPaid: item.isPaid } }) }); } catch(e) {}
+                item.isPaid = !item.isPaid;
+                renderPreOrderList();
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'updatePreOrder', data: { id: id, isPaid: item.isPaid } })
+                    });
+                } catch(e) {}
             }
         }
 
         function deletePreOrderItem(id) {
             showConfirmModal("Delete Item", "Are you sure you want to delete this pre-order item?", async () => {
-                preOrderList = preOrderList.filter(i => i.id !== id); renderPreOrderList();
-                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deletePreOrder', id: id }) }); } catch(e) {}
+                preOrderList = preOrderList.filter(i => i.id !== id);
+                renderPreOrderList();
+
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'deletePreOrder', id: id })
+                    });
+                } catch(e) {}
             });
         }
 
         async function saveOmiyageSettingsOnline() {
             if (!currentUser) return;
-            const bank = document.getElementById('omiyage-bank').value; const promptpay = document.getElementById('omiyage-promptpay').value; const markup = document.getElementById('omiyage-markup').value;
-            localStorage.setItem('OmiyageBank_' + currentUser, bank); localStorage.setItem('OmiyagePromptpay_' + currentUser, promptpay); localStorage.setItem('OmiyageMarkup_' + currentUser, markup);
-            
-            const btn = document.getElementById('btn-save-omiyage'); const originalText = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
-            
-            const payload = {}; payload['OmiyageBank_' + currentUser] = bank; payload['OmiyagePromptpay_' + currentUser] = promptpay; payload['OmiyageMarkup_' + currentUser] = markup;
+            const bank = document.getElementById('omiyage-bank').value;
+            const promptpay = document.getElementById('omiyage-promptpay').value;
+            const markup = document.getElementById('omiyage-markup').value;
+
+            localStorage.setItem('OmiyageBank_' + currentUser, bank);
+            localStorage.setItem('OmiyagePromptpay_' + currentUser, promptpay);
+            localStorage.setItem('OmiyageMarkup_' + currentUser, markup);
+
+            const btn = document.getElementById('btn-save-omiyage');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+
+            const payload = {};
+            payload['OmiyageBank_' + currentUser] = bank;
+            payload['OmiyagePromptpay_' + currentUser] = promptpay;
+            payload['OmiyageMarkup_' + currentUser] = markup;
+
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProfileSettings', settings: payload }) }).then(r => r.json());
-                if(res.status === 'success') { showToast("Billing settings saved online!"); renderPreOrderList(); } else { showToast("Server error occurred.", true); }
-            } catch(e) { showToast("Offline: Saved locally only.", true); renderPreOrderList(); }
-            btn.disabled = false; btn.innerHTML = originalText;
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveProfileSettings', settings: payload })
+                }).then(r => r.json());
+
+                if(res.status === 'success') {
+                    showToast("Billing settings saved online!");
+                    renderPreOrderList();
+                } else {
+                    showToast("Server error occurred.", true);
+                }
+            } catch(e) {
+                showToast("Offline: Saved locally only.", true);
+                renderPreOrderList();
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
 
         function loadOmiyageSettings() {
             if (!currentUser) return;
-            const savedBank = localStorage.getItem('OmiyageBank_' + currentUser) || ''; const savedPromptpay = localStorage.getItem('OmiyagePromptpay_' + currentUser) || ''; const savedMarkup = localStorage.getItem('OmiyageMarkup_' + currentUser) || '0.01';
+            const savedBank = localStorage.getItem('OmiyageBank_' + currentUser) || '';
+            const savedPromptpay = localStorage.getItem('OmiyagePromptpay_' + currentUser) || '';
+            const savedMarkup = localStorage.getItem('OmiyageMarkup_' + currentUser) || '0.01';
+
             if (document.getElementById('omiyage-bank')) document.getElementById('omiyage-bank').value = savedBank;
             if (document.getElementById('omiyage-promptpay')) document.getElementById('omiyage-promptpay').value = savedPromptpay;
             if (document.getElementById('omiyage-markup')) document.getElementById('omiyage-markup').value = savedMarkup;
@@ -1443,128 +1848,279 @@
             let crc = 0xFFFF;
             for (let i = 0; i < s.length; i++) {
                 crc ^= (s.charCodeAt(i) << 8);
-                for (let j = 0; j < 8; j++) { if (crc & 0x8000) crc = (crc << 1) ^ 0x1021; else crc = crc << 1; }
+                for (let j = 0; j < 8; j++) {
+                    if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+                    else crc = crc << 1;
+                }
             }
             return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
         }
 
         function generatePromptPayString(id, amount) {
-            let target = id; let targetType = "02"; 
-            if (id.length === 10) { targetType = "01"; target = "0066" + id.substring(1); } else if (id.length === 13) { targetType = "02"; } else if (id.length === 15) { targetType = "03"; }
-            let aid = "0016A000000677010111"; let subTarget = targetType + target.length.toString().padStart(2, '0') + target;
-            let merchantInfo = aid + subTarget; let merchantAccount = "29" + merchantInfo.length.toString().padStart(2, '0') + merchantInfo;
-            let currency = "5303764"; let country = "5802TH";
-            let amountStr = parseFloat(amount).toFixed(2); let amountField = amount > 0 ? "54" + amountStr.length.toString().padStart(2, '0') + amountStr : "";
+            let target = id;
+            let targetType = "02"; 
+            if (id.length === 10) { targetType = "01"; target = "0066" + id.substring(1); } 
+            else if (id.length === 13) { targetType = "02"; } 
+            else if (id.length === 15) { targetType = "03"; }
+
+            let aid = "0016A000000677010111";
+            let subTarget = targetType + target.length.toString().padStart(2, '0') + target;
+            let merchantInfo = aid + subTarget;
+            let merchantAccount = "29" + merchantInfo.length.toString().padStart(2, '0') + merchantInfo;
+
+            let currency = "5303764";
+            let country = "5802TH";
+
+            let amountStr = parseFloat(amount).toFixed(2);
+            let amountField = amount > 0 ? "54" + amountStr.length.toString().padStart(2, '0') + amountStr : "";
+
             let payload = "000201010212" + merchantAccount + currency + amountField + country + "6304";
             return payload + crc16(payload);
         }
 
-        let currentQRPhone = ""; let currentQRAmount = 0;
+        let currentQRPhone = "";
+        let currentQRAmount = 0;
 
         async function copyLineBill(friendName) {
             const friendItems = preOrderList.filter(i => i.friendName === friendName);
             if (friendItems.length === 0) return;
-            let text = `📦 Pre-Order Summary (To: ${friendName})\n\n`; let totalJpy = 0;
+
+            let text = `📦 Pre-Order Summary (To: ${friendName})\n\n`;
+            let totalJpy = 0;
+
             friendItems.forEach(item => {
-                if(item.isBought) { text += `✅ ${item.itemName} (${item.price.toLocaleString()} JPY)\n`; totalJpy += item.price; } 
-                else { text += `⏳ ${item.itemName} (Pending)\n`; }
+                if(item.isBought) {
+                    text += `✅ ${item.itemName} (${item.price.toLocaleString()} JPY)\n`;
+                    totalJpy += item.price;
+                } else {
+                    text += `⏳ ${item.itemName} (Pending / Out of stock)\n`;
+                }
             });
+
             let amountThbForQR = 0;
+
             if(totalJpy > 0) {
                 let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01';
-                let markup = parseFloat(markupStr); if (isNaN(markup)) markup = 0;
+                let markup = parseFloat(markupStr);
+                if (isNaN(markup)) markup = 0;
                 let appliedRate = currentJpyToThbRate + markup;
+
                 let bankAccount = document.getElementById('omiyage-bank') ? document.getElementById('omiyage-bank').value : '';
                 if (!bankAccount) bankAccount = 'xxx-xxx-xxxx';
 
                 text += `\nTotal JPY: ${totalJpy.toLocaleString()} JPY\n`;
-                if (currentJpyToThbRate > 0) { amountThbForQR = (totalJpy * appliedRate).toFixed(2); text += `💰 Total THB: ${parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} THB\n`; }
-                text += `\nTransfer to Bank / PromptPay:\n${bankAccount} (${currentUser || 'Account Name'})\n🙏 Thank you!`;
-            } else { text += `\n(No items bought yet 😅)`; }
+                if (currentJpyToThbRate > 0) {
+                    amountThbForQR = (totalJpy * appliedRate).toFixed(2);
+                    const thb = parseFloat(amountThbForQR).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    text += `💰 Total THB: ${thb} THB\n`;
+                }
+                text += `\nTransfer to Bank / PromptPay:\n`;
+                text += `${bankAccount} (${currentUser || 'Account Name'})\n`;
+                text += `🙏 Thank you!`;
+            } else {
+                text += `\n(No items bought yet 😅)`;
+            }
 
-            document.getElementById('bill-friend-name').innerText = friendName; document.getElementById('bill-text-area').value = text;
+            document.getElementById('bill-friend-name').innerText = friendName;
+            document.getElementById('bill-text-area').value = text;
+
             const ppNumberRaw = document.getElementById('omiyage-promptpay') ? document.getElementById('omiyage-promptpay').value : '';
-            currentQRPhone = ppNumberRaw.replace(/[^0-9]/g, ''); currentQRAmount = amountThbForQR;
-            if (document.getElementById('qr-include-amount')) { document.getElementById('qr-include-amount').checked = true; }
+            currentQRPhone = ppNumberRaw.replace(/[^0-9]/g, ''); 
+            currentQRAmount = amountThbForQR;
+
+            if (document.getElementById('qr-include-amount')) {
+                document.getElementById('qr-include-amount').checked = true;
+            }
+
             renderQRInModal();
 
-            const modal = document.getElementById('bill-modal'); const content = document.getElementById('bill-modal-content');
+            const modal = document.getElementById('bill-modal');
+            const content = document.getElementById('bill-modal-content');
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95', 'translate-y-8', 'sm:translate-y-0'); content.classList.add('scale-100', 'translate-y-0'); }, 10);
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'translate-y-8', 'sm:translate-y-0');
+                content.classList.add('scale-100', 'translate-y-0');
+            }, 10);
         }
 
         function renderQRInModal() {
-            const qrSection = document.getElementById('qr-section'); const qrContainer = document.getElementById('promptpay-qr');
-            const amountText = document.getElementById('qr-amount-text'); const includeAmount = document.getElementById('qr-include-amount').checked;
+            const qrSection = document.getElementById('qr-section');
+            const qrContainer = document.getElementById('promptpay-qr');
+            const amountText = document.getElementById('qr-amount-text');
+            const includeAmount = document.getElementById('qr-include-amount').checked;
+
             qrContainer.innerHTML = ''; 
+
             if (currentQRPhone && currentQRPhone.length >= 10 && currentQRAmount > 0) {
                 const amountToEncode = includeAmount ? parseFloat(currentQRAmount) : 0;
                 const payloadStr = generatePromptPayString(currentQRPhone, amountToEncode);
-                new QRCode(qrContainer, { text: payloadStr, width: 176, height: 176, colorDark : "#1C2536", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
-                if (includeAmount) { amountText.innerText = `Amount: ${parseFloat(currentQRAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} THB`; } 
-                else { const bankAccount = document.getElementById('omiyage-bank') ? document.getElementById('omiyage-bank').value : ''; amountText.innerText = bankAccount ? bankAccount : (currentUser || 'Account Info'); }
-                qrSection.classList.remove('hidden'); qrSection.classList.add('flex');
-            } else { qrSection.classList.add('hidden'); qrSection.classList.remove('flex'); }
+
+                new QRCode(qrContainer, {
+                    text: payloadStr,
+                    width: 176,
+                    height: 176,
+                    colorDark : "#1C2536",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L
+                });
+
+                if (includeAmount) {
+                    amountText.innerText = `Amount: ${parseFloat(currentQRAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} THB`;
+                } else {
+                    const bankAccount = document.getElementById('omiyage-bank') ? document.getElementById('omiyage-bank').value : '';
+                    amountText.innerText = bankAccount ? bankAccount : (currentUser || 'Account Info');
+                }
+
+                qrSection.classList.remove('hidden');
+                qrSection.classList.add('flex');
+            } else {
+                qrSection.classList.add('hidden');
+                qrSection.classList.remove('flex');
+            }
         }
 
         async function copyBillTextOnly() {
             const text = document.getElementById('bill-text-area').value;
-            try { await navigator.clipboard.writeText(text); showToast(`📋 Copied to clipboard!`); } catch (err) { showToast('Failed to copy text.', true); }
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(`📋 Copied to clipboard!`);
+            } catch (err) {
+                showToast('Failed to copy text.', true);
+            }
         }
 
         function closeBillModal() {
-            const modal = document.getElementById('bill-modal'); const content = document.getElementById('bill-modal-content');
-            modal.classList.add('opacity-0'); content.classList.remove('scale-100', 'translate-y-0'); content.classList.add('scale-95', 'translate-y-8', 'sm:translate-y-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            const modal = document.getElementById('bill-modal');
+            const content = document.getElementById('bill-modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'translate-y-0');
+            content.classList.add('scale-95', 'translate-y-8', 'sm:translate-y-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         async function downloadBillImage() {
-            const btn = document.getElementById('btn-save-bill-img'); const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...'; btn.disabled = true;
-            const copyBtn = document.getElementById('btn-copy-bill'); const closeBtn = document.getElementById('btn-close-bill'); const qrToggle = document.getElementById('qr-toggle-container');
-            if (copyBtn) copyBtn.classList.add('hidden'); if (closeBtn) closeBtn.classList.add('opacity-0'); if (qrToggle) qrToggle.classList.add('hidden'); btn.classList.add('hidden');
+            const btn = document.getElementById('btn-save-bill-img');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+            btn.disabled = true;
 
-            const ta = document.getElementById('bill-text-area'); const modalContent = document.getElementById('bill-modal-content');
+            const copyBtn = document.getElementById('btn-copy-bill');
+            const closeBtn = document.getElementById('btn-close-bill');
+            const qrToggle = document.getElementById('qr-toggle-container');
+
+            if (copyBtn) copyBtn.classList.add('hidden');
+            if (closeBtn) closeBtn.classList.add('opacity-0'); 
+            if (qrToggle) qrToggle.classList.add('hidden'); 
+            btn.classList.add('hidden');
+
+            const ta = document.getElementById('bill-text-area');
+            const modalContent = document.getElementById('bill-modal-content');
             const scrollContainer = modalContent.querySelector('.overflow-y-auto');
-            const fakeDiv = document.createElement('div'); fakeDiv.className = ta.className; fakeDiv.style.height = 'auto'; fakeDiv.style.minHeight = Math.max(ta.scrollHeight, 150) + 'px';
-            fakeDiv.style.whiteSpace = 'pre-wrap'; fakeDiv.style.wordWrap = 'break-word'; fakeDiv.innerHTML = ta.value.replace(/\n/g, '<br>'); 
-            ta.parentNode.insertBefore(fakeDiv, ta); const oldTaDisplay = ta.style.display; ta.style.display = 'none'; 
-            const oldMaxHeight = modalContent.style.maxHeight; const oldOverflow = scrollContainer ? scrollContainer.style.overflowY : '';
-            modalContent.style.maxHeight = 'none'; if (scrollContainer) scrollContainer.style.overflowY = 'visible';
+
+            const fakeDiv = document.createElement('div');
+            fakeDiv.className = ta.className; 
+            fakeDiv.style.height = 'auto'; 
+            fakeDiv.style.minHeight = Math.max(ta.scrollHeight, 150) + 'px';
+            fakeDiv.style.whiteSpace = 'pre-wrap'; 
+            fakeDiv.style.wordWrap = 'break-word';
+            fakeDiv.innerHTML = ta.value.replace(/\n/g, '<br>'); 
+
+            ta.parentNode.insertBefore(fakeDiv, ta); 
+            const oldTaDisplay = ta.style.display;
+            ta.style.display = 'none'; 
+
+            const oldMaxHeight = modalContent.style.maxHeight;
+            const oldOverflow = scrollContainer ? scrollContainer.style.overflowY : '';
+
+            modalContent.style.maxHeight = 'none';
+            if (scrollContainer) scrollContainer.style.overflowY = 'visible';
+
+            const captureArea = document.getElementById('bill-modal-content');
 
             try {
                 await new Promise(r => setTimeout(r, 100));
-                const canvas = await html2canvas(document.getElementById('bill-modal-content'), { scale: 2, useCORS: true, backgroundColor: document.body.classList.contains('dark-mode') ? '#1E293B' : '#ffffff' });
-                const link = document.createElement('a'); link.download = `Bill_${document.getElementById('bill-friend-name').innerText}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-                showToast("Saved to device successfully!");
-            } catch (error) { showToast("Failed to create image.", true); }
 
-            ta.parentNode.removeChild(fakeDiv); ta.style.display = oldTaDisplay; modalContent.style.maxHeight = oldMaxHeight;
+                const canvas = await html2canvas(captureArea, {
+                    scale: 2, 
+                    useCORS: true,
+                    backgroundColor: document.body.classList.contains('dark-mode') ? '#1E293B' : '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Bill_${document.getElementById('bill-friend-name').innerText}.png`;
+                link.href = imgData;
+                link.click();
+
+                showToast("Saved to device successfully!");
+            } catch (error) {
+                console.error(error);
+                showToast("Failed to create image.", true);
+            }
+
+            ta.parentNode.removeChild(fakeDiv); 
+            ta.style.display = oldTaDisplay; 
+
+            modalContent.style.maxHeight = oldMaxHeight;
             if (scrollContainer) scrollContainer.style.overflowY = oldOverflow;
-            if (copyBtn) copyBtn.classList.remove('hidden'); if (closeBtn) closeBtn.classList.remove('opacity-0'); if (qrToggle) qrToggle.classList.remove('hidden'); 
-            btn.classList.remove('hidden'); btn.innerHTML = originalText; btn.disabled = false;
+            if (copyBtn) copyBtn.classList.remove('hidden');
+            if (closeBtn) closeBtn.classList.remove('opacity-0');
+            if (qrToggle) qrToggle.classList.remove('hidden'); 
+            btn.classList.remove('hidden');
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
 
         function renderPreOrderList() {
             const container = document.getElementById('preorder-list');
-            if(!container) return; container.innerHTML = '';
-            if (preOrderList.length === 0) { container.innerHTML = '<div class="text-center p-8 text-gray-400 font-bold text-xs"><i class="fas fa-box-open text-2xl mb-2 text-gray-300"></i><br>No pre-order items yet</div>'; return; }
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (preOrderList.length === 0) {
+                container.innerHTML = '<div class="text-center p-8 text-gray-400 font-bold text-xs"><i class="fas fa-box-open text-2xl mb-2 text-gray-300"></i><br>No pre-order items yet</div>';
+                return;
+            }
+
             const grouped = {};
             preOrderList.forEach(item => {
-                if (!grouped[item.friendName]) grouped[item.friendName] = { items: [], totalJpy: 0, boughtJpy: 0 };
-                grouped[item.friendName].items.push(item); grouped[item.friendName].totalJpy += item.price;
-                if (item.isBought) grouped[item.friendName].boughtJpy += item.price;
+                if (!grouped[item.friendName]) {
+                    grouped[item.friendName] = { items: [], totalJpy: 0, boughtJpy: 0 };
+                }
+                grouped[item.friendName].items.push(item);
+                grouped[item.friendName].totalJpy += item.price;
+                if (item.isBought) {
+                    grouped[item.friendName].boughtJpy += item.price;
+                }
             });
+
             Object.keys(grouped).forEach(friend => {
-                const groupData = grouped[friend]; const friendStyle = getAvatarStyle(friend);
-                const groupDiv = document.createElement('div'); groupDiv.className = "modern-card overflow-hidden bg-white";
+                const groupData = grouped[friend];
+                const friendStyle = getAvatarStyle(friend);
+
+                const groupDiv = document.createElement('div');
+                groupDiv.className = "modern-card overflow-hidden bg-white";
+
                 let thbEquivalent = '';
-                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01'; let markup = parseFloat(markupStr); if (isNaN(markup)) markup = 0;
+
+                let markupStr = document.getElementById('omiyage-markup') ? document.getElementById('omiyage-markup').value : '0.01';
+                let markup = parseFloat(markupStr);
+                if (isNaN(markup)) markup = 0;
                 let appliedRate = currentJpyToThbRate + markup;
+
                 if (currentJpyToThbRate > 0 && groupData.boughtJpy > 0) {
                     const thb = (groupData.boughtJpy * appliedRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    thbEquivalent = `<div class="mt-2 text-right"><span class="text-[9px] text-slate-400 font-medium">To Collect:</span><span class="text-[12px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 ml-1">≈ ${thb} THB</span></div>`;
+                    thbEquivalent = `
+                        <div class="mt-2 text-right">
+                            <span class="text-[9px] text-slate-400 font-medium">To Collect:</span>
+                            <span class="text-[12px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 ml-1">≈ ${thb} THB</span>
+                        </div>
+                    `;
                 }
+
                 let itemsHtml = groupData.items.map(item => `
                     <div class="flex justify-between items-center py-3 border-t border-slate-50 group">
                         <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
@@ -1575,234 +2131,569 @@
                                 </div>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2"><p class="text-[13px] font-bold ${item.isBought ? 'text-slate-400 line-through' : 'text-slate-700'} truncate transition-all">${item.itemName}</p>${item.isPaid ? `<span class="text-[8px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-widest font-black shrink-0">PAID</span>` : ''}</div>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-[13px] font-bold ${item.isBought ? 'text-slate-400 line-through' : 'text-slate-700'} truncate transition-all">${item.itemName}</p>
+                                    ${item.isPaid ? `<span class="text-[8px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-widest font-black shrink-0">PAID</span>` : ''}
+                                </div>
                                 <p class="text-[10px] font-medium ${item.isBought ? 'text-slate-300' : 'text-slate-500'} transition-all">${item.price.toLocaleString()} JPY</p>
                             </div>
                         </label>
                         <div class="flex items-center gap-1 ml-2 shrink-0">
-                            <button onclick="togglePreOrderPaid('${item.id}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors ${item.isPaid ? 'text-emerald-500 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-300 hover:text-emerald-500 hover:bg-slate-50'}" title="Mark as Paid"><i class="fas fa-hand-holding-dollar text-[13px]"></i></button>
-                            <button onclick="deletePreOrderItem('${item.id}')" class="text-slate-200 hover:text-rose-500 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i class="fas fa-trash-alt text-[11px]"></i></button>
+                            <button onclick="togglePreOrderPaid('${item.id}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors ${item.isPaid ? 'text-emerald-500 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-300 hover:text-emerald-500 hover:bg-slate-50'}" title="Mark as Paid">
+                                <i class="fas fa-hand-holding-dollar text-[13px]"></i>
+                            </button>
+                            <button onclick="deletePreOrderItem('${item.id}')" class="text-slate-200 hover:text-rose-500 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                                <i class="fas fa-trash-alt text-[11px]"></i>
+                            </button>
                         </div>
-                    </div>`).join('');
+                    </div>
+                `).join('');
+
                 groupDiv.innerHTML = `
                     <div class="p-4 bg-[#F8FAFC] flex justify-between items-center border-b border-[#EAE6DF]">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded-full ${friendStyle.bg} ${friendStyle.text} flex items-center justify-center font-black text-[10px] shadow-sm">${friend.charAt(0).toUpperCase()}</div><h3 class="text-[14px] font-black text-slate-800">${friend}</h3>
+                            <div class="w-7 h-7 rounded-full ${friendStyle.bg} ${friendStyle.text} flex items-center justify-center font-black text-[10px] shadow-sm">${friend.charAt(0).toUpperCase()}</div>
+                            <h3 class="text-[14px] font-black text-slate-800">${friend}</h3>
                         </div>
                         <div class="flex items-center gap-3">
-                            <div class="text-right"><p class="text-[10px] font-bold text-slate-500">Bought ${groupData.boughtJpy.toLocaleString()} / ${groupData.totalJpy.toLocaleString()} JPY</p></div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-500">Bought ${groupData.boughtJpy.toLocaleString()} / ${groupData.totalJpy.toLocaleString()} JPY</p>
+                            </div>
                             <button onclick="copyLineBill('${friend}')" class="w-8 h-8 rounded-full bg-[#00B900]/10 text-[#00B900] flex items-center justify-center hover:bg-[#00B900]/20 transition-colors shadow-sm flex-shrink-0" title="Copy LINE Bill"><i class="fab fa-line text-[16px]"></i></button>
                         </div>
                     </div>
-                    <div class="px-4">${itemsHtml}</div>${thbEquivalent ? `<div class="p-3 bg-slate-50 border-t border-[#EAE6DF]">${thbEquivalent}</div>` : ''}
+                    <div class="px-4">
+                        ${itemsHtml}
+                    </div>
+                    ${thbEquivalent ? `<div class="p-3 bg-slate-50 border-t border-[#EAE6DF]">${thbEquivalent}</div>` : ''}
                 `;
+
                 container.appendChild(groupDiv);
             });
         }
 
-        function saveTripDetail(val) { localStorage.setItem('tripDetail', val); }
+        function saveTripDetail(val) {
+            localStorage.setItem('tripDetail', val);
+        }
 
         function updateNetworkStatus() {
             const btn = document.getElementById('submit-btn');
             if (!btn) return;
-            if (navigator.onLine) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); btn.innerHTML = currentEditRowId ? 'Update Record <i class="fas fa-save"></i>' : 'Save Expense <i class="fas fa-paper-plane"></i>'; } 
-            else { btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed'); btn.innerHTML = '<i class="fas fa-wifi text-rose-400"></i> Offline'; }
+            if (navigator.onLine) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = currentEditRowId ? 'Update Record <i class="fas fa-save"></i>' : 'Save Expense <i class="fas fa-paper-plane"></i>';
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = '<i class="fas fa-wifi text-rose-400"></i> Offline';
+            }
         }
 
         window.addEventListener('online', async () => {
             updateNetworkStatus();
+
             const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
             if (queue.length > 0) {
                 showToast(`Syncing ${queue.length} offline items...`);
-                for(let payload of queue) { try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addExpense', data: payload }) }); } catch(e) {} }
-                localStorage.removeItem('offlineQueue'); showToast("Offline records synced!"); loadDataFromSheet();
+                for(let payload of queue) {
+                    try { 
+                        await fetch(API_URL, { 
+                            method: 'POST', 
+                            body: JSON.stringify({ action: 'addExpense', data: payload }) 
+                        }); 
+                    } catch(e) {}
+                }
+                localStorage.removeItem('offlineQueue');
+                showToast("Offline records synced!");
+                loadDataFromSheet();
             }
         });
 
-        window.addEventListener('offline', () => { updateNetworkStatus(); showToast("You are offline. Data will be saved locally.", true); });
+        window.addEventListener('offline', () => {
+            updateNetworkStatus();
+            showToast("You are offline. Data will be saved locally.", true);
+        });
 
         window.onload = function() { 
-            if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('theme-icon').className = "fas fa-sun"; }
-            const savedDetail = localStorage.getItem('tripDetail'); if(savedDetail) { document.getElementById('trip-detail-header').value = savedDetail; }
-            initUser(); fetchExchangeRate(); renderQuickTags(); renderSettings(); renderCategorySettings(); renderPaymentDropdown();
-            document.getElementById('date').value = new Date().toLocaleDateString('en-CA'); loadDataFromSheet(); 
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').className = "fas fa-sun";
+            }
+            const savedDetail = localStorage.getItem('tripDetail');
+            if(savedDetail) {
+                document.getElementById('trip-detail-header').value = savedDetail;
+            }
+
+            initUser();
+            fetchExchangeRate(); 
+            renderQuickTags(); 
+            renderSettings();
+            renderCategorySettings();
+            renderPaymentDropdown();
+
+            let todayStr = new Date().toLocaleDateString('en-CA'); 
+            document.getElementById('date').value = todayStr; 
+            loadDataFromSheet(); 
         };
 
         document.addEventListener('click', function(event) {
-            const menu = document.getElementById('top-menu'); const menuBtn = document.getElementById('menu-btn');
-            if (menu && menuBtn && menu.classList.contains('active') && !menu.contains(event.target) && !menuBtn.contains(event.target)) { menu.classList.remove('active'); }
-            const userMenu = document.getElementById('user-menu'); const avatarBtn = document.getElementById('user-avatar').parentElement;
-            if (userMenu && !userMenu.classList.contains('hidden') && !userMenu.contains(event.target) && !avatarBtn.contains(event.target)) { userMenu.classList.add('hidden'); userMenu.classList.remove('flex'); }
+            const menu = document.getElementById('top-menu');
+            const menuBtn = document.getElementById('menu-btn');
+            if (menu && menuBtn) {
+                if (menu.classList.contains('active') && !menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                    menu.classList.remove('active');
+                }
+            }
+
+            const userMenu = document.getElementById('user-menu');
+            const avatarBtn = document.getElementById('user-avatar').parentElement;
+            if (userMenu && !userMenu.classList.contains('hidden') && !userMenu.contains(event.target) && !avatarBtn.contains(event.target)) {
+                userMenu.classList.add('hidden');
+                userMenu.classList.remove('flex');
+            }
         });
 
         function showToast(message, isError = false) { 
-            const toast = document.getElementById('toast-notification'); const toastMsg = document.getElementById('toast-message'); const toastIcon = document.getElementById('toast-icon'); 
-            toastMsg.innerText = message; toastIcon.className = isError ? "fas fa-exclamation-circle text-rose-400 text-lg" : "fas fa-check-circle text-[#8A9A5B] text-lg"; 
-            toast.classList.remove('-translate-y-32', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100'); 
-            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('-translate-y-32', 'opacity-0'); }, 3000); 
+            const toast = document.getElementById('toast-notification'); 
+            const toastMsg = document.getElementById('toast-message'); 
+            const toastIcon = document.getElementById('toast-icon'); 
+
+            toastMsg.innerText = message; 
+            toastIcon.className = isError ? "fas fa-exclamation-circle text-rose-400 text-lg" : "fas fa-check-circle text-[#8A9A5B] text-lg"; 
+
+            toast.classList.remove('-translate-y-32', 'opacity-0'); 
+            toast.classList.add('translate-y-0', 'opacity-100'); 
+
+            setTimeout(() => { 
+                toast.classList.remove('translate-y-0', 'opacity-100'); 
+                toast.classList.add('-translate-y-32', 'opacity-0'); 
+            }, 3000); 
         }
 
         function toggleDropdown(id) { 
-            const el = document.getElementById(id); const icon = document.getElementById('icon-' + id);
-            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); el.classList.add('flex'); if(icon) icon.classList.add('rotate-180'); } 
-            else { el.classList.add('hidden'); el.classList.remove('flex'); if(icon) icon.classList.remove('rotate-180'); } 
+            const el = document.getElementById(id); 
+            const icon = document.getElementById('icon-' + id);
+            if(el.classList.contains('hidden')) { 
+                el.classList.remove('hidden'); 
+                el.classList.add('flex'); 
+                if(icon) icon.classList.add('rotate-180');
+            } else { 
+                el.classList.add('hidden'); 
+                el.classList.remove('flex'); 
+                if(icon) icon.classList.remove('rotate-180');
+            } 
         }
 
-        function toggleMenu(e) { if(e) e.stopPropagation(); document.getElementById('top-menu').classList.toggle('active'); }
+        function toggleMenu(e) { 
+            if(e) e.stopPropagation(); 
+            document.getElementById('top-menu').classList.toggle('active'); 
+        }
 
         function switchPage(pageId) { 
             ['home', 'history', 'dashboard', 'taxrefund', 'settings', 'preorder'].forEach(id => { 
-                const pageEl = document.getElementById('page-' + id); if(pageEl) pageEl.classList.remove('page-active'); 
-                const navEl = document.getElementById('nav-' + id); if(navEl) navEl.classList.remove('nav-active'); 
+                const pageEl = document.getElementById('page-' + id); 
+                if(pageEl) pageEl.classList.remove('page-active'); 
+                const navEl = document.getElementById('nav-' + id); 
+                if(navEl) navEl.classList.remove('nav-active'); 
             }); 
+
             document.getElementById('page-' + pageId).classList.add('page-active'); 
-            const targetNav = document.getElementById('nav-' + pageId); if(targetNav) targetNav.classList.add('nav-active'); 
+            const targetNav = document.getElementById('nav-' + pageId); 
+            if(targetNav) targetNav.classList.add('nav-active'); 
+
             document.getElementById('top-menu').classList.remove('active'); 
-            if (['history', 'dashboard', 'taxrefund', 'settings', 'preorder'].includes(pageId)) { updateUI(); }
-            if (pageId === 'preorder') { renderPreOrderList(); }
+            if (['history', 'dashboard', 'taxrefund', 'settings', 'preorder'].includes(pageId)) { 
+                updateUI(); 
+            }
+            if (pageId === 'preorder') {
+                renderPreOrderList();
+            }
             window.scrollTo(0,0); 
         }
 
         async function loadDataFromSheet() { 
             const list = document.getElementById('history-list'); 
             if(list) list.innerHTML = '<div class="text-center p-10 text-slate-400 font-bold text-xs"><i class="fas fa-circle-notch fa-spin text-[#D9383A] text-3xl mb-4"></i><br>Syncing Data...</div>'; 
+
             try {
                 const res = await fetch(API_URL + "?action=getExpenses").then(r => r.json());
                 if(res.status === 'success') {
                     if(res.data) expenses = res.data; 
-                    if(res.preOrders) { preOrderList = res.preOrders; if(document.getElementById('page-preorder').classList.contains('page-active')) { renderPreOrderList(); } }
+
+                    if(res.preOrders) {
+                        preOrderList = res.preOrders;
+                        if(document.getElementById('page-preorder').classList.contains('page-active')) {
+                            renderPreOrderList();
+                        }
+                    }
+
                     if(res.settings) {
                         if(res.settings.members) {
                             tripMembers = res.settings.members.split(',').map(s => s.trim());
                             localStorage.setItem('tripMembers', JSON.stringify(tripMembers));
                             if (typeof renderMembersSettings === 'function') renderMembersSettings();
-                            if (!tripMembers.includes(currentUser)) setCurrentUser(tripMembers[0] || 'USER'); else { renderUserMenu(); updateUserAvatar(); }
+
+                            if (!tripMembers.includes(currentUser)) {
+                                setCurrentUser(tripMembers[0] || 'USER');
+                            } else {
+                                renderUserMenu();
+                                updateUserAvatar();
+                            }
                         }
-                        const limits = getPaymentLimits(); const loadedCatLimits = {}; let updatedLimits = false; let updatedCatLimits = false;
+
+                        const limits = getPaymentLimits();
+                        const loadedCatLimits = {};
+                        let updatedLimits = false;
+                        let updatedCatLimits = false;
+
                         Object.keys(res.settings).forEach(key => {
                             if(key === 'members') return;
-                            if (key.startsWith('CatLimit_')) { const catName = key.replace('CatLimit_', ''); loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0; updatedCatLimits = true; } 
-                            else if (key.toLowerCase().startsWith('omiyage')) { let omiVal = String(res.settings[key]); if (key.toLowerCase().includes('promptpay') && (omiVal.length === 9 || omiVal.length === 12)) omiVal = '0' + omiVal; localStorage.setItem(key, omiVal); } 
-                            else { limits[key] = parseFloat(res.settings[key]) || 0; updatedLimits = true; }
+
+                            if (key.startsWith('CatLimit_')) {
+                                const catName = key.replace('CatLimit_', '');
+                                loadedCatLimits[catName] = parseFloat(res.settings[key]) || 0;
+                                updatedCatLimits = true;
+                            } else if (key.toLowerCase().startsWith('omiyage')) {
+                                let omiVal = String(res.settings[key]);
+                                // แก้ปัญหา Google Sheets ตัดเลข 0 ข้างหน้าออก (เบอร์โทรเหลือ 9 หลัก, บัตรปชชเหลือ 12 หลัก)
+                                if (key.toLowerCase().includes('promptpay') && (omiVal.length === 9 || omiVal.length === 12)) {
+                                    omiVal = '0' + omiVal;
+                                }
+                                localStorage.setItem(key, omiVal);
+                            } else {
+                                limits[key] = parseFloat(res.settings[key]) || 0;
+                                updatedLimits = true;
+                            }
                         });
+
+                        // Reload Omiyage settings for the current user in case they were updated from online
                         loadOmiyageSettings();
+
                         Object.keys(limits).forEach(key => {
-                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_') && !key.toLowerCase().startsWith('omiyage')) { delete limits[key]; updatedLimits = true; }
-                            if (key.toLowerCase().startsWith('omiyage')) { delete limits[key]; updatedLimits = true; }
+                            if(res.settings[key] === undefined && key !== 'Cash' && !key.startsWith('CatLimit_') && !key.toLowerCase().startsWith('omiyage')) {
+                                delete limits[key];
+                                updatedLimits = true;
+                            }
+                            // ป้องกัน Omiyage โผล่มาเป็น Payment Method
+                            if (key.toLowerCase().startsWith('omiyage')) {
+                                delete limits[key];
+                                updatedLimits = true;
+                            }
                         });
-                        if(updatedLimits) { localStorage.setItem('paymentLimits', JSON.stringify(limits)); renderSettings(); renderPaymentDropdown(); }
-                        if(updatedCatLimits) { localStorage.setItem('categoryLimits', JSON.stringify(loadedCatLimits)); renderCategorySettings(); }
+
+                        if(updatedLimits) {
+                            localStorage.setItem('paymentLimits', JSON.stringify(limits));
+                            renderSettings(); 
+                            renderPaymentDropdown();
+                        }
+                        if(updatedCatLimits) {
+                            localStorage.setItem('categoryLimits', JSON.stringify(loadedCatLimits));
+                            renderCategorySettings();
+                        }
                     }
                 } 
                 updateUI(); 
-                const timeStr = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const updatedEl = document.getElementById('last-updated-text'); if(updatedEl) updatedEl.innerText = 'Last Updated : ' + timeStr;
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const updatedEl = document.getElementById('last-updated-text');
+                if(updatedEl) updatedEl.innerText = 'Last Updated : ' + timeStr;
+
             } catch (err) {
-                if(list) list.innerHTML = '<div class="text-center p-10 text-rose-400 font-bold text-xs">Failed to load data.</div>'; updateUI();
+                console.error("Error loading data:", err);
+                if(list) list.innerHTML = '<div class="text-center p-10 text-rose-400 font-bold text-xs">Failed to load data.</div>';
+                updateUI();
             }
         }
 
         function toggleDay(date) { 
-            const el = document.getElementById('details-' + date); const icon = document.getElementById('icon-' + date); 
-            if(el) el.classList.toggle('active'); if(icon) icon.classList.toggle('rotated'); 
+            const el = document.getElementById('details-' + date); 
+            const icon = document.getElementById('icon-' + date); 
+            if(el) el.classList.toggle('active'); 
+            if(icon) icon.classList.toggle('rotated'); 
         }
 
         function getIcon(cat) { 
-            const icons = { 'Food': 'fa-utensils', 'Transportation': 'fa-train', 'Gasoline': 'fa-gas-pump', 'Toll / ETC': 'fa-road', 'Dessert/Beverage': 'fa-mug-hot', 'Shopping': 'fa-bag-shopping', 'Admission Fee': 'fa-ticket-alt', 'Tops up IC Card': 'fa-battery-full', 'Pre-Order': 'fa-box', 'Refund Pre-Order': 'fa-undo-alt', 'Tax refund': 'fa-hand-holding-dollar', 'Advanced': 'fa-hourglass-half', 'Adjustment': 'fa-sliders', 'Other': 'fa-receipt' }; 
+            const icons = { 
+                'Food': 'fa-utensils', 
+                'Transportation': 'fa-train', 
+                'Gasoline': 'fa-gas-pump', 
+                'Toll / ETC': 'fa-road',
+                'Dessert/Beverage': 'fa-mug-hot', 
+                'Shopping': 'fa-bag-shopping', 
+                'Admission Fee': 'fa-ticket-alt', 
+                'Tops up IC Card': 'fa-battery-full', 
+                'Pre-Order': 'fa-box', 
+                'Refund Pre-Order': 'fa-undo-alt', 
+                'Tax refund': 'fa-hand-holding-dollar', 
+                'Advanced': 'fa-hourglass-half', 
+                'Adjustment': 'fa-sliders', 
+                'Other': 'fa-receipt' 
+            }; 
             return icons[cat] || 'fa-receipt'; 
         }
 
         function renderDoughnutChart(ctxId, chartVar, dataObj) { 
-            const ctx = document.getElementById(ctxId); if(!ctx) return chartVar; 
-            const labels = Object.keys(dataObj); const dataValues = Object.values(dataObj); const bgColors = labels.map(cat => globalColorsMap[cat] || '#94a3b8'); 
-            if(chartVar) chartVar.destroy(); Chart.defaults.font.family = "'Plus Jakarta Sans', 'Kanit', sans-serif";
-            return new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: bgColors, borderWidth: 3, borderColor: '#ffffff', hoverOffset: 6 }] }, options: { responsive: true, cutout: '72%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1C2536', padding: 12, cornerRadius: 12, callbacks: { label: function(context) { return ' ' + new Intl.NumberFormat('en-US').format(context.parsed) + ' JPY'; } } } } } }); 
+            const ctx = document.getElementById(ctxId); 
+            if(!ctx) return chartVar; 
+
+            const labels = Object.keys(dataObj); 
+            const dataValues = Object.values(dataObj); 
+            const bgColors = labels.map(cat => globalColorsMap[cat] || '#94a3b8'); 
+
+            if(chartVar) chartVar.destroy(); 
+            Chart.defaults.font.family = "'Plus Jakarta Sans', 'Kanit', sans-serif";
+
+            return new Chart(ctx, { 
+                type: 'doughnut', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        data: dataValues, 
+                        backgroundColor: bgColors, 
+                        borderWidth: 3, 
+                        borderColor: '#ffffff', 
+                        hoverOffset: 6 
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    cutout: '72%', 
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { 
+                            backgroundColor: '#1C2536', 
+                            padding: 12, 
+                            cornerRadius: 12, 
+                            callbacks: { 
+                                label: function(context) { 
+                                    return ' ' + new Intl.NumberFormat('en-US').format(context.parsed) + ' JPY'; 
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+            }); 
         }
 
         function updateDailyCategoryChart() { 
-            const dateStr = document.getElementById('dashboard-date-filter').value; const dataObj = globalDailyCategoryStats[dateStr] || {}; 
+            const dateStr = document.getElementById('dashboard-date-filter').value; 
+            const dataObj = globalDailyCategoryStats[dateStr] || {}; 
             myDailyCategoryChart = renderDoughnutChart('dailyCategoryChart', myDailyCategoryChart, dataObj); 
-            const listContainer = document.getElementById('daily-category-list'); if(!listContainer) return; listContainer.innerHTML = ''; 
+
+            const listContainer = document.getElementById('daily-category-list'); 
+            if(!listContainer) return;
+            listContainer.innerHTML = ''; 
+
             const sortedCat = Object.keys(dataObj).map(k => ({label: k, val: dataObj[k]})).sort((a,b) => b.val - a.val); 
-            if(sortedCat.length === 0) { listContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4 font-medium">No transactions on this date</div>'; return; } 
+
+            if(sortedCat.length === 0) { 
+                listContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4 font-medium">No transactions on this date</div>'; 
+                return; 
+            } 
+
             const dailyTotal = sortedCat.reduce((sum, item) => sum + item.val, 0);
+
             sortedCat.forEach(item => { 
-                const percent = dailyTotal > 0 ? ((item.val / dailyTotal) * 100).toFixed(1) : 0; const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
-                const div = document.createElement('div'); div.className = "flex justify-between items-center text-xs px-2 py-3 border-b border-slate-50 last:border-0"; 
-                div.innerHTML = `<div class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span><div class="flex items-baseline gap-1.5"><span class="font-bold text-slate-700">${item.label}</span><span class="text-[10px] text-slate-400 font-medium">(${displayPercent}%)</span></div></div><span class="font-black text-slate-900">${item.val.toLocaleString()} JPY</span>`; 
+                const percent = dailyTotal > 0 ? ((item.val / dailyTotal) * 100).toFixed(1) : 0;
+                const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
+
+                const div = document.createElement('div'); 
+                div.className = "flex justify-between items-center text-xs px-2 py-3 border-b border-slate-50 last:border-0"; 
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="font-bold text-slate-700">${item.label}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">(${displayPercent}%)</span>
+                        </div>
+                    </div>
+                    <span class="font-black text-slate-900">${item.val.toLocaleString()} JPY</span>
+                `; 
                 listContainer.appendChild(div); 
             }); 
         }
 
         function editItem(rowId) {
-            const item = expenses.find(e => e.rowId === rowId); if(!item) return;
-            currentEditRowId = rowId; document.getElementById('amount').value = item.amount; calculateTHB(); 
-            let rawDate = new Date(item.date); if(!isNaN(rawDate.getTime())) { document.getElementById('date').value = rawDate.toLocaleDateString('en-CA'); } else { document.getElementById('date').value = item.date; }
-            let paymentSelect = document.getElementById('payment'); let optionExists = Array.from(paymentSelect.options).some(opt => opt.value === item.payment);
-            if (!optionExists) { const opt = document.createElement('option'); opt.value = item.payment; opt.text = `💳 ${item.payment}`; paymentSelect.appendChild(opt); }
-            paymentSelect.value = item.payment; document.getElementById('category').value = item.category; renderQuickTags();
-            document.getElementById('details').value = item.details; oldReceiptUrl = item.receipt;
+            const item = expenses.find(e => e.rowId === rowId);
+            if(!item) return;
 
-            const cbShared = document.getElementById('is-shared'); const iconShared = document.getElementById('icon-shared'); cbShared.checked = item.isShared;
-            if(item.isShared) { iconShared.classList.remove('text-gray-300'); iconShared.classList.add('text-[#D9383A]'); iconShared.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]'); iconShared.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white'); } 
-            else { iconShared.classList.remove('text-[#D9383A]'); iconShared.classList.add('text-gray-300'); iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white'); }
+            currentEditRowId = rowId;
+            document.getElementById('amount').value = item.amount;
+            calculateTHB(); 
 
-            const cbTax = document.getElementById('is-taxfree'); const iconTax = document.getElementById('icon-taxfree'); cbTax.checked = item.isTaxFree;
-            if(item.isTaxFree) { iconTax.classList.remove('text-gray-300'); iconTax.classList.add('text-[#D9383A]'); iconTax.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]'); iconTax.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white'); } 
-            else { iconTax.classList.remove('text-[#D9383A]'); iconTax.classList.add('text-gray-300'); iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white'); }
+            let rawDate = new Date(item.date);
+            if(!isNaN(rawDate.getTime())) { 
+                document.getElementById('date').value = rawDate.toLocaleDateString('en-CA'); 
+            } else { 
+                document.getElementById('date').value = item.date; 
+            }
 
-            document.getElementById('submit-btn').innerHTML = 'Update Record <i class="fas fa-save"></i>'; document.getElementById('form-title').innerHTML = 'Edit Expense'; document.getElementById('cancel-edit-btn').classList.remove('hidden'); switchPage('home');
+            let paymentSelect = document.getElementById('payment');
+            let optionExists = Array.from(paymentSelect.options).some(opt => opt.value === item.payment);
+            if (!optionExists) {
+                const opt = document.createElement('option');
+                opt.value = item.payment;
+                opt.text = `💳 ${item.payment}`;
+                paymentSelect.appendChild(opt);
+            }
+            paymentSelect.value = item.payment;
+            document.getElementById('category').value = item.category;
+
+            renderQuickTags();
+
+            document.getElementById('details').value = item.details;
+            oldReceiptUrl = item.receipt;
+
+            const cbShared = document.getElementById('is-shared');
+            const iconShared = document.getElementById('icon-shared');
+            cbShared.checked = item.isShared;
+            if(item.isShared) { 
+                iconShared.classList.remove('text-gray-300'); 
+                iconShared.classList.add('text-[#D9383A]'); 
+                iconShared.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconShared.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white');
+            } else { 
+                iconShared.classList.remove('text-[#D9383A]'); 
+                iconShared.classList.add('text-gray-300'); 
+                iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+            }
+
+            const cbTax = document.getElementById('is-taxfree');
+            const iconTax = document.getElementById('icon-taxfree');
+            cbTax.checked = item.isTaxFree;
+            if(item.isTaxFree) { 
+                iconTax.classList.remove('text-gray-300'); 
+                iconTax.classList.add('text-[#D9383A]'); 
+                iconTax.parentElement.classList.add('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconTax.parentElement.classList.remove('border-[#EAE6DF]', 'bg-white');
+            } else { 
+                iconTax.classList.remove('text-[#D9383A]'); 
+                iconTax.classList.add('text-gray-300');
+                iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+            }
+
+            document.getElementById('submit-btn').innerHTML = 'Update Record <i class="fas fa-save"></i>';
+            document.getElementById('form-title').innerHTML = 'Edit Expense';
+
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            switchPage('home');
         }
 
         function cancelEdit() {
-            currentEditRowId = null; oldReceiptUrl = "";
-            document.getElementById('expense-form').reset(); document.getElementById('date').value = new Date().toLocaleDateString('en-CA');
-            document.getElementById('submit-btn').innerHTML = 'Save Expense <i class="fas fa-paper-plane"></i>'; document.getElementById('form-title').innerHTML = 'Add New Expense'; document.getElementById('cancel-edit-btn').classList.add('hidden'); document.getElementById('thb-equivalent').classList.add('hidden'); 
-            const cbShared = document.getElementById('is-shared'); const iconShared = document.getElementById('icon-shared'); cbShared.checked = false; iconShared.classList.remove('text-[#D9383A]'); iconShared.classList.add('text-gray-300'); iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
-            const cbTax = document.getElementById('is-taxfree'); const iconTax = document.getElementById('icon-taxfree'); cbTax.checked = false; iconTax.classList.remove('text-[#D9383A]'); iconTax.classList.add('text-gray-300'); iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
-            receiptBase64 = null; receiptName = null;
-            if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = ''; if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
-            const btnAddReceipt = document.getElementById('btn-add-receipt'); const receiptLabel = document.getElementById('receipt-label');
-            if(btnAddReceipt) btnAddReceipt.classList.remove('hidden'); if(receiptLabel) receiptLabel.classList.add('hidden');
+            currentEditRowId = null;
+            oldReceiptUrl = "";
+
+            document.getElementById('expense-form').reset();
+            document.getElementById('date').value = new Date().toLocaleDateString('en-CA');
+            document.getElementById('submit-btn').innerHTML = 'Save Expense <i class="fas fa-paper-plane"></i>';
+            document.getElementById('form-title').innerHTML = 'Add New Expense';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('thb-equivalent').classList.add('hidden'); 
+
+            const cbShared = document.getElementById('is-shared');
+            const iconShared = document.getElementById('icon-shared');
+            cbShared.checked = false;
+            iconShared.classList.remove('text-[#D9383A]'); 
+            iconShared.classList.add('text-gray-300'); 
+            iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+            iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+
+            const cbTax = document.getElementById('is-taxfree');
+            const iconTax = document.getElementById('icon-taxfree');
+            cbTax.checked = false;
+            iconTax.classList.remove('text-[#D9383A]'); 
+            iconTax.classList.add('text-gray-300'); 
+            iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+            iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+
+            receiptBase64 = null;
+            receiptName = null;
+
+            if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
+            if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
+
+            const btnAddReceipt = document.getElementById('btn-add-receipt');
+            const receiptLabel = document.getElementById('receipt-label');
+            if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
+            if(receiptLabel) receiptLabel.classList.add('hidden');
+
             renderQuickTags();
         }
 
         function updateUI() {
-            const list = document.getElementById('history-list'); const stats = document.getElementById('stats-container'); const pSum = document.getElementById('payment-summary-container'); const taxList = document.getElementById('taxrefund-list');
-            if(list) list.innerHTML = ''; if(stats) stats.innerHTML = ''; if(pSum) pSum.innerHTML = ''; if(taxList) taxList.innerHTML = '';
-            let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; const daily = {}; 
-            const limits = getPaymentLimits(); const payStats = {}; Object.keys(limits).forEach(k => payStats[k] = 0);
+            const list = document.getElementById('history-list');
+            const stats = document.getElementById('stats-container');
+            const pSum = document.getElementById('payment-summary-container');
+            const taxList = document.getElementById('taxrefund-list');
+
+            if(list) list.innerHTML = ''; 
+            if(stats) stats.innerHTML = ''; 
+            if(pSum) pSum.innerHTML = ''; 
+            if(taxList) taxList.innerHTML = '';
+
+            let gross = 0, refund = 0, cashUsed = 0, taxRefundTotal = 0; 
+            const daily = {}; 
+
+            const limits = getPaymentLimits();
+            const payStats = {}; 
+            Object.keys(limits).forEach(k => payStats[k] = 0);
+
             const searchTerm = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase() : '';
 
             let filteredExpenses = expenses.filter(item => {
                 if(!searchTerm) return true;
-                return ( item.category.toLowerCase().includes(searchTerm) || item.details.toLowerCase().includes(searchTerm) || item.payment.toLowerCase().includes(searchTerm) || item.amount.toString().includes(searchTerm) || item.username.toLowerCase().includes(searchTerm) );
+                return (
+                    item.category.toLowerCase().includes(searchTerm) || 
+                    item.details.toLowerCase().includes(searchTerm) || 
+                    item.payment.toLowerCase().includes(searchTerm) || 
+                    item.amount.toString().includes(searchTerm) ||
+                    item.username.toLowerCase().includes(searchTerm)
+                );
             });
 
             let sortType = document.getElementById('sort-filter') ? document.getElementById('sort-filter').value : 'latest';
+
             filteredExpenses.sort((a,b) => {
-                let dateB = new Date(b.date + ' ' + (b.time || '00:00')); let dateA = new Date(a.date + ' ' + (a.time || '00:00'));
-                let isRefA = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(a.category); let amtA = parseFloat(a.amount) || 0; let realAmtA = isRefA ? amtA : -amtA;
-                let isRefB = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(b.category); let amtB = parseFloat(b.amount) || 0; let realAmtB = isRefB ? amtB : -amtB;
+                let dateB = new Date(b.date + ' ' + (b.time || '00:00')); 
+                let dateA = new Date(a.date + ' ' + (a.time || '00:00'));
+                let isRefA = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(a.category); 
+                let amtA = parseFloat(a.amount) || 0; 
+                let realAmtA = isRefA ? amtA : -amtA;
+
+                let isRefB = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(b.category); 
+                let amtB = parseFloat(b.amount) || 0; 
+                let realAmtB = isRefB ? amtB : -amtB;
+
                 if (sortType === 'latest') return expenses.indexOf(b) - expenses.indexOf(a); 
                 if (sortType === 'date') return dateB - dateA; 
                 if (sortType === 'payment') return a.payment === b.payment ? dateB - dateA : a.payment.localeCompare(b.payment); 
                 if (sortType === 'category') return a.category === b.category ? dateB - dateA : a.category.localeCompare(b.category); 
                 if (sortType === 'price-high') return realAmtB - realAmtA; 
                 if (sortType === 'price-low') return realAmtA - realAmtB; 
+
                 return 0;
             });
 
-            const categoryStats = {}; globalDailyCategoryStats = {};
+            const categoryStats = {}; 
+            globalDailyCategoryStats = {};
 
             filteredExpenses.forEach((item) => {
                 const isRef = ["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(item.category);
-                const amt = parseFloat(item.amount) || 0; const impact = isRef ? -amt : amt;
+                const amt = parseFloat(item.amount) || 0;
+                const impact = isRef ? -amt : amt;
 
-                if (isRef) { refund += amt; } 
-                else { 
+                if (isRef) { 
+                    refund += amt; 
+                } else { 
                     gross += amt; 
-                    if (!categoryStats[item.category]) categoryStats[item.category] = 0; categoryStats[item.category] += amt; 
+                    if (!categoryStats[item.category]) categoryStats[item.category] = 0; 
+                    categoryStats[item.category] += amt; 
+
                     if (!globalDailyCategoryStats[item.date]) globalDailyCategoryStats[item.date] = {}; 
                     if (!globalDailyCategoryStats[item.date][item.category]) globalDailyCategoryStats[item.date][item.category] = 0; 
                     globalDailyCategoryStats[item.date][item.category] += amt; 
@@ -1811,19 +2702,27 @@
                 if(item.isTaxFree) {
                     taxRefundTotal += amt;
                     if(taxList) {
-                        const tDiv = document.createElement('div'); tDiv.className = "modern-card p-4 flex justify-between items-center bg-white";
+                        const tDiv = document.createElement('div');
+                        tDiv.className = "modern-card p-4 flex justify-between items-center bg-white";
                         tDiv.innerHTML = `
                             <div class="flex gap-3 items-center w-2/3 overflow-hidden">
-                                <div class="w-10 h-10 flex-shrink-0 bg-rose-50 text-[#D9383A] rounded-[12px] flex items-center justify-center"><i class="fas ${getIcon(item.category)} text-sm"></i></div>
+                                <div class="w-10 h-10 flex-shrink-0 bg-rose-50 text-[#D9383A] rounded-[12px] flex items-center justify-center">
+                                    <i class="fas ${getIcon(item.category)} text-sm"></i>
+                                </div>
                                 <div class="min-w-0">
-                                    <div class="flex items-center gap-2"><p class="font-bold text-slate-800 text-[13px] truncate">${item.category}</p><span class="text-[7px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded uppercase whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span></div>
-                                    <p class="text-[10px] text-slate-500 truncate mt-0.5">${item.details || "-"}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="far fa-calendar-alt"></i> ${item.date}</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-bold text-slate-800 text-[13px] truncate">${item.category}</p>
+                                        <span class="text-[7px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded uppercase whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 truncate mt-0.5">${item.details || "-"}</p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5"><i class="far fa-calendar-alt"></i> ${item.date}</p>
                                 </div>
                             </div>
                             <div class="text-right flex flex-col justify-between items-end gap-2">
                                 <span class="font-black text-[#D9383A] whitespace-nowrap">${amt.toLocaleString()} <span class="text-[10px]">JPY</span></span>
                                 ${item.receipt ? `<button onclick="window.open('${item.receipt}', '_blank')" class="w-7 h-7 bg-slate-50 text-slate-400 hover:text-[#D9383A] hover:bg-[#FFF9F9] rounded-full flex items-center justify-center transition-colors border border-slate-100 shadow-sm"><i class="fas fa-image text-[10px]"></i></button>` : ''}
-                            </div>`;
+                            </div>
+                        `;
                         taxList.appendChild(tDiv);
                     }
                 }
@@ -1832,58 +2731,120 @@
                 if (pKey === "QR Code") pKey = "QR Payment"; 
                 if (pKey === "JCB Card-Thida" || pKey === "JCB Thida" || pKey === "JCB : Thida") pKey = "JCB : Thida";
                 if (pKey === "JCB Card-OHSirawit" || pKey === "JCB Oh" || pKey === "JCB : Oh") pKey = "JCB : Oh";
-                if (!payStats.hasOwnProperty(pKey)) payStats[pKey] = 0; if (pKey === "Cash") cashUsed += impact; payStats[pKey] += impact;
-                if (!daily[item.date]) daily[item.date] = { total: 0, categories: {} }; daily[item.date].total += impact; 
-                if (!daily[item.date].categories[item.category]) { daily[item.date].categories[item.category] = { amt: 0, isRef: isRef }; } daily[item.date].categories[item.category].amt += amt;
 
-                let appliedRate = item.rate ? parseFloat(item.rate) : currentJpyToThbRate; let thbLine = '';
-                if(appliedRate > 0) { thbLine = `<p class="text-[10px] font-bold text-[#D9383A] mt-0.5 whitespace-nowrap">≈ ${(amt * appliedRate).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} THB <span class="text-slate-400 font-medium">(Rate: ${appliedRate.toFixed(4)})</span></p>`; }
+                if (!payStats.hasOwnProperty(pKey)) payStats[pKey] = 0; 
+                if (pKey === "Cash") cashUsed += impact; 
+                payStats[pKey] += impact;
+
+                if (!daily[item.date]) daily[item.date] = { total: 0, categories: {} }; 
+                daily[item.date].total += impact; 
+
+                if (!daily[item.date].categories[item.category]) { 
+                    daily[item.date].categories[item.category] = { amt: 0, isRef: isRef }; 
+                }
+                daily[item.date].categories[item.category].amt += amt;
+
+                let appliedRate = item.rate ? parseFloat(item.rate) : currentJpyToThbRate;
+                let thbLine = '';
+                if(appliedRate > 0) { 
+                    thbLine = `
+                        <p class="text-[10px] font-bold text-[#D9383A] mt-0.5 whitespace-nowrap">
+                            ≈ ${(amt * appliedRate).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} THB 
+                            <span class="text-slate-400 font-medium">(Rate: ${appliedRate.toFixed(4)})</span>
+                        </p>
+                    `; 
+                }
 
                 let badgeHtml = '';
-                if(item.isShared) { badgeHtml += `<span class="text-[8px] font-bold bg-[#1C2536] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `; }
-                if(item.isTaxFree) { badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span> `; }
+                if(item.isShared) {
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#1C2536] text-white px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-users mr-1"></i>Shared</span> `;
+                }
+                if(item.isTaxFree) {
+                    badgeHtml += `<span class="text-[8px] font-bold bg-[#FFF9F9] text-[#D9383A] border border-[#D9383A] px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider whitespace-nowrap"><i class="fas fa-tag mr-1"></i>Tax-Refund</span> `;
+                }
+
                 let uStyle = getAvatarStyle(item.username || 'USER');
                 badgeHtml += `<span class="text-[8px] font-bold ${uStyle.bg} ${uStyle.text} px-1.5 py-0.5 rounded shadow-sm tracking-wider whitespace-nowrap flex items-center gap-1"><i class="fas fa-user text-[7px]"></i> ${item.username || 'USER'}</span>`;
 
                 if(list) {
-                    const div = document.createElement('div'); div.className = `modern-card p-4 flex justify-between items-start gap-2 ${item.isTaxFree ? 'tax-refund-card' : ''}`; 
+                    const div = document.createElement('div'); 
+                    div.className = `modern-card p-4 flex justify-between items-start gap-2 ${item.isTaxFree ? 'tax-refund-card' : ''}`; 
                     div.innerHTML = `
                         <div class="flex gap-4 items-start text-left w-full overflow-hidden">
-                            <div class="w-12 h-12 flex-shrink-0 mt-0.5 ${isRef ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-[#F5F4F0] text-[#D9383A] border border-[#EAE6DF]'} rounded-[16px] flex items-center justify-center"><i class="fas ${getIcon(item.category)} text-[18px]"></i></div>
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5"><p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p><span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${pKey}</span></div>
-                                <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
-                                <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
+                            <div class="w-12 h-12 flex-shrink-0 mt-0.5 ${isRef ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-[#F5F4F0] text-[#D9383A] border border-[#EAE6DF]'} rounded-[16px] flex items-center justify-center">
+                                <i class="fas ${getIcon(item.category)} text-[18px]"></i>
                             </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <p class="font-bold text-gray-800 text-[13px] leading-tight tracking-wide">${item.category}</p>
+                                    <span class="text-[8px] font-bold bg-white text-gray-500 px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider border border-gray-200 whitespace-nowrap">${pKey}</span>
+                            </div>
+                            <div class="mt-1 flex flex-wrap gap-1">${badgeHtml}</div>
+                            <p class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-2 pr-2">${item.details || "-"}</p>
                         </div>
-                        <div class="text-right flex flex-col justify-between h-full items-end">
-                            <div class="text-right"><p class="text-[16px] font-black ${isRef ? 'text-emerald-500' : 'text-gray-900'}">${isRef ? '+' : '-'}${amt.toLocaleString()} JPY</p>${thbLine}</div>
+                    </div>
+                    <div class="text-right flex flex-col justify-between h-full items-end">
+                        <div class="text-right">
+                                <p class="text-[16px] font-black ${isRef ? 'text-emerald-500' : 'text-gray-900'}">${isRef ? '+' : '-'}${amt.toLocaleString()} JPY</p>
+                                ${thbLine}
+                            </div>
                             <div class="flex justify-end gap-3 mt-2 items-center">
                                 ${item.receipt ? `<button onclick="window.open('${item.receipt}', '_blank')" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-image text-[13px]"></i></button>` : ''}
                                 ${item.location ? `<a href="${item.location}" target="_blank" class="text-gray-300 hover:text-[#D9383A] transition-colors"><i class="fas fa-location-dot text-[13px]"></i></a>` : ''}
                                 <button onclick="editItem(${item.rowId})" class="text-gray-200 hover:text-[#D9383A] transition-colors ml-1"><i class="fas fa-pencil-alt text-[13px]"></i></button>
                                 <button onclick="deleteItem(${item.rowId})" class="text-gray-200 hover:text-rose-500 transition-colors ml-1"><i class="fas fa-trash-alt text-[13px]"></i></button>
                             </div>
-                        </div>`; 
+                        </div>
+                    `; 
                     list.appendChild(div);
                 }
             });
 
-            if(filteredExpenses.length === 0 && list) { list.innerHTML = `<div class="text-center p-8 text-gray-400 font-bold text-xs"><i class="fas fa-search text-2xl mb-2 text-gray-300"></i><br>No matching records</div>`; }
-            if (document.getElementById('taxrefund-total')) { document.getElementById('taxrefund-total').innerText = taxRefundTotal.toLocaleString(); }
-            if (taxRefundTotal === 0 && taxList) { taxList.innerHTML = '<div class="text-center p-6 text-slate-400 font-bold text-xs">No tax-refund items found.</div>'; }
+            if(filteredExpenses.length === 0 && list) { 
+                list.innerHTML = `
+                    <div class="text-center p-8 text-gray-400 font-bold text-xs">
+                        <i class="fas fa-search text-2xl mb-2 text-gray-300"></i><br>No matching records
+                    </div>
+                `; 
+            }
+
+            if (document.getElementById('taxrefund-total')) {
+                document.getElementById('taxrefund-total').innerText = taxRefundTotal.toLocaleString();
+            }
+            if (taxRefundTotal === 0 && taxList) {
+                taxList.innerHTML = '<div class="text-center p-6 text-slate-400 font-bold text-xs">No tax-refund items found.</div>';
+            }
 
             const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
             const offlineWarning = document.getElementById('offline-warning');
-            if(offlineWarning) { if(queue.length > 0) { document.getElementById('offline-count').innerText = queue.length; offlineWarning.classList.remove('hidden'); } else { offlineWarning.classList.add('hidden'); } }
+            if(offlineWarning) {
+                if(queue.length > 0) {
+                    document.getElementById('offline-count').innerText = queue.length;
+                    offlineWarning.classList.remove('hidden');
+                } else {
+                    offlineWarning.classList.add('hidden');
+                }
+            }
 
             const dateDropdown = document.getElementById('dashboard-date-filter'); 
             if (dateDropdown) { 
-                const currentSelectedDate = dateDropdown.value; dateDropdown.innerHTML = ''; const sortedDates = Object.keys(globalDailyCategoryStats).sort((a,b) => new Date(b) - new Date(a)); 
-                if(sortedDates.length === 0) { dateDropdown.innerHTML = '<option value="">No Data</option>'; } 
-                else { 
-                    sortedDates.forEach(date => { const opt = document.createElement('option'); opt.value = date; opt.text = date; if(date === currentSelectedDate) opt.selected = true; dateDropdown.appendChild(opt); }); 
-                    if(!currentSelectedDate || !globalDailyCategoryStats[currentSelectedDate]) { dateDropdown.value = sortedDates[0]; } 
+                const currentSelectedDate = dateDropdown.value; 
+                dateDropdown.innerHTML = ''; 
+                const sortedDates = Object.keys(globalDailyCategoryStats).sort((a,b) => new Date(b) - new Date(a)); 
+
+                if(sortedDates.length === 0) { 
+                    dateDropdown.innerHTML = '<option value="">No Data</option>'; 
+                } else { 
+                    sortedDates.forEach(date => { 
+                        const opt = document.createElement('option'); 
+                        opt.value = date; 
+                        opt.text = date; 
+                        if(date === currentSelectedDate) opt.selected = true; 
+                        dateDropdown.appendChild(opt); 
+                    }); 
+                    if(!currentSelectedDate || !globalDailyCategoryStats[currentSelectedDate]) { 
+                        dateDropdown.value = sortedDates[0]; 
+                    } 
                 } 
             }
 
@@ -1893,13 +2854,22 @@
                 Object.entries(payStats).forEach(([method, total]) => { 
                     const limit = limits[method] || 0;
                     if (total !== 0 || method === 'Cash' || limit > 0) { 
-                        const payDiv = document.createElement('div'); payDiv.className = "modern-card p-5 text-left border border-[#EAE6DF] shadow-sm"; 
-                        let displayName = method; let bal = ""; 
+                        const payDiv = document.createElement('div'); 
+                        payDiv.className = "modern-card p-5 text-left border border-[#EAE6DF] shadow-sm"; 
+
+                        let displayName = method; 
+                        let bal = ""; 
                         if (limit > 0) {
-                            const remain = limit - total; const textColor = remain < 0 ? 'text-rose-500' : 'text-[#D9383A]';
+                            const remain = limit - total;
+                            const textColor = remain < 0 ? 'text-rose-500' : 'text-[#D9383A]';
                             bal = `<p class="text-[10px] font-bold ${textColor} mt-1.5">Remain: ${remain.toLocaleString()}</p>`; 
                         }
-                        payDiv.innerHTML = `<span class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate block" title="${displayName}">${displayName}</span><p class="text-xl font-black text-gray-900 mt-1.5 leading-none">${total.toLocaleString()}</p>${bal}`; 
+
+                        payDiv.innerHTML = `
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate block" title="${displayName}">${displayName}</span>
+                            <p class="text-xl font-black text-gray-900 mt-1.5 leading-none">${total.toLocaleString()}</p>
+                            ${bal}
+                        `; 
                         pSum.appendChild(payDiv); 
                     } 
                 });
@@ -1907,27 +2877,57 @@
 
             if(stats) {
                 Object.keys(daily).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { 
-                    const data = daily[date]; const mainDiv = document.createElement('div'); mainDiv.className = "modern-card overflow-hidden shadow-sm mb-4 border border-[#EAE6DF]"; 
+                    const data = daily[date];
+                    const mainDiv = document.createElement('div'); 
+                    mainDiv.className = "modern-card overflow-hidden shadow-sm mb-4 border border-[#EAE6DF]"; 
                     mainDiv.innerHTML = `
                         <div onclick="toggleDay('${date}')" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-3.5"><div class="w-11 h-11 rounded-[14px] bg-[#1C2536] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#1C2536]/10">${date.split('-')[2]}</div><p class="text-xs font-black text-gray-500 uppercase tracking-widest">${date}</p></div>
-                            <div class="flex items-center gap-3.5 text-right"><p class="text-[17px] font-black text-gray-900">${data.total.toLocaleString()} JPY</p><i id="icon-${date}" class="fas fa-chevron-down text-gray-300 text-sm rotate-icon"></i></div>
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-[14px] bg-[#1C2536] text-white flex items-center justify-center font-bold text-sm shadow-md shadow-[#1C2536]/10">
+                                    ${date.split('-')[2]}
+                                </div>
+                                <p class="text-xs font-black text-gray-500 uppercase tracking-widest">${date}</p>
+                            </div>
+                            <div class="flex items-center gap-3.5 text-right">
+                                <p class="text-[17px] font-black text-gray-900">${data.total.toLocaleString()} JPY</p>
+                                <i id="icon-${date}" class="fas fa-chevron-down text-gray-300 text-sm rotate-icon"></i>
+                            </div>
                         </div>
                         <div id="details-${date}" class="day-details pb-4 px-5 bg-[#FFFFFF] border-t border-[#EAE6DF] text-left">
                             ${Object.keys(data.categories).map(cat => {
                                 const catInfo = data.categories[cat];
-                                return `<div class="flex justify-between items-center text-xs py-3 border-b border-gray-50 last:border-0"><div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span><span class="font-bold text-gray-700">${cat}</span></div><span class="font-black ${catInfo.isRef ? 'text-emerald-500' : 'text-gray-800'}">${catInfo.isRef ? '+' : '-'}${catInfo.amt.toLocaleString()} JPY</span></div>`;
+                                return `
+                                    <div class="flex justify-between items-center text-xs py-3 border-b border-gray-50 last:border-0">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${globalColorsMap[cat] || '#94a3b8'}"></span>
+                                            <span class="font-bold text-gray-700">${cat}</span>
+                                        </div>
+                                        <span class="font-black ${catInfo.isRef ? 'text-emerald-500' : 'text-gray-800'}">
+                                            ${catInfo.isRef ? '+' : '-'}${catInfo.amt.toLocaleString()} JPY
+                                        </span>
+                                    </div>
+                                `;
                             }).join('')}
-                        </div>`; 
+                        </div>
+                    `; 
                     stats.appendChild(mainDiv); 
                 });
             }
 
-            const remaining = currentBudget - cashUsed; let percent = currentBudget > 0 ? remaining / currentBudget : 0; percent = Math.max(0, Math.min(1, percent)); 
+            const remaining = currentBudget - cashUsed; 
+            let percent = currentBudget > 0 ? remaining / currentBudget : 0; 
+            percent = Math.max(0, Math.min(1, percent)); 
+
             const bar = document.getElementById('budget-progress-bar');
             if(bar) { 
                 setTimeout(() => { bar.style.width = (percent * 100) + '%'; }, 100); 
-                if (remaining <= (currentBudget * 0.1)) { bar.style.background = "#D9383A"; } else if (remaining <= (currentBudget * 0.3)) { bar.style.background = "#F4A261"; } else { bar.style.background = "#2A9D8F"; }
+                if (remaining <= (currentBudget * 0.1)) {
+                    bar.style.background = "#D9383A"; 
+                } else if (remaining <= (currentBudget * 0.3)) {
+                    bar.style.background = "#F4A261"; 
+                } else {
+                    bar.style.background = "#2A9D8F"; 
+                }
             }
 
             if(document.getElementById('cash-remaining')) document.getElementById('cash-remaining').innerText = Math.floor(remaining).toLocaleString(); 
@@ -1939,31 +2939,61 @@
 
             myOverallCategoryChart = renderDoughnutChart('overallCategoryChart', myOverallCategoryChart, categoryStats);
 
-            const catLimits = getCategoryLimits(); const overallListContainer = document.getElementById('category-dashboard-list'); 
+            const catLimits = getCategoryLimits();
+            const overallListContainer = document.getElementById('category-dashboard-list'); 
             if(overallListContainer) { 
-                overallListContainer.innerHTML = ''; const sortedCatOverall = Object.keys(categoryStats).map(k => ({label: k, val: categoryStats[k]})).sort((a,b) => b.val - a.val); 
+                overallListContainer.innerHTML = ''; 
+                const sortedCatOverall = Object.keys(categoryStats).map(k => ({label: k, val: categoryStats[k]})).sort((a,b) => b.val - a.val); 
                 const overallTotal = sortedCatOverall.reduce((sum, item) => sum + item.val, 0);
 
                 sortedCatOverall.forEach(item => { 
-                    const percent = overallTotal > 0 ? ((item.val / overallTotal) * 100).toFixed(1) : 0; const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
-                    const limit = catLimits[item.label] || 0; let progressHtml = '';
+                    const percent = overallTotal > 0 ? ((item.val / overallTotal) * 100).toFixed(1) : 0;
+                    const displayPercent = percent.endsWith('.0') ? percent.slice(0, -2) : percent;
+
+                    const limit = catLimits[item.label] || 0;
+                    let progressHtml = '';
+
                     if (limit > 0) {
-                        let catPercent = (item.val / limit) * 100; let barColor = globalColorsMap[item.label] || '#94a3b8'; let warningText = '';
-                        if (catPercent >= 100) { catPercent = 100; barColor = '#ef4444'; warningText = `<span class="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded shadow-sm border border-rose-100">OVER BUDGET</span>`; } 
-                        else if (catPercent >= 80) { barColor = '#F4A261'; warningText = `<span class="text-[8px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded shadow-sm border border-amber-100">NEAR LIMIT</span>`; }
+                        let catPercent = (item.val / limit) * 100;
+                        let barColor = globalColorsMap[item.label] || '#94a3b8';
+                        let warningText = '';
+
+                        if (catPercent >= 100) {
+                            catPercent = 100;
+                            barColor = '#ef4444'; // Red
+                            warningText = `<span class="text-[8px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded shadow-sm border border-rose-100">OVER BUDGET</span>`;
+                        } else if (catPercent >= 80) {
+                            barColor = '#F4A261'; // Orange
+                            warningText = `<span class="text-[8px] font-black text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded shadow-sm border border-amber-100">NEAR LIMIT</span>`;
+                        }
+
                         progressHtml = `
                             <div class="w-full mt-2.5">
-                                <div class="flex justify-between items-center mb-1.5"><span class="text-[9px] font-bold text-slate-400">Budget: ${limit.toLocaleString()} JPY</span>${warningText}</div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div class="h-full rounded-full transition-all duration-1000 ease-out" style="width: ${catPercent}%; background-color: ${barColor}"></div></div>
-                            </div>`;
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[9px] font-bold text-slate-400">Budget: ${limit.toLocaleString()} JPY</span>
+                                    ${warningText}
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-1000 ease-out" style="width: ${catPercent}%; background-color: ${barColor}"></div>
+                                </div>
+                            </div>
+                        `;
                     }
 
-                    const div = document.createElement('div'); div.className = "flex flex-col text-xs px-2 py-3 border-b border-gray-50 last:border-0"; 
+                    const div = document.createElement('div'); 
+                    div.className = "flex flex-col text-xs px-2 py-3 border-b border-gray-50 last:border-0"; 
                     div.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <div class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span><div class="flex items-baseline gap-1.5"><span class="font-bold text-gray-700 tracking-wide">${item.label}</span><span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span></div></div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${globalColorsMap[item.label] || '#94a3b8'}"></span>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="font-bold text-gray-700 tracking-wide">${item.label}</span>
+                                    <span class="text-[10px] text-gray-400 font-medium">(${displayPercent}%)</span>
+                                </div>
+                            </div>
                             <span class="font-black ${limit > 0 && item.val >= limit ? 'text-rose-500' : 'text-gray-900'}">${item.val.toLocaleString()} JPY</span>
-                        </div>${progressHtml}
+                        </div>
+                        ${progressHtml}
                     `; 
                     overallListContainer.appendChild(div); 
                 }); 
@@ -1971,23 +3001,58 @@
             updateDailyCategoryChart();
 
             const sortedDatesAnalytics = Object.keys(daily).sort((a,b) => new Date(a) - new Date(b));
-            const totalDays = sortedDatesAnalytics.length; let maxDayVal = 0; let trendLabels = []; let trendData = [];
-            sortedDatesAnalytics.forEach(date => { let val = daily[date].total; trendLabels.push(date.split('-').slice(1).join('/')); trendData.push(val); if (val > maxDayVal) maxDayVal = val; });
+            const totalDays = sortedDatesAnalytics.length;
+            let maxDayVal = 0;
+            let trendLabels = [];
+            let trendData = [];
+
+            sortedDatesAnalytics.forEach(date => {
+                let val = daily[date].total;
+                trendLabels.push(date.split('-').slice(1).join('/')); 
+                trendData.push(val);
+                if (val > maxDayVal) maxDayVal = val;
+            });
 
             const avgDay = totalDays > 0 ? (gross - refund) / totalDays : 0;
             const sortedCatStats = Object.keys(categoryStats).map(k => ({label: k, val: categoryStats[k]})).sort((a,b) => b.val - a.val);
             const topCat = sortedCatStats.length > 0 ? sortedCatStats[0].label : 'None';
 
             if(document.getElementById('stat-total-days')) {
-                document.getElementById('stat-total-days').innerText = totalDays; document.getElementById('stat-avg-day').innerHTML = Math.round(avgDay).toLocaleString() + ' <span class="text-[10px] font-bold text-slate-400">JPY</span>';
-                document.getElementById('stat-max-day').innerHTML = Math.round(maxDayVal).toLocaleString() + ' <span class="text-[10px] font-bold text-slate-400">JPY</span>'; document.getElementById('stat-top-cat').innerText = topCat;
+                document.getElementById('stat-total-days').innerText = totalDays;
+                document.getElementById('stat-avg-day').innerHTML = Math.round(avgDay).toLocaleString() + ' <span class="text-[10px] font-bold text-slate-400">JPY</span>';
+                document.getElementById('stat-max-day').innerHTML = Math.round(maxDayVal).toLocaleString() + ' <span class="text-[10px] font-bold text-slate-400">JPY</span>';
+                document.getElementById('stat-top-cat').innerText = topCat;
 
                 const ctxTrend = document.getElementById('dailyTrendChart');
                 if(ctxTrend) {
                     if(myDailyTrendChart) myDailyTrendChart.destroy();
                     myDailyTrendChart = new Chart(ctxTrend, {
-                        type: 'line', data: { labels: trendLabels, datasets: [{ label: 'Total Spent', data: trendData, borderColor: '#1C2536', backgroundColor: 'rgba(28, 37, 54, 0.05)', borderWidth: 2, fill: true, tension: 0.4, pointBackgroundColor: '#D9383A', pointBorderColor: '#fff', pointRadius: 4, pointHoverRadius: 6 }] },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, display: false }, x: { grid: { display: false }, ticks: { font: { size: 9, family: "'Plus Jakarta Sans'" } } } } }
+                        type: 'line', 
+                        data: {
+                            labels: trendLabels,
+                            datasets: [{
+                                label: 'Total Spent',
+                                data: trendData,
+                                borderColor: '#1C2536',
+                                backgroundColor: 'rgba(28, 37, 54, 0.05)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#D9383A',
+                                pointBorderColor: '#fff',
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, display: false },
+                                x: { grid: { display: false }, ticks: { font: { size: 9, family: "'Plus Jakarta Sans'" } } }
+                            }
+                        }
                     });
                 }
 
@@ -1995,13 +3060,19 @@
                 if (top5Container) {
                     top5Container.innerHTML = '';
                     const top5 = expenses.filter(e => !["Tax refund", "Advanced", "Adjustment", "Refund Pre-Order"].includes(e.category)).sort((a,b) => b.amount - a.amount).slice(0, 5);
+
                     if (top5.length === 0) top5Container.innerHTML = '<p class="text-center text-xs text-slate-400">No data available</p>';
+
                     top5.forEach((item, index) => {
-                        const div = document.createElement('div'); div.className = "flex justify-between items-center text-xs py-3 border-b border-slate-50 last:border-0";
+                        const div = document.createElement('div');
+                        div.className = "flex justify-between items-center text-xs py-3 border-b border-slate-50 last:border-0";
                         div.innerHTML = `
                             <div class="flex items-center gap-3 w-2/3 overflow-hidden">
                                 <span class="w-6 h-6 shrink-0 rounded-full ${index === 0 ? 'bg-[#D9383A] text-white' : 'bg-slate-100 text-slate-500'} flex items-center justify-center text-[10px] font-black shadow-sm">${index + 1}</span>
-                                <div class="min-w-0"><p class="font-bold text-slate-700 truncate">${item.category}</p><p class="text-[10px] text-slate-400 truncate">${item.details || '-'}</p></div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-slate-700 truncate">${item.category}</p>
+                                    <p class="text-[10px] text-slate-400 truncate">${item.details || '-'}</p>
+                                </div>
                             </div>
                             <span class="font-black ${index === 0 ? 'text-[#D9383A]' : 'text-slate-900'} whitespace-nowrap">${Number(item.amount).toLocaleString()} JPY</span>
                         `;
@@ -2011,73 +3082,182 @@
             }
         }
 
-        async function getCurrentLocation() { return new Promise(res => { if(!navigator.geolocation) return res(""); navigator.geolocation.getCurrentPosition( p => res(`https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`), () => res(""), { timeout: 5000 } ); }); }
+        async function getCurrentLocation() { 
+            return new Promise(res => { 
+                if(!navigator.geolocation) return res(""); 
+                navigator.geolocation.getCurrentPosition( 
+                    p => res(`https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`), 
+                    () => res(""), 
+                    { timeout: 5000 } 
+                ); 
+            }); 
+        }
 
         document.getElementById('expense-form').addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const detailsVal = document.getElementById('details').value; let amountVal = getSafeAmount(document.getElementById('amount').value);
-            if (!detailsVal || !detailsVal.trim()) { showToast("Please enter a Note!", true); return; }
-            if (!amountVal || amountVal <= 0) { showToast("Please enter a valid amount!", true); return; }
 
-            const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...'; 
+            const detailsVal = document.getElementById('details').value; 
+            let amountVal = getSafeAmount(document.getElementById('amount').value);
+
+            if (!detailsVal || !detailsVal.trim()) { 
+                showToast("Please enter a Note!", true); 
+                return; 
+            }
+            if (!amountVal || amountVal <= 0) { 
+                showToast("Please enter a valid amount!", true); 
+                return; 
+            }
+
+            const btn = document.getElementById('submit-btn'); 
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...'; 
 
             let loc = "";
-            if (document.getElementById('save-location').checked) { try { loc = await getCurrentLocation(); } catch(err) { loc = ""; } }
+            if (document.getElementById('save-location').checked) {
+                try { loc = await getCurrentLocation(); } catch(err) { loc = ""; }
+            }
 
             const payload = { 
-                date: document.getElementById('date').value, time: new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false, hour: '2-digit', minute: '2-digit' }), 
-                payment: document.getElementById('payment').value, category: document.getElementById('category').value, 
-                details: detailsVal.trim(), amount: amountVal, location: loc, receiptBase64: receiptBase64, receiptName: receiptName,
-                username: currentUser, rate: currentJpyToThbRate, isShared: document.getElementById('is-shared').checked, isTaxFree: document.getElementById('is-taxfree').checked
+                date: document.getElementById('date').value, 
+                time: new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Tokyo', hour12: false, hour: '2-digit', minute: '2-digit' }), 
+                payment: document.getElementById('payment').value, 
+                category: document.getElementById('category').value, 
+                details: detailsVal.trim(), 
+                amount: amountVal, 
+                location: loc, 
+                receiptBase64: receiptBase64, 
+                receiptName: receiptName,
+                username: currentUser, 
+                rate: currentJpyToThbRate,
+                isShared: document.getElementById('is-shared').checked,
+                isTaxFree: document.getElementById('is-taxfree').checked
             };
 
             if (!navigator.onLine) {
                 let queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-                if (currentEditRowId) { payload.oldReceiptUrl = oldReceiptUrl; queue.push({ action: 'updateExpense', data: payload, rowId: currentEditRowId }); } 
-                else { queue.push(payload); }
+                if (currentEditRowId) {
+                    payload.oldReceiptUrl = oldReceiptUrl;
+                    queue.push({ action: 'updateExpense', data: payload, rowId: currentEditRowId });
+                } else {
+                    queue.push(payload); 
+                }
                 localStorage.setItem('offlineQueue', JSON.stringify(queue));
-                showToast("Saved Offline! Will sync when online."); cancelEdit(); updateUI(); return;
+                showToast("Saved Offline! Will sync when online.");
+                cancelEdit();
+                updateUI(); 
+                return;
             }
 
             if (currentEditRowId) {
                 payload.oldReceiptUrl = oldReceiptUrl;
                 try {
-                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateExpense', data: payload, rowId: currentEditRowId }) }).then(r => r.json());
-                    if(res.status === "success") { showToast("Record updated successfully!"); cancelEdit(); loadDataFromSheet(); } 
-                    else { showToast("Error: " + res.message, true); btn.disabled = false; btn.innerHTML = 'Update Record'; } 
-                } catch(err) { showToast("Connection Error.", true); btn.disabled = false; btn.innerHTML = 'Update Record'; }
+                    const res = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'updateExpense', data: payload, rowId: currentEditRowId }) 
+                    }).then(r => r.json());
+
+                    if(res.status === "success") { 
+                        showToast("Record updated successfully!"); 
+                        cancelEdit(); 
+                        loadDataFromSheet(); 
+                    } else { 
+                        showToast("Error: " + res.message, true); 
+                        btn.disabled = false; 
+                        btn.innerHTML = 'Update Record'; 
+                    } 
+                } catch(err) { 
+                    showToast("Connection Error.", true); 
+                    btn.disabled = false; 
+                    btn.innerHTML = 'Update Record'; 
+                }
             } else {
                 try {
-                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addExpense', data: payload }) }).then(r => r.json());
+                    const res = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'addExpense', data: payload }) 
+                    }).then(r => r.json());
+
                     if(res.status === "success") { 
-                        showToast("Record saved successfully!"); e.target.reset(); document.getElementById('date').value = new Date().toLocaleDateString('en-CA'); document.getElementById('thb-equivalent').classList.add('hidden');
+                        showToast("Record saved successfully!"); 
+                        e.target.reset(); 
+                        document.getElementById('date').value = new Date().toLocaleDateString('en-CA'); 
+                        document.getElementById('thb-equivalent').classList.add('hidden');
+
                         renderQuickTags();
-                        const cbShared = document.getElementById('is-shared'); const iconShared = document.getElementById('icon-shared'); cbShared.checked = false; iconShared.classList.remove('text-[#D9383A]'); iconShared.classList.add('text-gray-300'); iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
-                        const cbTax = document.getElementById('is-taxfree'); const iconTax = document.getElementById('icon-taxfree'); cbTax.checked = false; iconTax.classList.remove('text-[#D9383A]'); iconTax.classList.add('text-gray-300'); iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]'); iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
-                        receiptBase64 = null; receiptName = null; 
-                        if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = ''; if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
-                        const btnAddReceipt = document.getElementById('btn-add-receipt'); const receiptLabel = document.getElementById('receipt-label');
-                        if(btnAddReceipt) btnAddReceipt.classList.remove('hidden'); if(receiptLabel) receiptLabel.classList.add('hidden');
+
+                        const cbShared = document.getElementById('is-shared');
+                        const iconShared = document.getElementById('icon-shared');
+                        cbShared.checked = false;
+                        iconShared.classList.remove('text-[#D9383A]'); 
+                        iconShared.classList.add('text-gray-300'); 
+                        iconShared.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                        iconShared.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+
+                        const cbTax = document.getElementById('is-taxfree');
+                        const iconTax = document.getElementById('icon-taxfree');
+                        cbTax.checked = false;
+                        iconTax.classList.remove('text-[#D9383A]'); 
+                        iconTax.classList.add('text-gray-300'); 
+                        iconTax.parentElement.classList.remove('border-[#D9383A]', 'bg-[#FFF9F9]');
+                        iconTax.parentElement.classList.add('border-[#EAE6DF]', 'bg-white');
+
+                        receiptBase64 = null; 
+                        receiptName = null; 
+
+                        if(document.getElementById('receipt-file')) document.getElementById('receipt-file').value = '';
+                        if(document.getElementById('receipt-cam')) document.getElementById('receipt-cam').value = '';
+
+                        const btnAddReceipt = document.getElementById('btn-add-receipt');
+                        const receiptLabel = document.getElementById('receipt-label');
+                        if(btnAddReceipt) btnAddReceipt.classList.remove('hidden');
+                        if(receiptLabel) receiptLabel.classList.add('hidden');
+
                         loadDataFromSheet(); 
-                    } else { showToast("Error: " + res.message, true); } 
-                } catch(err) { showToast("Connection Error.", true); }
-                btn.disabled = false; btn.innerHTML = 'Save Expense <i class="fas fa-paper-plane"></i>'; 
+                    } else { 
+                        showToast("Error: " + res.message, true); 
+                    } 
+                } catch(err) { 
+                    showToast("Connection Error.", true); 
+                }
+
+                btn.disabled = false; 
+                btn.innerHTML = 'Save Expense <i class="fas fa-paper-plane"></i>'; 
             }
         });
 
         async function deleteItem(rowId) { 
-            showConfirmModal("Delete Expense", "Are you sure you want to delete this expense permanently? This action cannot be undone.", async () => {
-                showToast("Deleting...");
-                try {
-                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteExpense', rowId: rowId }) }).then(r => r.json());
-                    if(res.status === "success") { showToast("Deleted successfully!"); loadDataFromSheet(); } else { showToast("Error: " + res.message, true); }
-                } catch (err) { showToast("Connection Error. Please try again.", true); }
-            });
+            showConfirmModal(
+                "Delete Expense",
+                "Are you sure you want to delete this expense permanently? This action cannot be undone.",
+                async () => {
+                    showToast("Deleting...");
+                    try {
+                        const res = await fetch(API_URL, { 
+                            method: 'POST', 
+                            body: JSON.stringify({ action: 'deleteExpense', rowId: rowId }) 
+                        }).then(r => r.json());
+
+                        if(res.status === "success") { 
+                            showToast("Deleted successfully!"); 
+                            loadDataFromSheet(); 
+                        } else { 
+                            showToast("Error: " + res.message, true); 
+                        }
+                    } catch (err) { 
+                        showToast("Connection Error. Please try again.", true); 
+                    }
+                }
+            );
         }
 
         function exportToExcel() { 
-            if (expenses.length === 0) { showToast("No data to export", true); return; } 
-            const ws = XLSX.utils.json_to_sheet(expenses); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Expenses"); 
+            if (expenses.length === 0) { 
+                showToast("No data to export", true); 
+                return; 
+            } 
+            const ws = XLSX.utils.json_to_sheet(expenses);
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Expenses"); 
             XLSX.writeFile(wb, `TripWallet_${new Date().toISOString().slice(0,10)}.xlsx`); 
         }
     </script>

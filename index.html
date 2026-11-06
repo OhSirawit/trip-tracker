@@ -859,7 +859,7 @@
 
     <!-- Scripts -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzVEawJVwYotHVu88TAXk-OYQlpdWVbb8x25bmBAsljYKV7BAoW5SAw88HMP4eEaqI/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwc1wYKoh0cQYFiN8HgrusjDmYWS-I9TqVN82U9_-D7oUZuKqLDGyKqjJ_1Sui4wqE/exec";
 
         let expenses = []; 
         let myOverallCategoryChart = null; 
@@ -963,6 +963,54 @@
             closeReceiptModal();
             document.getElementById(id).click();
         }
+        
+        // 🌟 ฟังก์ชันเรียกใช้ Gemini AI ตรงจากหน้าเว็บ (Frontend)
+        async function callGeminiAILocal(base64Data, mimeType, apiKey) {
+            const systemPrompt = "Extract receipt data and return ONLY a JSON object. Fields: note (Short store name or item), amount (numeric total, convert to JPY if possible, just the number), category (choose one: 'Food', 'Transportation', 'Dessert/Beverage', 'Shopping', 'Admission Fee', 'Tops up IC Card', 'Pre-Order', 'Gasoline', 'Toll / ETC', 'Other'), date (string, YYYY-MM-DD format).";
+            
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: "Extract data from this receipt to JSON." },
+                        { inlineData: { mimeType: mimeType, data: base64Data } }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "note": { "type": "STRING" },
+                            "amount": { "type": "NUMBER" },
+                            "category": { "type": "STRING" },
+                            "date": { "type": "STRING" }
+                        }
+                    }
+                },
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error?.message || "Unknown API error");
+            }
+
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                return JSON.parse(candidate.content.parts[0].text);
+            }
+            return null;
+        }
 
         function handleReceiptUpload(event) {
             const file = event.target.files[0];
@@ -1004,9 +1052,9 @@
                     receiptBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     receiptName = "receipt_" + Date.now() + ".jpg";
 
-                    // === 🌟 AI EXTRACTION PROCESS 🌟 ===
+                    // === 🌟 AI EXTRACTION PROCESS (Frontend) 🌟 ===
                     if (navigator.onLine) {
-                        const savedKey = document.getElementById('gemini-api-key-input') ? document.getElementById('gemini-api-key-input').value.trim() : '';
+                        const savedKey = document.getElementById('gemini-api-key-input') ? document.getElementById('gemini-api-key-input').value.trim() : globalGeminiKey;
                         
                         if (!savedKey) {
                             showToast("กรุณาใส่ API Key ในหน้า Settings เพื่อใช้ AI", true);
@@ -1017,44 +1065,43 @@
                             label.innerHTML = `<i class="fas fa-magic fa-spin text-[#8A9A5B] text-sm"></i><span class="text-[11px] text-[#8A9A5B] font-bold">AI Reading Receipt...</span>`;
 
                             try {
-                                const res = await fetch(API_URL, {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                        action: 'extractReceipt',
-                                        data: { 
-                                            receiptBase64: receiptBase64,
-                                            geminiApiKey: savedKey 
-                                        }
-                                    })
-                                }).then(r => r.json());
+                                const base64DataOnly = receiptBase64.split(',')[1];
+                                const mimeType = receiptBase64.substring(5, receiptBase64.indexOf(';'));
+                                
+                                const extractedData = await callGeminiAILocal(base64DataOnly, mimeType, savedKey);
 
-                                if (res.status === 'success' && res.data) {
-                                    if (res.data.amount) {
-                                        document.getElementById('amount').value = res.data.amount;
+                                if (extractedData) {
+                                    if (extractedData.amount) {
+                                        document.getElementById('amount').value = extractedData.amount;
                                         calculateTHB();
                                     }
-                                    if (res.data.date) {
-                                        // Make sure date matches YYYY-MM-DD
-                                        if(res.data.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                            document.getElementById('date').value = res.data.date;
-                                        }
+                                    if (extractedData.date && extractedData.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                        document.getElementById('date').value = extractedData.date;
                                     }
-                                    if (res.data.details) {
+                                    if (extractedData.note || extractedData.details) {
+                                        const noteVal = extractedData.note || extractedData.details;
                                         const noteInput = document.getElementById('details');
-                                        noteInput.value = noteInput.value ? noteInput.value + " " + res.data.details : res.data.details;
+                                        noteInput.value = noteInput.value ? noteInput.value + " " + noteVal : noteVal;
+                                    }
+                                    if (extractedData.category) {
+                                        const catSelect = document.getElementById('category');
+                                        for(let i=0; i<catSelect.options.length; i++) {
+                                            if(catSelect.options[i].value.toLowerCase().includes(extractedData.category.toLowerCase())) {
+                                                catSelect.selectedIndex = i;
+                                                renderQuickTags();
+                                                break;
+                                            }
+                                        }
                                     }
                                     showToast("AI Auto-filled successfully!");
                                     label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#8A9A5B] bg-[#f7f9f2] rounded-[14px] cursor-pointer transition-colors';
                                     label.innerHTML = `<i class="fas fa-check-circle text-[#8A9A5B] text-sm"></i><span class="text-[11px] text-[#8A9A5B] font-bold truncate max-w-[80px]" id="receipt-text">AI Filled</span>`;
                                 } else {
-                                    console.warn(res.message);
-                                    showToast(res.message || "AI Extraction failed.", true);
-                                    label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
-                                    label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>`;
+                                    throw new Error("No data extracted.");
                                 }
                             } catch (err) {
                                 console.error("AI Fetch Error:", err);
-                                showToast("AI is unavailable. Please fill manually.", true);
+                                showToast(err.message || "AI is unavailable. Please fill manually.", true);
                                 label.className = 'flex items-center justify-center gap-2 w-full py-3.5 border-2 border-[#457B9D] bg-[#F0F8FF] rounded-[14px] cursor-pointer transition-colors';
                                 label.innerHTML = `<i class="fas fa-check-circle text-[#457B9D] text-sm"></i><span class="text-[11px] text-[#457B9D] font-bold truncate max-w-[80px]" id="receipt-text">Attached</span>`;
                             }
